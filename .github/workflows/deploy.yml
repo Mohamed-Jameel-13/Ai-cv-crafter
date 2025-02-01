@@ -1,82 +1,38 @@
-name: Deploy to GitHub Pages
+- name: Checkout repository
+    uses: actions/checkout@v4
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  - name: Setup Pages
+    uses: actions/configure-pages@v4
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+  - name: Set up Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: '20'
+      cache: 'npm'
+      cache-dependency-path: '**/package-lock.json'
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  - name: Install dependencies
+    run: |
+      cd vite-project
+      npm ci
+  - name: Build
+    run: |
+      cd vite-project
+      npm run build
+    env:
+      VITE_GEMINI_AI_API: ${{ secrets.VITE_GEMINI_AI_API }}
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  - name: Upload artifact
+    uses: actions/upload-pages-artifact@v3
+    with:
+      path: './vite-project/dist'
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Check environment
-        run: |
-          node --version
-          npm --version
-          pwd
-          ls -la
-
-      - name: Install dependencies
-        working-directory: ./vite-project
-        run: |
-          npm ci
-        continue-on-error: false
-
-      - name: Validate environment variables
-        run: |
-          if [ -z "${{ secrets.VITE_GEMINI_AI_API }}" ]; then
-            echo "Error: VITE_GEMINI_AI_API is not set"
-            exit 1
-          fi
-        
-      - name: Build
-        working-directory: ./vite-project
-        run: |
-          npm run build
-        env:
-          VITE_GEMINI_AI_API: ${{ secrets.VITE_GEMINI_AI_API }}
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-
-      - name: Verify build output
-        working-directory: ./vite-project
-        run: |
-          if [ ! -d "dist" ]; then
-            echo "Error: Build failed - dist directory not found"
-            exit 1
-          fi
-          ls -la dist
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './vite-project/dist'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  - name: Deploy to GitHub Pages
+    id: deployment
+    uses: actions/deploy-pages@v4
