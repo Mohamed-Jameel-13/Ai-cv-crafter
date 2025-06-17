@@ -9,12 +9,12 @@ import {
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyARvwYhTqRXMEUbfUzQWdPasuSvy2A4mkY",
-  authDomain: "ai-cv-builder-581c4.firebaseapp.com",
-  projectId: "ai-cv-builder-581c4",
-  storageBucket: "ai-cv-builder-581c4.firebasestorage.app",
-  messagingSenderId: "991488890950",
-  appId: "1:991488890950:web:30746f9d81de0e5724d247",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyARvwYhTqRXMEUbfUzQWdPasuSvy2A4mkY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ai-cv-builder-581c4.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-cv-builder-581c4",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-cv-builder-581c4.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "991488890950",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:991488890950:web:30746f9d81de0e5724d247",
 };
 
 // Initialize Firebase

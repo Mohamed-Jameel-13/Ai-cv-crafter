@@ -29,14 +29,35 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
     setLoading(true);
     try {
       const PROMPT = prompt.replace("{jobTitle}", resumeInfo?.personalDetail?.jobTitle || "your job title");
-      const result = await AIchatSession.sendMessage(PROMPT);
-      const rawResponse = await result.response.text();
-      const wrappedResponse = rawResponse.startsWith("[") ? rawResponse : `[${rawResponse}]`;
-      const parsedResponse = JSON.parse(wrappedResponse);
+      
+      // Call the AI service
+      const response = await AIchatSession.sendMessage(PROMPT);
+      
+      // Parse the response as JSON
+      let parsedResponse;
+      try {
+        // Try to parse the response directly
+        parsedResponse = JSON.parse(response);
+      } catch (parseError) {
+        // If direct parsing fails, try to extract JSON from the response
+        const jsonMatch = response.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          parsedResponse = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('Failed to parse AI response as JSON');
+        }
+      }
+
+      // Validate the parsed response
+      if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
+        throw new Error('Invalid response format from AI');
+      }
+
       setAiGenerateSummeryList(parsedResponse);
+      toast.success("AI suggestions generated successfully!");
     } catch (error) {
       console.error("Error generating summaries:", error);
-      toast.error("Failed to generate summaries");
+      toast.error(error.message || "Failed to generate summaries. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -81,9 +102,10 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
               className="border-primary text-primary flex gap-2"
               type="button"
               onClick={generateSummary}
+              disabled={loading}
             >
               <Brain className="h-4 w-4" />
-              Generate from AI
+              {loading ? <Loader2 className="animate-spin" /> : "Generate from AI"}
             </Button>
           </div>
           <Textarea
@@ -106,7 +128,7 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
           {aiGeneratedSummeryList.map((item, index) => (
             <div
               key={index}
-              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer"
+              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => handleSuggestionClick(item.summary)}
             >
               <h2 className="font-bold my-1 text-primary">

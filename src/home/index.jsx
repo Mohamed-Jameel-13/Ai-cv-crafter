@@ -446,7 +446,7 @@ const Home = () => {
             </div>
             <div className="text-center">
               <p className="text-slate-600 mb-2">
-                Crafted with ❤️ using React & Framer Motion by{" "}
+                Crafted with ❤️ using React by{" "}
                 <span className="font-semibold text-slate-800">Mohamed Jameel</span>
               </p>
               <p className="text-sm text-slate-500">
