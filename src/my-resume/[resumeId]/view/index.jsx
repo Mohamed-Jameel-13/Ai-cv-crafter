@@ -45,7 +45,37 @@ const ViewResume = () => {
   }, [email, resumeId]);
 
   const handleDownload = () => {
+    // Hide potential browser UI elements before printing
+    document.title = ''; // Clear page title to minimize header content
+    
+    // Add print-specific meta tags to minimize browser headers
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no');
+    }
+    
+    // Create a temporary style to ensure clean print
+    const printStyle = document.createElement('style');
+    printStyle.id = 'temp-print-style';
+    printStyle.textContent = `
+      @media print {
+        @page { margin: 0 !important; size: A4; }
+        html, body { margin: 0 !important; padding: 0 !important; }
+        header, nav, footer, .no-print { display: none !important; }
+      }
+    `;
+    document.head.appendChild(printStyle);
+    
+    // Trigger print
     window.print();
+    
+    // Clean up temporary style after printing
+    setTimeout(() => {
+      const tempStyle = document.getElementById('temp-print-style');
+      if (tempStyle) {
+        tempStyle.remove();
+      }
+    }, 1000);
   };
 
   if (loading) {

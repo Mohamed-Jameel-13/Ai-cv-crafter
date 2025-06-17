@@ -10,6 +10,9 @@ import ProjectsPreview from "./preview/ProjectsPreview";
 const ResumePreview = () => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
 
+  // Debug: Log theme color
+  console.log('🎨 ResumePreview - Theme color:', resumeInfo?.themeColor);
+
   if (!resumeInfo) {
     return (
       <div className="text-center text-gray-500 text-lg font-medium py-20">
