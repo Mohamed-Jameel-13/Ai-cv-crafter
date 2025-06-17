@@ -82,7 +82,7 @@ const ViewResume = () => {
           <div className="w-auto m-auto flex justify-center mt-3 items-center ">
             <Button 
               onClick={handleDownload}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 rounded-full"
             >
               Download
             </Button>

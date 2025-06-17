@@ -5,6 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
@@ -81,14 +82,14 @@ const AddResume = () => {
 
   return (
     <div>
-      <div
-        className="flex rounded-xl border-2 border-dashed bg-card border-foreground/20 dark:border-foreground/20 p-8 shadow-xl transition hover:shadow-lg hover:scale-105 cursor-pointer h-[280px] items-center justify-center"
-        onClick={() => setOpenDialog(true)}
-      >
-        <PlusSquare className="h-10 w-10 text-foreground" />
-      </div>
-
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogTrigger asChild>
+          <div
+            className="flex rounded-xl border-2 border-dashed bg-card border-foreground/20 p-8 shadow-xl transition hover:shadow-lg hover:scale-105 cursor-pointer h-[280px] items-center justify-center"
+          >
+            <PlusSquare className="h-20 w-20 text-muted-foreground" />
+          </div>
+        </DialogTrigger>
         <DialogContent className="bg-background">
           <DialogHeader>
             <DialogTitle className="text-foreground">
@@ -108,7 +109,7 @@ const AddResume = () => {
               <Button
                 onClick={() => setOpenDialog(false)}
                 variant="ghost"
-                className="text-foreground hover:bg-muted"
+                className="text-foreground hover:bg-muted border-2"
               >
                 Cancel
               </Button>

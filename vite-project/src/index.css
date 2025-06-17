@@ -1,179 +1,29 @@
-@import url("https://fonts.googleapis.com/css2?family=Oleo+Script:wght@400;700&family=Racing+Sans+One&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@media print {
-  #no-print {
-    display: none;
-  }
-
-  #print-area {
-    display: block;
-  }
-  body {
-    margin: 0px;
-    padding: 0px;
-    box-shadow: none;
-    width: 100vw;
-    height: 100vh;
-  }
-}
-
-@page {
-  size: auto;
-  margin: 0mm;
-}
-
-#headingTitle {
-  font-family: "Racing Sans One", system-ui;
-  font-weight: 400;
-  font-style: normal;
-  font-size: xx-large;
-  margin-top: 2px;
-  color: #6600d4;
-  margin-left: -8px;
-}
-
-#headingTitle > #cv {
-  padding: 30px 0 8px;
-  position: relative;
-}
-#headingTitle > #cv::before {
-  content: "";
-  position: absolute;
-  left: 57%;
-  bottom: 12px;
-  width: 45px;
-  height: 30px;
-  transform: skew(-12deg) translateX(-50%);
-  background: rgba(9, 255, 0, 0.573);
-  z-index: -1;
-}
-
-.rsw-ce ul {
-  list-style: disc;
-  padding-left: 2em;
-}
-
-.rsw-ce ol {
-  list-style: decimal;
-  padding-left: 2em;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-  }
-
-  @layer base {
-    :root[data-theme="light"] {
-      --background: 0 0% 100%;
-      --foreground: 222.2 84% 4.9%;
-      --card: 0 0% 100%;
-      --card-foreground: 222.2 84% 4.9%;
-      --popover: 0 0% 100%;
-      --popover-foreground: 222.2 84% 4.9%;
-      --primary: 222.2 47.4% 11.2%;
-      --primary-foreground: 210 40% 98%;
-      --secondary: 210 40% 96.1%;
-      --secondary-foreground: 222.2 47.4% 11.2%;
-      --muted: 210 40% 96.1%;
-      --muted-foreground: 215.4 16.3% 46.9%;
-      --accent: 210 40% 96.1%;
-      --accent-foreground: 222.2 47.4% 11.2%;
-      --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 210 40% 98%;
-      --border: 214.3 31.8% 91.4%;
-      --input: 214.3 31.8% 91.4%;
-      --ring: 222.2 84% 4.9%;
-    }
-  
-    :root[data-theme="dark"] {
-      --background: 222.2 84% 4.9%;
-      --foreground: 210 40% 98%;
-      --card: 222.2 84% 4.9%;
-      --card-foreground: 210 40% 98%;
-      --popover: 222.2 84% 4.9%;
-      --popover-foreground: 210 40% 98%;
-      --primary: 210 40% 98%;
-      --primary-foreground: 222.2 47.4% 11.2%;
-      --secondary: 217.2 32.6% 17.5%;
-      --secondary-foreground: 210 40% 98%;
-      --muted: 217.2 32.6% 17.5%;
-      --muted-foreground: 215 20.2% 65.1%;
-      --accent: 217.2 32.6% 17.5%;
-      --accent-foreground: 210 40% 98%;
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 210 40% 98%;
-      --border: 217.2 32.6% 17.5%;
-      --input: 217.2 32.6% 17.5%;
-      --ring: 212.7 26.8% 83.9%;
-    }
-    
-  }
-  
-  /* Add smooth transitions */
-  * {
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
   }
 }
 
@@ -184,5 +34,44 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+}
+
+@media print {
+  /* Hide everything initially */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the print area and its contents */
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  /* Position the print area to take the whole page */
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none; /* Remove any borders for print */
+  }
+
+  /* Hide elements specifically marked not for printing */
+  #no-print {
+    display: none;
+  }
+
+  /* Attempt to remove browser headers/footers by setting page margins */
+  @page {
+    size: auto; /* auto is the initial value */
+    margin: 0mm; /* Set all page margins to 0 */
+  }
+
+  /* Optional: Hide scrollbars if they somehow appear in print */
+  body {
+    overflow: hidden;
+  }
 }

@@ -1,7 +1,9 @@
 import Header from "@/components/custom/Header";
-import { AtomIcon, Edit, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button"; // Use Shadcn Button
+import { ArrowRight, BrainCircuit, Edit3, Share2 } from "lucide-react"; // Updated icons, replaced ShareNetwork with Share2
 import { useNavigate } from "react-router-dom";
 import { Instagram, Linkedin, Globe } from "react-feather";
+import { motion } from "framer-motion"; // Import motion
 
 const Home = () => {
   const navigate = useNavigate();
@@ -10,143 +12,194 @@ const Home = () => {
     navigate("/dashboard");
   };
 
+  // Animation variants
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const featureCardVariants = {
+     hidden: { opacity: 0, scale: 0.95, y: 30 },
+     visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.5 } }
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Header />
-      <section className="z-50">
-        <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
-          <div
-            className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
-            role="alert"
+      {/* Hero Section */}
+      <motion.section
+        className="flex-grow flex items-center justify-center text-center px-6 sm:px-4 py-16 md:py-24 lg:py-32 z-10 bg-background text-foreground"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+      >
+        <div className="max-w-3xl mx-auto">
+          <motion.div variants={fadeIn}>
+            <span className="inline-block bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-transparent bg-clip-text text-sm font-semibold mb-4 px-3 py-1 rounded-full border border-primary/20 shadow-sm">
+              ✨ AI-Powered Resume Magic
+            </span>
+          </motion.div>
+          <motion.h1
+            className="mb-6 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-6xl"
+            variants={fadeIn}
           >
-            <span className="text-xs bg-primary rounded-full text-white px-4 py-1.5 mr-3">
-              New
+            Craft Your Future:{" "}
+            <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-transparent bg-clip-text">
+              Smarter Resumes
             </span>
-            <span className="text-sm font-medium">
-              AI-Enhanced Resume Creation
-            </span>
-            <svg
-              className="ml-2 w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-          </div>
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-foreground md:text-5xl lg:text-6xl">
-            Elevate Your Career with Smart Resume Creation
-          </h1>
-          <p className="mb-8 text-lg font-normal text-muted-foreground lg:text-xl sm:px-16 xl:px-48">
-            Effortlessly Craft a Standout Resume with Our AI-Powered Builder
-          </p>
-          <div className="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-            <div
+            , Faster.
+          </motion.h1>
+          <motion.p
+            className="mb-10 text-lg font-normal lg:text-xl sm:px-16"
+            variants={fadeIn}
+          >
+            Leverage AI to build compelling resumes that stand out. Effortless
+            creation, professional results.
+          </motion.p>
+          <motion.div variants={fadeIn}>            <Button
+              size="lg"
               onClick={handleGetStartedButton}
-              className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/30"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white !text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition-transform hover:scale-105"
             >
-              Get Started
-              <svg
-                className="ml-2 -mr-1 w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                ></path>
-              </svg>
-            </div>
-          </div>
+              Get Started Free
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
         </div>
-      </section>
-      <section className="py-8 bg-card z-50 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
-        <h2 className="font-bold text-3xl text-card-foreground">
-          How it Works?
-        </h2>
-        <h2 className="text-md text-muted-foreground">
-          Create your resume quickly and effortlessly in 3 Steps
-        </h2>
+      </motion.section>
 
-        <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div className="block rounded-xl border bg-card border-border p-8 shadow-xl transition hover:shadow-lg">
-            <AtomIcon className="h-10 w-10 m-auto text-foreground" />
-            <h2 className="mt-4 text-xl font-bold text-card-foreground">
-              Quickly customize your resume with AI
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Simply input your experience, and let our AI generate impactful
-              bullet points that showcase your skill and experience.
-            </p>
-          </div>
+      {/* How it Works Section */}
+      <motion.section
+        className="py-16 md:py-24 bg-background text-foreground px-6 sm:px-4 z-10"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={staggerContainer}
+      >
+        <div className="max-w-screen-xl mx-auto text-center">
+          <motion.h2 className="font-bold text-3xl mb-3" variants={fadeIn}>
+            How It Works
+          </motion.h2>
+          <motion.p className="text-md mb-12" variants={fadeIn}>
+            Create your perfect resume in 3 simple steps.
+          </motion.p>
 
-          <div className="block rounded-xl border bg-card border-border p-8 shadow-xl transition hover:shadow-lg">
-            <Edit className="h-10 w-10 m-auto text-foreground" />
-            <h2 className="mt-4 text-xl font-bold text-card-foreground">
-              Personalize Your Content
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Modify your form as per your requirements. Change colors,
-              customize AI-generated data, and tailor it to suit your needs.
-            </p>
-          </div>
-
-          <div className="block rounded-xl border bg-card border-border p-8 shadow-xl transition hover:shadow-lg">
-            <Share2 className="h-10 w-10 m-auto text-foreground" />
-            <h2 className="mt-4 text-xl font-bold text-card-foreground">
-              Resume-Specific Platforms
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Download your resume in PDF format and easily share it with others
-              using a unique URL. Start accepting responses and feedback
-              promptly.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <button className="inline-block rounded bg-primary px-12 py-3 text-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus:ring focus:ring-primary/30">
-            Get Started Now
-          </button>
-
-          <footer className="bg-card py-8 mt-12">
-            <div className="container mx-auto px-4">
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="flex items-center space-x-6">
-                  <a
-                    href="https://www.instagram.com/victus__13/"
-                    className="text-muted-foreground hover:text-pink-500 transition"
-                  >
-                    <Instagram className="h-6 w-6" />
-                  </a>
-                  <a
-                    href="http://linkedin.com/in/mohamed-jameel823"
-                    className="text-muted-foreground hover:text-blue-500 transition"
-                  >
-                    <Linkedin className="h-6 w-6" />
-                  </a>
-                  <a
-                    href="https://jameel-portfolio.vercel.app"
-                    className="text-muted-foreground hover:text-green-500 transition"
-                  >
-                    <Globe className="h-6 w-6" />
-                  </a>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  This site is crafted with React by{" "}
-                  <span className="font-bold">Mohamed Jameel</span>
-                </p>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {/* Feature Card 1 */}
+            <motion.div
+              className="flex flex-col items-center p-8 rounded-xl border border-border bg-white text-black shadow-lg transition-shadow hover:shadow-xl"
+              variants={featureCardVariants}
+            >
+              <div className="p-4 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 mb-4">
+                 <BrainCircuit className="h-10 w-10 text-pink-500" />
               </div>
-            </div>
-          </footer>
+              <h3 className="mt-4 text-xl font-bold text-black">
+                AI-Powered Content
+              </h3>
+              <p className="mt-2 text-sm text-gray-700 text-center">
+                Input your details, and our AI generates impactful descriptions
+                tailored to your experience.
+              </p>
+            </motion.div>
+
+            {/* Feature Card 2 */}
+            <motion.div
+              className="flex flex-col items-center p-8 rounded-xl border border-border bg-white text-black shadow-lg transition-shadow hover:shadow-xl"
+              variants={featureCardVariants}
+            >
+               <div className="p-4 rounded-full bg-gradient-to-br from-blue-100 to-green-100 mb-4">
+                 <Edit3 className="h-10 w-10 text-blue-500" />
+               </div>
+              <h3 className="mt-4 text-xl font-bold text-black">
+                Customize & Refine
+              </h3>
+              <p className="mt-2 text-sm text-gray-700 text-center">
+                Easily edit AI suggestions, choose templates, and personalize
+                colors to match your style.
+              </p>
+            </motion.div>
+
+            {/* Feature Card 3 */}
+            <motion.div
+              className="flex flex-col items-center p-8 rounded-xl border border-border bg-white text-black shadow-lg transition-shadow hover:shadow-xl"
+              variants={featureCardVariants}
+            >
+              <div className="p-4 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 mb-4">
+                 <Share2 className="h-10 w-10 text-orange-500" />
+              </div>
+              <h3 className="mt-4 text-xl font-bold text-black">
+                Download & Share
+              </h3>
+              <p className="mt-2 text-sm text-gray-700 text-center">
+                Get your resume as a PDF or share it online with a unique link.
+                Ready for applications!
+              </p>
+            </motion.div>
+          </div>
+
+          <motion.div className="mt-16" variants={fadeIn}>
+            <Button
+              size="lg"
+              onClick={handleGetStartedButton}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition-transform hover:scale-105"
+            >
+              Start Building Now
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
+
+      {/* Footer */}
+      <footer className="bg-background text-foreground py-8 mt-auto z-10">
+        <div className="container mx-auto px-6 sm:px-4">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex items-center space-x-6">
+              <motion.a
+                href="https://www.instagram.com/victus__13/"
+                className="hover:text-pink-500 transition"
+                whileHover={{ scale: 1.2, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Instagram className="h-6 w-6" />
+              </motion.a>
+              <motion.a
+                href="http://linkedin.com/in/mohamed-jameel823"
+                className="hover:text-blue-500 transition"
+                 whileHover={{ scale: 1.2, rotate: -5 }}
+                 whileTap={{ scale: 0.9 }}
+              >
+                <Linkedin className="h-6 w-6" />
+              </motion.a>
+              <motion.a
+                href="https://jameel-portfolio.vercel.app"
+                className="hover:text-green-500 transition"
+                 whileHover={{ scale: 1.2 }}
+                 whileTap={{ scale: 0.9 }}
+              >
+                <Globe className="h-6 w-6" />
+              </motion.a>
+            </div>
+            <p className="text-sm">
+              Crafted with ❤️ using React & Framer Motion by{" "}
+              <span className="font-semibold">Mohamed Jameel</span>
+            </p>
+             <p className="text-xs">
+               &copy; {new Date().getFullYear()} AI Resume Crafter. All rights reserved.
+             </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

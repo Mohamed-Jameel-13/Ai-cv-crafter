@@ -78,7 +78,7 @@ const ResumeItem = ({ resume, refreshData }) => {
           background: "rgb(62,39,35)",
         }}
       >
-        <h2 className="text-sm">Resume Id: {resume.resumeId}</h2>
+        <h2 className="text-sm truncate font-medium">{resume.title}</h2>
 
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -116,7 +116,10 @@ const ResumeItem = ({ resume, refreshData }) => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setOpenAlert(false)}>
+              <AlertDialogCancel
+                onClick={() => setOpenAlert(false)}
+                className="text-foreground border-2"
+              >
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction onClick={onDelete} disabled={loading}>

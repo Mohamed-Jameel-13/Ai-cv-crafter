@@ -20,11 +20,11 @@ const ResumePreview = () => {
 
   return (
     <div
-      className="shadow-lg h-full p-14 border-t-[20px]"
+      className="shadow-lg h-full p-8 border-t-[20px]"
       style={{borderColor: resumeInfo?.themeColor}}
     >
       {resumeInfo && (
-        <div className="flex flex-col gap-0">
+        <div className="flex flex-col">
           <PersonalDetailPreview resumeInfo={resumeInfo} />
           <SummaryDetails resumeInfo={resumeInfo} />
           <ExperiencePreview resumeInfo={resumeInfo} />

@@ -5,6 +5,7 @@ import { UserContext } from "@/context/UserContext";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { app } from "../utils/firebase_config";
 import Header from "@/components/custom/Header";
+import ResumeSkeleton from "./components/ResumeSkeleton";
 
 const Dashboard = () => {
   const { user } = useContext(UserContext);
@@ -47,7 +48,9 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mt-10 gap-5">
           <AddResume />
           {loading ? (
-            <div>Loading...</div>
+            [...Array(4)].map((_, index) => (
+              <ResumeSkeleton key={index} />
+            ))
           ) : resumeList.length > 0 ? (
             resumeList.map((resume) => (
               <div key={resume.id}>

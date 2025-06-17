@@ -23,7 +23,7 @@ const ExperiencePreview = ({ resumeInfo }) => {
   }
 
   return (
-    <div className="my-2">
+    <div>
       <h2 className="text-center font-bold text-sm mb-2">
         Professional Experience
       </h2>
@@ -32,7 +32,7 @@ const ExperiencePreview = ({ resumeInfo }) => {
         style={{borderColor: resumeInfo?.themeColor || "rgb(107 114 128)"}}  
       />
       {experience.map((exp, index) => (
-        <div key={index} className="my-5">
+        <div key={index} className="my-2">
           <h2 className="text-sm font-bold">
             {exp?.title || "Position title not provided"}
           </h2>
