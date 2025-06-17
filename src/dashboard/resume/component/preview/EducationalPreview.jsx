@@ -32,7 +32,7 @@ const EducationalPreview = ({ resumeInfo }) => {
           </div>
           {educationItem?.description && (
             <div 
-              className="text-xs mt-2 text-justify"
+              className="text-xs mt-2 text-justify leading-relaxed [&>ul]:list-disc [&>ul]:list-inside [&>ol]:list-decimal [&>ol]:list-inside [&>li]:mb-1 [&>ul]:space-y-1 [&>ol]:space-y-1"
               dangerouslySetInnerHTML={{
                 __html: educationItem.description
               }}

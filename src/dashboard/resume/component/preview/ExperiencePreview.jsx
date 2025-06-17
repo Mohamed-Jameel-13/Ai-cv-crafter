@@ -23,7 +23,7 @@ const ExperiencePreview = ({ resumeInfo }) => {
   }
 
   return (
-    <div>
+    <div className="mt-2">
       <h2 className="text-center font-bold text-sm mb-2">
         Professional Experience
       </h2>
@@ -48,7 +48,7 @@ const ExperiencePreview = ({ resumeInfo }) => {
             </span>
           </h2>
           <div
-            className="text-xs my-2 text-justify leading-relaxed"
+            className="text-xs my-2 text-justify leading-relaxed [&>ul]:list-disc [&>ul]:list-inside [&>ol]:list-decimal [&>ol]:list-inside [&>li]:mb-1 [&>ul]:space-y-1 [&>ol]:space-y-1"
             dangerouslySetInnerHTML={{
               __html: exp?.workSummery || "No work summary provided.",
             }}

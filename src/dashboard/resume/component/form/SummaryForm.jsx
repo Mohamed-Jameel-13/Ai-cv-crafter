@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ResumeContext } from "@/context/ResumeContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Brain, Loader2 } from "lucide-react";
 import { AIchatSession } from "../../../../../service/AiModel";
@@ -13,6 +13,7 @@ const prompt = `Given the job title "{jobTitle}", provide three job summary sugg
 const SummaryForm = ({ resumeId, email, enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [summary, setSummary] = useState(resumeInfo?.summary || "");
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState();
 
@@ -23,7 +24,38 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
         summary,
       }));
     }
-  }, [summary]);
+  }, [summary, setResumeInfo]);
+
+  // Auto-save function
+  const autoSave = useCallback(async (summaryData) => {
+    setIsAutoSaving(true);
+    try {
+      const db = getFirestore(app);
+      const resumeRef = doc(
+        db,
+        `usersByEmail/${email}/resumes`,
+        `resume-${resumeId}`
+      );
+      await setDoc(resumeRef, { summary: summaryData }, { merge: true });
+      enableNext(true);
+    } catch (error) {
+      console.error("Error auto-saving to Firestore:", error);
+      toast.error("Auto-save failed. Please check your connection.");
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [email, resumeId, enableNext]);
+
+  // Debounced auto-save
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (summary.trim()) {
+        autoSave(summary);
+      }
+    }, 1000); // Auto-save after 1 second of inactivity
+
+    return () => clearTimeout(timeoutId);
+  }, [summary, autoSave]);
 
   const generateSummary = async () => {
     setLoading(true);
@@ -63,43 +95,32 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
     }
   };
 
-  const onSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const db = getFirestore(app);
-      const resumeRef = doc(
-        db,
-        `usersByEmail/${email}/resumes`,
-        `resume-${resumeId}`
-      );
-      await setDoc(resumeRef, { summary }, { merge: true });
-      enableNext(true);
-      toast.success("Details Updated");
-    } catch (error) {
-      console.error("Error updating document:", error);
-      toast.error("Failed to update details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSuggestionClick = (summaryText) => {
     setSummary(summaryText);
   };
 
   return (
-    <div>
-      <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-        <h2 className="font-bold text-lg">Summary Detail</h2>
-        <p>Add Summary for your job title</p>
-        <form className="mt-7" onSubmit={onSave}>
-          <div className="flex justify-between items-end">
-            <label>Add Summary</label>
+    <div className="w-full">
+      <div className="p-3 sm:p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10 w-full">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="font-bold text-lg sm:text-xl">Summary Detail</h2>
+            <p className="text-sm sm:text-base text-gray-600">Add Summary for your job title</p>
+          </div>
+          {isAutoSaving && (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+              Auto-saving...
+            </div>
+          )}
+        </div>
+        <div className="mt-7">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
+            <label className="text-sm font-medium">Add Summary</label>
             <Button
               size="sm"
               variant="outline"
-              className="border-primary text-primary flex gap-2"
+              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors flex gap-2 w-full sm:w-auto"
               type="button"
               onClick={generateSummary}
               disabled={loading}
@@ -109,34 +130,34 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
             </Button>
           </div>
           <Textarea
-            className="mt-5"
+            className="mt-5 w-full min-h-[100px]"
             required
             onChange={(e) => setSummary(e.target.value)}
             value={summary}
             placeholder="Write your job summary here..."
           />
-          <div className="mt-2 flex justify-end">
-            <Button disabled={loading} type="submit">
-              {loading ? <Loader2 className="animate-spin" /> : "Save"}
-            </Button>
-          </div>
-        </form>
+        </div>
       </div>
       {aiGeneratedSummeryList && (
-        <div className="my-5">
-          <h2 className="font-bold text-lg">Suggestions</h2>
-          {aiGeneratedSummeryList.map((item, index) => (
-            <div
-              key={index}
-              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => handleSuggestionClick(item.summary)}
-            >
-              <h2 className="font-bold my-1 text-primary">
-                Level: <span className="text-red-500">{item.experience_level}</span>
-              </h2>
-              <p>{item.summary}</p>
-            </div>
-          ))}
+        <div className="my-5 w-full">
+          <h2 className="font-bold text-base sm:text-lg mb-3">AI Suggestions</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {aiGeneratedSummeryList.map((item, index) => (
+              <div
+                key={index}
+                className="p-3 sm:p-4 shadow-md rounded-lg cursor-pointer hover:bg-gray-50 hover:shadow-lg transition-all duration-200 border border-gray-200"
+                onClick={() => handleSuggestionClick(item.summary)}
+              >
+                <h3 className="font-bold my-1 text-primary text-sm sm:text-base">
+                  Level: <span className="text-red-500">{item.experience_level}</span>
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{item.summary}</p>
+                <div className="mt-2 text-xs text-gray-500">
+                  Click to use this suggestion
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

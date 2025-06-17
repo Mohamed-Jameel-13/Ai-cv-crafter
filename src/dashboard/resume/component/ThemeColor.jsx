@@ -6,11 +6,14 @@ import{
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { ResumeContext } from "@/context/ResumeContext"
+import { UserContext } from "@/context/UserContext"
 import { LayoutGrid } from "lucide-react"
 import { useContext, useState } from "react"
 import { useParams } from "react-router-dom"
-
+import { getFirestore, doc, setDoc } from "firebase/firestore"
+import { app } from "@/utils/firebase_config"
 import { toast } from "sonner"
+import { getCurrentUserEmail, isUserAuthenticated, handleFirebaseError, debugAuthState } from "@/utils/firebase_helpers"
 
 const ThemeColor = () => {
     
@@ -21,23 +24,55 @@ const ThemeColor = () => {
     ]
 
     const {resumeInfo,setResumeInfo} = useContext(ResumeContext)
-    const [selectedColor, setSelectedColor] = useState()
+    const userContext = useContext(UserContext)
+    const [selectedColor, setSelectedColor] = useState(resumeInfo?.themeColor)
     const {resumeId}= useParams();
-    const onColorSelect=(color)=>{
+    
+    const onColorSelect = async (color) => {
         setSelectedColor(color)
         setResumeInfo({
             ...resumeInfo,
             themeColor: color,
         })
-        const data={
-            data:{
-                themeColor:color,
-            }
+
+        // Debug authentication state
+        const authState = debugAuthState(userContext);
+        
+        // Check if user is authenticated
+        if (!isUserAuthenticated(userContext)) {
+            toast.error('Please sign in to save theme color');
+            return;
         }
-        // GlobalApi.UpdateResumeDetails(resumeId,data).then(resp=>{
-        //     console.log(resp);
-        //     toast.success('Theme color updated')
-        // })
+
+        const userEmail = getCurrentUserEmail(userContext);
+        if (!userEmail) {
+            toast.error('Unable to identify user email. Please sign in again.');
+            return;
+        }
+
+        // Save to Firebase
+        try {
+            const db = getFirestore(app);
+            const resumeRef = doc(db, `usersByEmail/${userEmail}/resumes`, `resume-${resumeId}`);
+            
+            console.log('🎨 Attempting to save theme color:', {
+                color,
+                userEmail,
+                resumeId,
+                path: `usersByEmail/${userEmail}/resumes/resume-${resumeId}`
+            });
+            
+            await setDoc(resumeRef, {
+                themeColor: color,
+            }, { merge: true });
+            
+            console.log('✅ Theme color saved successfully');
+            toast.success('Theme color updated successfully!');
+            
+        } catch (error) {
+            console.error('❌ Theme color save failed:', error);
+            handleFirebaseError(error, 'update theme color');
+        }
     }
 
   return (
@@ -51,7 +86,7 @@ const ThemeColor = () => {
             <div className="grid grid-cols-5 gap-3">
             {colors.map((item,index)=>(
                 <div key={index} onClick={()=>onColorSelect(item)}
-                className={`h-5 w-5 rounded-full cursor-pointer border hover:border-black ${selectedColor==item&&'border border-black'}`}
+                className={`h-5 w-5 rounded-full cursor-pointer border hover:border-black transition-all ${selectedColor==item&&'border-2 border-black scale-110'}`}
                 style={{
                     background:item
                 }}>

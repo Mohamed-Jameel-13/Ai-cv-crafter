@@ -17,14 +17,14 @@ const initialProject = {
   liveDemo: ""
 };
 
-const prompt = `Given the project name "{projectName}" and technologies "{technologies}", generate a professional project description and 3 key highlights that showcase technical implementation and achievements. Format the response as a JSON object with "description" (brief project overview) and "highlights" (array of 3 bullet points describing key technical achievements).`;
+const prompt = `Given the project name "{projectName}" and technologies "{technologies}", provide three different project suggestion levels for a resume. Each suggestion should be in JSON format with fields "experience_level" (values can be "Entry-level", "Mid-level", "Senior-level"), "description" (brief ATS-friendly project overview), and "highlights" (array of 4-5 ATS-friendly bullet points focusing on technical achievements, impact, and skills demonstrated). Output an array of JSON objects. Format: [{"experience_level": "Entry-level", "description": "Brief description", "highlights": ["Achievement 1", "Achievement 2", ...]}, ...]`;
 
 const Projects = ({ resumeId, email, enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [projectsList, setProjectsList] = useState(() =>
     resumeInfo?.projects?.length > 0 ? resumeInfo.projects : [initialProject]
   );
-  const [loading, setLoading] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [currentProjectIndex, setCurrentProjectIndex] = useState(null);
   const [aiGeneratedContent, setAiGeneratedContent] = useState(null);
@@ -35,6 +35,33 @@ const Projects = ({ resumeId, email, enableNext }) => {
       projects: projectsList
     }));
   }, [projectsList, setResumeInfo]);
+
+  // Auto-save function
+  const autoSave = useCallback(async (data) => {
+    setIsAutoSaving(true);
+    try {
+      const db = getFirestore(app);
+      const resumeRef = doc(db, `usersByEmail/${email}/resumes`, `resume-${resumeId}`);
+      await setDoc(resumeRef, { projects: data }, { merge: true });
+      enableNext(true);
+    } catch (error) {
+      console.error("Error auto-saving to Firestore:", error);
+      toast.error("Auto-save failed. Please check your connection.");
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [email, resumeId, enableNext]);
+
+  // Debounced auto-save
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (projectsList.length > 0 && projectsList[0].name) {
+        autoSave(projectsList);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [projectsList, autoSave]);
 
   const handleChange = useCallback((projectIndex, field, value) => {
     setProjectsList(prev => {
@@ -65,33 +92,62 @@ const Projects = ({ resumeId, email, enableNext }) => {
         .replace("{projectName}", projectsList[projectIndex].name)
         .replace("{technologies}", projectsList[projectIndex].technologies);
       
-      const result = await AIchatSession.sendMessage(PROMPT);
-      const response = await result.response.text();
-      const parsedResponse = JSON.parse(response);
+      console.log("Prompt:", PROMPT);
+      
+      // Call AI service - it returns text directly
+      const aiResponse = await AIchatSession.sendMessage(PROMPT);
+      console.log("AI Response:", aiResponse);
+      
+      if (!aiResponse) {
+        throw new Error("No response from AI service");
+      }
+      
+      // Parse the response as JSON
+      let parsedResponse;
+      try {
+        // Try to parse the response directly
+        parsedResponse = JSON.parse(aiResponse);
+      } catch (parseError) {
+        // If direct parsing fails, try to extract JSON from the response
+        const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          parsedResponse = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('Failed to parse AI response as JSON');
+        }
+      }
+
+      // Validate the parsed response
+      if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
+        throw new Error('Invalid response format from AI');
+      }
+
       setAiGeneratedContent(parsedResponse);
+      toast.success("AI suggestions generated successfully!");
+      
     } catch (error) {
       console.error("Error generating content:", error);
-      toast.error("Failed to generate content");
+      toast.error("Failed to generate AI suggestions. Please try again.");
     } finally {
       setAiLoading(false);
     }
   };
 
-  const applyAiContent = useCallback(() => {
-    if (aiGeneratedContent && currentProjectIndex !== null) {
+  const applyAiContent = useCallback((selectedSuggestion) => {
+    if (selectedSuggestion && currentProjectIndex !== null) {
       setProjectsList(prev => {
         const newProjects = [...prev];
         newProjects[currentProjectIndex] = {
           ...newProjects[currentProjectIndex],
-          description: aiGeneratedContent.description,
-          bullets: aiGeneratedContent.highlights
+          description: selectedSuggestion.description,
+          bullets: selectedSuggestion.highlights
         };
         return newProjects;
       });
       setAiGeneratedContent(null);
       toast.success("AI content applied successfully");
     }
-  }, [aiGeneratedContent, currentProjectIndex]);
+  }, [currentProjectIndex]);
 
   const addNewProject = useCallback(() => {
     setProjectsList(prev => [...prev, { ...initialProject }]);
@@ -121,54 +177,50 @@ const Projects = ({ resumeId, email, enableNext }) => {
     });
   }, []);
 
-  const onSave = async () => {
-    setLoading(true);
-    try {
-      const db = getFirestore(app);
-      const resumeRef = doc(db, `usersByEmail/${email}/resumes`, `resume-${resumeId}`);
-      await setDoc(resumeRef, { projects: projectsList }, { merge: true });
-      toast.success("Projects updated successfully");
-      enableNext(true);
-    } catch (error) {
-      console.error("Error saving:", error);
-      toast.error("Failed to update projects");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div>
-      <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-        <h2 className="font-bold text-lg">Projects</h2>
-        <p>Add your technical projects</p>
+    <div className="w-full">
+      <div className="p-3 sm:p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10 w-full">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="font-bold text-lg sm:text-xl">Projects</h2>
+            <p className="text-sm sm:text-base text-gray-600">Add your technical projects</p>
+          </div>
+          {isAutoSaving && (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+              Auto-saving...
+            </div>
+          )}
+        </div>
 
         {projectsList.map((project, projectIndex) => (
           <div key={projectIndex} className="border rounded-lg p-3 mt-3">
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs">Project Name</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="w-full">
+                <label className="text-xs font-medium">Project Name</label>
                 <Input
                   value={project.name}
                   onChange={(e) => handleChange(projectIndex, "name", e.target.value)}
+                  className="w-full"
                 />
               </div>
               
-              <div>
-                <label className="text-xs">Technologies (comma separated)</label>
+              <div className="w-full">
+                <label className="text-xs font-medium">Technologies (comma separated)</label>
                 <Input
                   value={project.technologies}
                   onChange={(e) => handleChange(projectIndex, "technologies", e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              <div>
-                <div className="flex justify-between items-center">
-                  <label className="text-xs">Brief Description</label>
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                  <label className="text-xs font-medium">Brief Description</label>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-primary text-primary flex gap-2"
+                    className="border-primary text-primary hover:bg-primary hover:text-white transition-colors flex gap-2 w-full sm:w-auto"
                     onClick={() => generateContent(projectIndex)}
                     disabled={aiLoading}
                   >
@@ -176,44 +228,47 @@ const Projects = ({ resumeId, email, enableNext }) => {
                       <LoaderCircle className="h-4 w-4 animate-spin" /> : 
                       <Brain className="h-4 w-4" />
                     }
-                    Generate from AI
+                    {aiLoading && currentProjectIndex === projectIndex ? "Generating..." : "Generate from AI"}
                   </Button>
                 </div>
                 <Textarea
                   value={project.description}
                   onChange={(e) => handleChange(projectIndex, "description", e.target.value)}
+                  className="w-full min-h-[80px]"
                 />
               </div>
 
-              <div>
-                <label className="text-xs">Live Demo URL</label>
+              <div className="col-span-1 md:col-span-2">
+                <label className="text-xs font-medium">Live Demo URL</label>
                 <Input
                   value={project.liveDemo}
                   onChange={(e) => handleChange(projectIndex, "liveDemo", e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs">Project Highlights</label>
+              <div className="col-span-1 md:col-span-2 space-y-2">
+                <label className="text-xs font-medium">Project Highlights</label>
                 {project.bullets.map((bullet, bulletIndex) => (
                   <Input
                     key={bulletIndex}
                     value={bullet}
                     onChange={(e) => handleBulletChange(projectIndex, bulletIndex, e.target.value)}
+                    className="w-full"
                   />
                 ))}
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     variant="outline"
                     onClick={() => addBulletPoint(projectIndex)}
-                    className="text-primary text-xs"
+                    className="text-primary hover:bg-primary hover:text-white transition-colors text-xs w-full sm:w-auto"
                   >
                     + Add Bullet
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => removeBulletPoint(projectIndex)}
-                    className="text-primary text-xs"
+                    className="text-primary hover:bg-primary hover:text-white transition-colors text-xs w-full sm:w-auto"
                   >
                     - Remove Bullet
                   </Button>
@@ -223,51 +278,57 @@ const Projects = ({ resumeId, email, enableNext }) => {
           </div>
         ))}
 
-        <div className="flex justify-between mt-4">
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={addNewProject}
-              className="text-primary"
-            >
-              + Add Project
-            </Button>
-            <Button
-              variant="outline"
-              onClick={removeProject}
-              className="text-primary"
-            >
-              - Remove Project
-            </Button>
-          </div>
-          <Button disabled={loading} onClick={onSave}>
-            {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
+        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+          <Button
+            variant="outline"
+            onClick={addNewProject}
+            className="text-primary hover:bg-primary hover:text-white transition-colors w-full sm:w-auto"
+          >
+            + Add Project
+          </Button>
+          <Button
+            variant="outline"
+            onClick={removeProject}
+            className="text-primary hover:bg-primary hover:text-white transition-colors w-full sm:w-auto"
+          >
+            - Remove Project
           </Button>
         </div>
       </div>
 
+      {/* AI Suggestions Section */}
       {aiGeneratedContent && (
-        <div className="mt-5 p-5 shadow-lg rounded-lg">
-          <h2 className="font-bold text-lg mb-3">AI Generated Content</h2>
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold">Description:</h3>
-              <p className="text-sm">{aiGeneratedContent.description}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Highlights:</h3>
-              <ul className="list-disc pl-5">
-                {aiGeneratedContent.highlights.map((highlight, index) => (
-                  <li key={index} className="text-sm">{highlight}</li>
-                ))}
-              </ul>
-            </div>
-            <Button 
-              onClick={applyAiContent}
-              className="w-full"
-            >
-              Apply This Content
-            </Button>
+        <div className="mt-5 w-full">
+          <h2 className="font-bold text-base sm:text-lg mb-3">AI Suggestions</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+            {aiGeneratedContent.map((suggestion, index) => (
+              <div
+                key={index}
+                className="p-3 sm:p-4 shadow-md rounded-lg cursor-pointer hover:bg-gray-50 hover:shadow-lg transition-all duration-200 border border-gray-200 w-full"
+                onClick={() => applyAiContent(suggestion)}
+              >
+                <h3 className="font-bold my-1 text-primary text-sm sm:text-base">
+                  Level: <span className="text-red-500">{suggestion.experience_level}</span>
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-xs sm:text-sm">Description:</h4>
+                    <p className="text-xs sm:text-sm text-gray-700">{suggestion.description}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-xs sm:text-sm">Highlights:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm">
+                      {suggestion.highlights.map((highlight, hIndex) => (
+                        <li key={hIndex} className="text-gray-700 leading-relaxed">{highlight}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500">
+                  Click to use this suggestion
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

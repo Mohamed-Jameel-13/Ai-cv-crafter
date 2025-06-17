@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ResumeContext } from "@/context/ResumeContext";
-import { useContext, useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { useContext, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { app } from "@/utils/firebase_config";
@@ -12,7 +11,7 @@ import { BiWorld } from "react-icons/bi";
 
 const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
-  const [loading, setLoading] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const db = getFirestore(app);
 
   const [formData, setFormData] = useState({
@@ -39,8 +38,37 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
     }
   }, [resumeInfo]);
 
+  // Auto-save function
+  const autoSave = useCallback(async (data) => {
+    setIsAutoSaving(true);
+    try {
+      const resumeRef = doc(
+        db,
+        `usersByEmail/${email}/resumes`,
+        `resume-${resumeId}`
+      );
+      await setDoc(resumeRef, data, { merge: true });
+      enableNext(true);
+    } catch (error) {
+      console.error("Error auto-saving to Firestore:", error);
+      toast.error("Auto-save failed. Please check your connection.");
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [db, email, resumeId, enableNext]);
+
+  // Debounced auto-save
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.personalDetail.firstName || formData.personalDetail.lastName) {
+        autoSave(formData);
+      }
+    }, 1000); // Auto-save after 1 second of inactivity
+
+    return () => clearTimeout(timeoutId);
+  }, [formData, autoSave]);
+
   const handleInputChange = (e) => {
-    enableNext(false);
     const { name, value } = e.target;
     
     const updatedPersonalDetail = {
@@ -59,66 +87,58 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
     }));
   };
 
-  const onSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const resumeRef = doc(
-        db,
-        `usersByEmail/${email}/resumes`,
-        `resume-${resumeId}`
-      );
-      await setDoc(resumeRef, formData, { merge: true });
-      toast.success("Details Updated");
-      enableNext(true);
-    } catch (error) {
-      console.error("Error updating document: ", error);
-      toast.error("Failed to update details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-      <h2 className="font-bold text-lg">Personal Detail</h2>
-      <p>Get Started with the basic information</p>
-
-      <form onSubmit={onSave}>
-        <div className="grid grid-cols-2 mt-5 gap-3">
+    <div className="w-full">
+      <div className="p-3 sm:p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10 w-full">
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <label className="text-sm">First Name</label>
+            <h2 className="font-bold text-lg sm:text-xl">Personal Detail</h2>
+            <p className="text-sm sm:text-base text-gray-600">Get Started with the basic information</p>
+          </div>
+          {isAutoSaving && (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+              Auto-saving...
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 mt-5 gap-3">
+          <div className="w-full">
+            <label className="text-sm font-medium">First Name</label>
             <Input
               name="firstName"
               value={formData.personalDetail.firstName}
               required
               onChange={handleInputChange}
               placeholder="Enter firstName"
+              className="w-full"
             />
           </div>
-          <div>
-            <label className="text-sm">Last Name</label>
+          <div className="w-full">
+            <label className="text-sm font-medium">Last Name</label>
             <Input
               name="lastName"
               value={formData.personalDetail.lastName}
               required
               onChange={handleInputChange}
               placeholder="Enter lastName"
+              className="w-full"
             />
           </div>
-          <div className="col-span-2">
-            <label className="text-sm">Job Title</label>
+          <div className="col-span-1 md:col-span-2">
+            <label className="text-sm font-medium">Job Title</label>
             <Input
               name="jobTitle"
               value={formData.personalDetail.jobTitle}
               required
               onChange={handleInputChange}
               placeholder="Enter your Jobtitle"
+              className="w-full"
             />
           </div>
-          <div className="col-span-2">
-            <label className="text-sm flex items-center gap-2">
+          <div className="col-span-1 md:col-span-2">
+            <label className="text-sm font-medium flex items-center gap-2">
               <IoLocationSharp className="text-black" /> Address
             </label>
             <Input
@@ -127,10 +147,11 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
               required
               onChange={handleInputChange}
               placeholder="Enter your Address"
+              className="w-full"
             />
           </div>
-          <div>
-            <label className="text-sm flex items-center gap-2">
+          <div className="w-full">
+            <label className="text-sm font-medium flex items-center gap-2">
               <FaPhone className="text-black" /> Phone
             </label>
             <Input
@@ -139,10 +160,11 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
               required
               onChange={handleInputChange}
               placeholder="Enter your Phone no"
+              className="w-full"
             />
           </div>
-          <div>
-            <label className="text-sm flex items-center gap-2">
+          <div className="w-full">
+            <label className="text-sm font-medium flex items-center gap-2">
               <FaEnvelope className="text-black" /> Email
             </label>
             <Input
@@ -151,10 +173,11 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
               required
               onChange={handleInputChange}
               placeholder="Enter your Email"
+              className="w-full"
             />
           </div>
-          <div className="col-span-2">
-            <label className="text-sm flex items-center gap-2">
+          <div className="col-span-1 md:col-span-2">
+            <label className="text-sm font-medium flex items-center gap-2">
               <FaLinkedin className="text-black" /> LinkedIn URL
             </label>
             <Input
@@ -162,10 +185,11 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
               value={formData.personalDetail.linkedin}
               onChange={handleInputChange}
               placeholder="Enter your Linkedin link"
+              className="w-full"
             />
           </div>
-          <div className="col-span-2">
-            <label className="text-sm flex items-center gap-2">
+          <div className="col-span-1 md:col-span-2">
+            <label className="text-sm font-medium flex items-center gap-2">
               <FaGithub className="text-black" /> GitHub URL
             </label>
             <Input
@@ -173,10 +197,11 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
               value={formData.personalDetail.github}
               onChange={handleInputChange}
               placeholder="Enter your Github link"
+              className="w-full"
             />
           </div>
-          <div className="col-span-2">
-            <label className="text-sm flex items-center gap-2">
+          <div className="col-span-1 md:col-span-2">
+            <label className="text-sm font-medium flex items-center gap-2">
               <BiWorld className="text-black" /> Portfolio URL
             </label>
             <Input
@@ -184,15 +209,11 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
               value={formData.personalDetail.portfolio}
               onChange={handleInputChange}
               placeholder="Enter your portfolio link"
+              className="w-full"
             />
           </div>
         </div>
-        <div className="mt-3 flex justify-end">
-          <Button type="submit" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" /> : "Save"}
-          </Button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };
