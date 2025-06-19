@@ -137,6 +137,7 @@ Thumbs.db
 .firebaserc
 firebase-debug.log
 firebase-debug.*.log
+firestore.rules
 
 # Vite
 .vite/

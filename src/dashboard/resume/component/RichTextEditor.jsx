@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ResumeContext } from "@/context/ResumeContext";
 import { Brain, Loader2 } from "lucide-react";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import {
   BtnBold,
   BtnBulletList,
@@ -27,19 +27,26 @@ import { toast } from "sonner";
 const PROMPT = `Given the job position "{positionTitle}", provide three professional experience point suggestions for a resume. Each suggestion should be in JSON format with fields "experience_level" (values can be "Entry-level", "Mid-level", "Senior-level") and "points" (an array of 4-5 ATS-friendly bullet points as HTML list items). Output an array of JSON objects. Each point should be a complete sentence highlighting achievements and responsibilities. Format: [{"experience_level": "Entry-level", "points": ["<li>Point 1</li>", "<li>Point 2</li>", ...]}, ...]`;
 
 const RichTextEditor = ({onRichTextEditorChange, index, defaultValue, value}) => {
-  const [editorValue, setEditorValue] = useState(defaultValue || value || '');
+  const [editorValue, setEditorValue] = useState('');
   const {resumeInfo, setResumeInfo} = useContext(ResumeContext)
   const [loading, setLoading] = useState(false);
   const [aiGeneratedSuggestions, setAiGeneratedSuggestions] = useState(null);
+  
+  // Use ref to track if component is initialized to prevent unnecessary updates
+  const isInitialized = useRef(false);
+  const lastValueRef = useRef('');
 
-  // Update editor value when props change
+  // Initialize editor value only once or when external value changes significantly
   useEffect(() => {
-    if (defaultValue !== undefined) {
-      setEditorValue(defaultValue);
-    } else if (value !== undefined) {
-      setEditorValue(value);
+    const newValue = defaultValue || value || '';
+    
+    // Only update if the value has actually changed and it's different from what we last set
+    if (!isInitialized.current || (newValue !== lastValueRef.current && newValue !== editorValue)) {
+      setEditorValue(newValue);
+      lastValueRef.current = newValue;
+      isInitialized.current = true;
     }
-  }, [defaultValue, value]);
+  }, [defaultValue, value, editorValue]);
 
   const GenerateSummaryFromaI = async () => {
     try {
@@ -101,6 +108,7 @@ const RichTextEditor = ({onRichTextEditorChange, index, defaultValue, value}) =>
     // Convert points array to HTML unordered list
     const htmlContent = `<ul>${points.join('')}</ul>`;
     setEditorValue(htmlContent);
+    lastValueRef.current = htmlContent;
     
     // Trigger the onChange callback to update parent component
     if (onRichTextEditorChange) {
@@ -116,6 +124,8 @@ const RichTextEditor = ({onRichTextEditorChange, index, defaultValue, value}) =>
   const handleEditorChange = (e) => {
     const newValue = e.target.value;
     setEditorValue(newValue);
+    lastValueRef.current = newValue;
+    
     if (onRichTextEditorChange) {
       onRichTextEditorChange(e);
     }
