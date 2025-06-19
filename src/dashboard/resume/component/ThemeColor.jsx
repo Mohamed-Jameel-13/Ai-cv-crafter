@@ -26,6 +26,7 @@ const ThemeColor = () => {
     const {resumeInfo,setResumeInfo} = useContext(ResumeContext)
     const userContext = useContext(UserContext)
     const [selectedColor, setSelectedColor] = useState(resumeInfo?.themeColor)
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false)
     const {resumeId}= useParams();
     
     const onColorSelect = async (color) => {
@@ -34,6 +35,9 @@ const ThemeColor = () => {
             ...resumeInfo,
             themeColor: color,
         })
+
+        // Close popover immediately when color is selected
+        setIsPopoverOpen(false)
 
         // Debug authentication state
         const authState = debugAuthState(userContext);
@@ -77,19 +81,31 @@ const ThemeColor = () => {
 
   return (
     
-    <Popover>
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
         <Button className="flex gap-2" variant="outline" size="sm"><LayoutGrid/>Theme</Button>
         </PopoverTrigger>
-        <PopoverContent>
-            <h2 className="mb-2 text-sm font-bold">Select theme color</h2>
+        <PopoverContent className="w-auto p-3">
+            <h2 className="mb-3 text-sm font-bold">Select theme color</h2>
             <div className="grid grid-cols-5 gap-3">
             {colors.map((item,index)=>(
-                <div key={index} onClick={()=>onColorSelect(item)}
-                className={`h-5 w-5 rounded-full cursor-pointer border hover:border-black transition-all ${selectedColor==item&&'border-2 border-black scale-110'}`}
-                style={{
-                    background:item
-                }}>
+                <div 
+                    key={index} 
+                    onClick={()=>onColorSelect(item)}
+                    className={`h-6 w-6 rounded-full cursor-pointer border hover:border-black transition-all duration-200 active:scale-95 ${selectedColor==item&&'border-2 border-black scale-110 shadow-lg'}`}
+                    style={{
+                        background:item
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onColorSelect(item);
+                        }
+                    }}
+                    aria-label={`Select theme color ${item}`}
+                >
                     
                 </div>
             ))}
