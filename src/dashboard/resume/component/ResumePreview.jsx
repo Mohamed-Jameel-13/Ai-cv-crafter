@@ -21,13 +21,22 @@ const ResumePreview = () => {
     );
   }
 
+  const themeColor = resumeInfo?.themeColor || '#4B5563';
+
   return (
     <div
-      className="shadow-lg h-full p-8 border-t-[20px]"
-      style={{borderColor: resumeInfo?.themeColor}}
+      className="shadow-lg h-full p-8 border-t-[20px] bg-white print:shadow-none"
+      style={{
+        borderTopColor: themeColor,
+        borderTopWidth: '20px',
+        borderTopStyle: 'solid',
+        WebkitPrintColorAdjust: 'exact',
+        printColorAdjust: 'exact',
+        colorAdjust: 'exact'
+      }}
     >
       {resumeInfo && (
-        <div className="flex flex-col">
+        <div className="flex flex-col space-y-2">
           <PersonalDetailPreview resumeInfo={resumeInfo} />
           <SummaryDetails resumeInfo={resumeInfo} />
           <ExperiencePreview resumeInfo={resumeInfo} />

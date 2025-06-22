@@ -36,10 +36,14 @@
   }
 }
 
+/* Enhanced A4 Print Styles with Better Theme Color Preservation */
 @media print {
   @page {
-    size: A4;
-    margin: 0 !important;
+    size: A4 portrait;
+    margin: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
   }
 
   html, body {
@@ -49,118 +53,154 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
-    overflow: hidden !important;
+    background: white !important;
+    font-size: 12pt !important;
   }
 
-  /* Hide all browser UI elements */
-  * {
+  /* Global color preservation - Critical for Brave browser */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
     appearance: none !important;
   }
 
-  /* Hide elements not for printing */
-  #no-print {
+  /* Hide non-printable elements */
+  .no-print, #no-print, header, nav, footer, aside {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  /* Hide everything initially */
+  /* Show only print area */
   body * {
     visibility: hidden !important;
   }
 
-  /* Show only the print area and its contents */
-  #print-area,
-  #print-area * {
+  #print-area, #print-area * {
     visibility: visible !important;
   }
 
-  /* Position the print area to fill the entire page */
+  /* A4 specific sizing and positioning */
   #print-area {
-    position: fixed !important;
+    position: absolute !important;
     top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    width: 21cm !important;
+    min-height: 29.7cm !important;
     margin: 0 !important;
-    padding: 0.75in 0.5in 0.5in 0.5in !important;
-    box-sizing: border-box !important;
+    padding: 1cm !important;
     background: white !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    z-index: 9999 !important;
-    overflow: visible !important;
-    transform: scale(0.95) !important;
-    transform-origin: top left !important;
-  }
-
-  /* Force color preservation for all elements */
-  #print-area * {
+    box-shadow: none !important;
+    border: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
   }
 
-  /* Specifically preserve theme colors on borders and HR elements */
+  /* Enhanced theme color preservation */
   #print-area [style*="border-color"],
   #print-area [style*="borderColor"],
-  #print-area hr[style],
-  #print-area div[style*="border"] {
+  #print-area [style*="border-top-color"],
+  #print-area [style*="borderTopColor"] {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    border-style: solid !important;
   }
 
-  /* Prevent page breaks within resume sections */
-  .resume-section, .resume-item {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  /* Compact spacing for print to fit more content */
-  #print-area .resume-section {
-    margin-bottom: 8px !important;
-  }
-
-  #print-area .resume-item {
-    margin-bottom: 6px !important;
-  }
-
+  /* Force HR elements to show theme colors */
   #print-area hr {
-    margin-top: 4px !important;
-    margin-bottom: 6px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    border-width: 1.5px !important;
+    border-style: solid !important;
+    margin: 8px 0 !important;
+    opacity: 1 !important;
   }
 
-  /* Compact text spacing */
-  #print-area p, #print-area div, #print-area h1, #print-area h2, #print-area h3 {
-    margin: 0 !important;
-    line-height: 1.2 !important;
-  }
-
+  /* Optimize text sizing for A4 */
   #print-area .text-xs {
-    font-size: 11px !important;
+    font-size: 9pt !important;
     line-height: 1.3 !important;
   }
 
   #print-area .text-sm {
-    font-size: 12px !important;
-    line-height: 1.3 !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
   }
 
-  /* Ensure the main resume container preserves theme color */
-  #print-area > div {
+  #print-area .text-base {
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  #print-area .text-lg {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Compact spacing for A4 format */
+  #print-area .p-8 {
+    padding: 12pt !important;
+  }
+
+  #print-area .my-1 {
+    margin-top: 3pt !important;
+    margin-bottom: 3pt !important;
+  }
+
+  #print-area .my-2 {
+    margin-top: 6pt !important;
+    margin-bottom: 6pt !important;
+  }
+
+  #print-area .mb-2 {
+    margin-bottom: 6pt !important;
+  }
+
+  #print-area .mb-1 {
+    margin-bottom: 3pt !important;
+  }
+
+  /* Prevent unwanted page breaks */
+  #print-area .resume-section,
+  #print-area .resume-item,
+  #print-area > div > div {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Ensure proper spacing between sections */
+  #print-area > div > div:not(:last-child) {
+    margin-bottom: 10pt !important;
+  }
+
+  /* Shadow removal for clean print */
+  #print-area .shadow-lg,
+  #print-area .shadow-xl,
+  #print-area .shadow-2xl {
+    box-shadow: none !important;
+  }
+
+  /* Optimize for monochrome printing while preserving theme colors */
+  #print-area .text-gray-400,
+  #print-area .text-gray-500,
+  #print-area .text-gray-600 {
+    color: #666 !important;
+  }
+
+  /* Force borders to be visible */
+  #print-area .border-t-[20px] {
+    border-top-width: 20px !important;
+    border-top-style: solid !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
-    padding-bottom: 20px !important;
-  }
-
-  /* Hide any potential browser print elements */
-  header, nav, footer, aside, .no-print {
-    display: none !important;
   }
 }

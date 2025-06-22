@@ -34,18 +34,24 @@ const PersonalDetailPreview = ({ resumeInfo }) => {
 
         <div className="flex justify-center items-center gap-2 text-xs">
           {personalDetail.phone && (
-            <span className="flex items-center gap-1">
+            <a
+              href={`tel:${personalDetail.phone}`}
+              className="flex items-center gap-1 text-black hover:underline"
+            >
               <FaPhone className="text-black" />
-              +91-{personalDetail.phone}
-            </span>
+              {personalDetail.phone}
+            </a>
           )}
           {personalDetail.email && (
             <>
               <span>|</span>
-              <span className="flex items-center gap-1">
+              <a
+                href={`mailto:${personalDetail.email}`}
+                className="flex items-center gap-1 text-black hover:underline"
+              >
                 <FaEnvelope className="text-black" />
                 {personalDetail.email}
-              </span>
+              </a>
             </>
           )}
         </div>
