@@ -238,18 +238,18 @@ const ViewResume = () => {
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div id="no-print" className="no-print">
         <Header />
-        <div className="my-5 mx-10 md:mx-20 lg:mx-36">
-          <h2 className="text-center text-2xl font-medium">
+        <div className="my-5 mx-4 sm:mx-6 md:mx-10 lg:mx-20 xl:mx-36">
+          <h2 className="text-center text-xl sm:text-2xl font-medium px-2">
             Congrats! Your Ultimate AI generated Resume is ready!
           </h2>
-          <p className="text-center text-gray-400">
+          <p className="text-center text-gray-400 text-sm sm:text-base px-4">
             Now you are ready to download your resume and you can share your
             unique resume to recruiters
           </p>
-          <div className="w-auto m-auto flex justify-center mt-3 items-center gap-4">
+          <div className="w-auto m-auto flex flex-col sm:flex-row justify-center mt-3 items-center gap-2 sm:gap-4 px-4">
             <Button 
               onClick={handleDownload}
-              className="bg-primary hover:bg-primary/90 rounded-full px-6 py-2"
+              className="bg-primary hover:bg-primary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base"
             >
               Download PDF
             </Button>
@@ -260,7 +260,7 @@ const ViewResume = () => {
                 title: `${fullName} - Resume`,
               }}
             >
-              <Button className="bg-secondary text-primary hover:bg-secondary/90 rounded-full px-6 py-2">
+              <Button className="bg-secondary text-primary hover:bg-secondary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base">
                 Share Resume
               </Button>
             </RWebShare>
@@ -268,21 +268,71 @@ const ViewResume = () => {
         </div>
       </div>
 
-      {/* A4 sized container for better preview and print formatting */}
-      <div className="my-8 mx-auto max-w-4xl px-4 print:p-0 print:max-w-none print:mx-0">
-        <div 
-          id="print-area" 
-          className="bg-white shadow-xl mx-auto print:shadow-none"
-          style={{ 
-            width: '21cm', 
-            minHeight: '29.7cm',
-            padding: '1cm',
-            boxSizing: 'border-box'
-          }}
-        >
-          <ResumePreview />
+      {/* Responsive container that maintains resume proportions */}
+      <div className="my-4 sm:my-8 mx-auto px-2 sm:px-4 print:p-0 print:max-w-none print:mx-0">
+        <div className="w-full max-w-4xl mx-auto">
+          <div 
+            id="print-area" 
+            className="bg-white shadow-xl mx-auto print:shadow-none w-full max-w-full overflow-hidden resume-container"
+            style={{ 
+              minHeight: '29.7cm',
+              boxSizing: 'border-box'
+            }}
+          >
+            <ResumePreview />
+          </div>
         </div>
       </div>
+
+      {/* CSS for responsive design and print media */}
+      <style>{`
+        .resume-container {
+          width: min(100%, 21cm);
+          padding: clamp(0.5rem, 2vw, 2rem);
+        }
+        
+        /* Mobile styles */
+        @media (max-width: 640px) {
+          .resume-container {
+            aspect-ratio: 210/297;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0.75rem;
+          }
+        }
+        
+        /* Tablet styles */
+        @media (min-width: 641px) and (max-width: 768px) {
+          .resume-container {
+            aspect-ratio: 210/297;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 1rem;
+          }
+        }
+        
+        /* Desktop styles */
+        @media (min-width: 769px) {
+          .resume-container {
+            width: min(21cm, 90vw);
+            max-width: 21cm;
+            padding: clamp(1rem, 2vw, 2rem);
+          }
+        }
+        
+        /* Print styles */
+        @media print {
+          .resume-container {
+            width: 21cm !important;
+            min-height: 29.7cm !important;
+            padding: 1cm !important;
+            aspect-ratio: unset !important;
+            max-width: none !important;
+            max-height: none !important;
+            overflow: visible !important;
+          }
+        }
+      `}</style>
     </ResumeContext.Provider>
   );
 };
