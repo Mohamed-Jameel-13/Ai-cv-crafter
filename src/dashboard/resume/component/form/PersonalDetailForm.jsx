@@ -3,8 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ResumeContext } from "@/context/ResumeContext";
 import { useContext, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app } from "@/utils/firebase_config";
+import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { FaLinkedin, FaGithub, FaPhone, FaEnvelope } from "react-icons/fa";
 import { IoLocationSharp } from "react-icons/io5";
 import { BiWorld } from "react-icons/bi";
@@ -12,7 +11,6 @@ import { BiWorld } from "react-icons/bi";
 const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const db = getFirestore(app);
 
   const [formData, setFormData] = useState({
     personalDetail: {
@@ -38,24 +36,30 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
     }
   }, [resumeInfo]);
 
-  // Auto-save function
+  // Auto-save function with encryption
   const autoSave = useCallback(async (data) => {
+    // Skip auto-save if no resumeId (template mode)
+    if (!resumeId) {
+      enableNext(true);
+      return;
+    }
+    
     setIsAutoSaving(true);
     try {
-      const resumeRef = doc(
-        db,
-        `usersByEmail/${email}/resumes`,
-        `resume-${resumeId}`
+      await EncryptedFirebaseService.updateResumeField(
+        email, 
+        resumeId, 
+        'personalDetail', 
+        data.personalDetail
       );
-      await setDoc(resumeRef, data, { merge: true });
       enableNext(true);
     } catch (error) {
-      console.error("Error auto-saving to Firestore:", error);
+      console.error("Error auto-saving encrypted data:", error);
       toast.error("Auto-save failed. Please check your connection.");
     } finally {
       setIsAutoSaving(false);
     }
-  }, [db, email, resumeId, enableNext]);
+  }, [email, resumeId, enableNext]);
 
   // Debounced auto-save
   useEffect(() => {

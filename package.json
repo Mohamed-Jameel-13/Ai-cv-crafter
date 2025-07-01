@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "setup": "node scripts/setup-env.js",
+    "test:azure": "node scripts/test-azure-openai.js",
+    "test:firebase": "node scripts/test-firebase-connection.js",
+    "firebase:build": "npm run build && firebase deploy --only hosting",
+    "firebase:deploy": "firebase deploy",
+    "firebase:serve": "npm run build && firebase serve"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.21.2",
@@ -21,6 +27,7 @@
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "crypto-js": "^4.2.0",
     "firebase": "^11.1.0",
     "framer-motion": "^11.15.0",
     "html2canvas": "^1.4.1",

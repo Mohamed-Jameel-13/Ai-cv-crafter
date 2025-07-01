@@ -3,13 +3,11 @@ import { useParams } from "react-router-dom";
 import FormSection from "../../component/FormSection";
 import ResumePreview from "../../component/ResumePreview";
 import { ResumeContext } from "@/context/ResumeContext";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { app } from "@/utils/firebase_config";
+import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 
 const EditResume = () => {
   const params = useParams();
   const [resumeInfo, setResumeInfo] = useState(null);
-  const db = getFirestore(app);
 
   useEffect(() => {
     GetResumeInfo();
@@ -17,25 +15,19 @@ const EditResume = () => {
 
   const GetResumeInfo = async () => {
     try {
-      console.log("Params:", params);
-  
-      // Reference to the Firestore document
-      const resumeRef = doc(db, "usersByEmail", params.email, "resumes", `resume-${params.resumeId}`);
-      console.log("Document Reference:", resumeRef);
-  
-      const resumeDoc = await getDoc(resumeRef);
-
-      if (resumeDoc.exists()) {
-        console.log("Fetched Document Data:", resumeDoc.data());
-        console.log(resumeDoc.data())
-        console.log( "resumeDoc.data()")
-        setResumeInfo(resumeDoc.data());
-      } else {
-        console.error("No such document! Check Firestore path.");
-        setResumeInfo(null); 
-      }
+      console.log("Fetching encrypted resume:", params);
+      
+      const decryptedData = await EncryptedFirebaseService.getResumeData(
+        params.email, 
+        params.resumeId
+      );
+      
+      console.log("✅ Resume decrypted successfully");
+      setResumeInfo(decryptedData);
+      
     } catch (error) {
-      console.error("Error fetching resume:", error);
+      console.error("Error fetching encrypted resume:", error);
+      setResumeInfo(null);
     }
   };
   

@@ -4,7 +4,16 @@ export function Toaster(props) {
   return (
     <Sonner
       className="toaster group"
+      position="top-right"
+      expand={false}
+      richColors={true}
+      closeButton={true}
+      duration={3000}
+      style={{ zIndex: 9999 }}
       toastOptions={{
+        style: {
+          pointerEvents: 'auto',
+        },
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",

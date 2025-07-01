@@ -10,13 +10,14 @@ import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyARvwYhTqRXMEUbfUzQWdPasuSvy2A4mkY",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ai-cv-builder-581c4.firebaseapp.com",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "auth.writespark.tech",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-cv-builder-581c4",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-cv-builder-581c4.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "991488890950",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:991488890950:web:30746f9d81de0e5724d247",
 };
 
+console.log("Auth Domain:", import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

@@ -25,7 +25,7 @@ const ResumePreview = () => {
 
   return (
     <div
-      className="shadow-lg h-full p-8 border-t-[20px] bg-white print:shadow-none"
+      className="shadow-lg h-full p-4 sm:p-6 lg:p-8 border-t-20 bg-white print:shadow-none print:p-8"
       style={{
         borderTopColor: themeColor,
         borderTopWidth: '20px',
@@ -36,7 +36,7 @@ const ResumePreview = () => {
       }}
     >
       {resumeInfo && (
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col space-y-2 text-sm sm:text-base print:text-base">
           <PersonalDetailPreview resumeInfo={resumeInfo} />
           <SummaryDetails resumeInfo={resumeInfo} />
           <ExperiencePreview resumeInfo={resumeInfo} />

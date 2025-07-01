@@ -19,7 +19,12 @@ const ProtectedRoute = () => {
 function App() {
   return (
     <UserProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div 
+        className="min-h-screen bg-background text-foreground" 
+        tabIndex={-1}
+        id="app-root"
+        style={{ outline: 'none' }}
+      >
         <Outlet />
         <Toaster />
       </div>

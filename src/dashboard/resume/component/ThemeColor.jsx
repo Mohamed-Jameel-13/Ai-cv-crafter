@@ -92,7 +92,7 @@ const ThemeColor = () => {
                 <div 
                     key={index} 
                     onClick={()=>onColorSelect(item)}
-                    className={`h-6 w-6 rounded-full cursor-pointer border hover:border-black transition-all duration-200 active:scale-95 ${selectedColor==item&&'border-2 border-black scale-110 shadow-lg'}`}
+                    className={`h-6 w-6 rounded-full cursor-pointer border hover:border-[rgb(63,39,34)] transition-all duration-200 active:scale-95 ${selectedColor==item&&'border-2 border-[rgb(63,39,34)] scale-110 shadow-lg'}`}
                     style={{
                         background:item
                     }}

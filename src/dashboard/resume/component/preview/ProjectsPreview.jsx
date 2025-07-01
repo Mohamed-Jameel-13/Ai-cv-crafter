@@ -1,7 +1,43 @@
-import { Link } from "lucide-react";
+import { FaExternalLinkAlt, FaGithub } from "react-icons/fa";
+import { useEffect } from "react";
 
 const ProjectsPreview = ({ resumeInfo }) => {
   const projects = resumeInfo?.projects;
+
+  // ------------ ENHANCED DIAGNOSTIC LOG ------------
+  useEffect(() => {
+    console.log("🕵️ [ProjectsPreview] Complete resumeInfo:", resumeInfo);
+    console.log("🕵️ [ProjectsPreview] Projects array:", projects);
+    
+    if (projects && Array.isArray(projects)) {
+      console.log(`🕵️ [ProjectsPreview] Found ${projects.length} projects`);
+      projects.forEach((project, index) => {
+        console.log(`🕵️ [ProjectsPreview] Project ${index + 1}:`, {
+          name: project?.name,
+          title: project?.title,
+          description: project?.description,
+          bullets: project?.bullets,
+          bulletsLength: project?.bullets?.length,
+          bulletsType: typeof project?.bullets,
+          isArray: Array.isArray(project?.bullets),
+          validBullets: project?.bullets?.filter(b => b && b.trim()),
+          technologies: project?.technologies,
+          liveDemo: project?.liveDemo,
+          githubRepo: project?.githubRepo
+        });
+        
+        // Log each bullet individually
+        if (project?.bullets && Array.isArray(project.bullets)) {
+          project.bullets.forEach((bullet, bIndex) => {
+            console.log(`  📌 Bullet ${bIndex + 1}: "${bullet}" (length: ${bullet?.length}, trimmed: "${bullet?.trim()}")`);
+          });
+        }
+      });
+    } else {
+      console.log("🕵️ [ProjectsPreview] No projects found or projects is not an array");
+    }
+  }, [resumeInfo, projects]);
+  // ------------ END: ENHANCED DIAGNOSTIC LOG ------------
 
   if (!projects || !Array.isArray(projects) || projects.length === 0) {
     return (
@@ -13,31 +49,72 @@ const ProjectsPreview = ({ resumeInfo }) => {
 
   return (
     <div className="my-1">
-      <h2 className="text-center font-bold text-sm mb-2">Projects</h2>
+      <h2 className="text-center font-bold text-sm mb-2">PROJECTS</h2>
       <hr className="border-[1.5px] my-2" style={{borderColor: resumeInfo?.themeColor || "rgb(107 114 128)"}} />
       
       <div className="space-y-4">
         {projects.map((project, index) => (
           <div key={index} className="mb-4">
-            <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-sm">
-                {project.name}
-                {project.liveDemo && (
-                  <a href={project.liveDemo} target="_blank" rel="noopener noreferrer" className="ml-2 italic text-slate-700">
-                    <Link size={12} className="inline" /> Live Demo
-                  </a>
-                )}
-              </h3>
-              <span className="text-xs font-semibold">{project.technologies}</span>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1 gap-1 sm:gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 flex-wrap">
+                <h3 className="font-semibold text-sm">{project.name || project.title}</h3>
+                
+                {/* Project Links - responsive layout */}
+                <div className="flex justify-start sm:justify-center items-center gap-2 text-xs">
+                  {project.liveDemo && (
+                    <a
+                      href={project.liveDemo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-black hover:text-blue-600"
+                    >
+                      <FaExternalLinkAlt className="text-black" />
+                      Live
+                    </a>
+                  )}
+                  {project.githubRepo && (
+                    <>
+                      {project.liveDemo && <span>|</span>}
+                      <a
+                        href={project.githubRepo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-black hover:text-gray-700"
+                      >
+                        <FaGithub className="text-black" />
+                        Code
+                      </a>
+                    </>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs font-semibold text-gray-600 sm:ml-2">{project.technologies}</span>
             </div>
-            <p className="mt-1 text-xs italic mb-2">{project.description}</p>
-            <ul className="list-disc pl-5 space-y-1">
-              {project.bullets.map((bullet, bulletIndex) => (
-                <li key={bulletIndex} className="text-xs">
-                  {bullet}
-                </li>
-              ))}
-            </ul>
+            
+            {project.description && project.description.trim() && (
+              <p className="text-xs text-gray-700 mb-2 leading-relaxed">{project.description}</p>
+            )}
+            
+            {/* Fixed bullet points logic - simplified and more reliable */}
+            {project.bullets && Array.isArray(project.bullets) && (
+              (() => {
+                const validBullets = project.bullets.filter(bullet => bullet && bullet.trim());
+                console.log(`🔍 [ProjectsPreview] Project "${project.name || project.title}" - Valid bullets:`, validBullets);
+                return validBullets.length > 0 ? (
+                  <ul className="list-disc pl-4 space-y-1">
+                    {validBullets.map((bullet, bulletIndex) => (
+                      <li key={bulletIndex} className="text-xs text-gray-700 leading-relaxed">
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-xs text-orange-500 italic">
+                    (No valid bullet points found)
+                  </div>
+                );
+              })()
+            )}
           </div>
         ))}
       </div>

@@ -1,10 +1,10 @@
 import { Input } from "@/components/ui/input";
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, Brain } from "lucide-react";
+import { AIButton } from "@/components/ui/ai-button";
 import { ResumeContext } from "@/context/ResumeContext";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { app } from "@/utils/firebase_config";
+import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { toast } from "sonner";
 import { AIchatSession } from "../../../../../service/AiModel";
 
@@ -23,37 +23,65 @@ const Skills = ({ resumeId, email, enableNext }) => {
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiGeneratedSkills, setAiGeneratedSkills] = useState(null);
+  
+  // Track previous data to prevent unnecessary context updates
+  const previousDataRef = useRef(null);
+  const hasInitialized = useRef(false);
+  const isContextUpdating = useRef(false);
 
+  // Initialize only once
   useEffect(() => {
-    setResumeInfo((prev) => ({
-      ...prev,
-      skills: skillsList,
-    }));
+    if (!hasInitialized.current && resumeInfo?.skills?.length > 0) {
+      setSkillsList(resumeInfo.skills);
+      previousDataRef.current = JSON.stringify(resumeInfo.skills);
+      hasInitialized.current = true;
+    } else if (!hasInitialized.current) {
+      previousDataRef.current = JSON.stringify([formField]);
+      hasInitialized.current = true;
+    }
+  }, [resumeInfo?.skills]);
+
+  // Optimized context update - only when data actually changes
+  useEffect(() => {
+    if (!hasInitialized.current || isContextUpdating.current) return;
+    
+    const currentDataString = JSON.stringify(skillsList);
+    if (currentDataString !== previousDataRef.current) {
+      // Only update if skills data has meaningful content
+      if (skillsList && skillsList.length > 0 && skillsList.some(skill => skill.category?.trim() || skill.skills?.trim())) {
+        isContextUpdating.current = true;
+        setResumeInfo((prev) => ({
+          ...prev,
+          skills: skillsList,
+        }));
+        previousDataRef.current = currentDataString;
+        
+        setTimeout(() => {
+          isContextUpdating.current = false;
+        }, 100);
+      }
+    }
   }, [skillsList, setResumeInfo]);
 
   // Auto-save function
   const autoSave = useCallback(async (data) => {
+    // Skip auto-save if no resumeId (template mode)
+    if (!resumeId) {
+      enableNext(true);
+      return;
+    }
+    
     setIsAutoSaving(true);
     try {
-      const db = getFirestore(app);
-      const resumeRef = doc(
-        db,
-        `usersByEmail/${email}/resumes`,
-        `resume-${resumeId}`
-      );
-      await setDoc(
-        resumeRef,
-        {
-          skills: data.map((skill) => ({
-            category: skill.category || "",
-            skills: skill.skills || "",
-          })),
-        },
-        { merge: true }
-      );
+      const skillsData = data.map((skill) => ({
+        category: skill.category || "",
+        skills: skill.skills || "",
+      }));
+      
+      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'skills', skillsData);
       enableNext(true);
     } catch (error) {
-      console.error("Error auto-saving to Firestore:", error);
+      console.error("Error auto-saving encrypted skills:", error);
       toast.error("Auto-save failed. Please check your connection.");
     } finally {
       setIsAutoSaving(false);
@@ -62,8 +90,10 @@ const Skills = ({ resumeId, email, enableNext }) => {
 
   // Debounced auto-save
   useEffect(() => {
+    if (!hasInitialized.current) return;
+    
     const timeoutId = setTimeout(() => {
-      if (skillsList.length > 0 && skillsList[0].category) {
+      if (skillsList.length > 0 && skillsList.some(skill => skill.category?.trim())) {
         autoSave(skillsList);
       }
     }, 1000);
@@ -98,12 +128,22 @@ const Skills = ({ resumeId, email, enableNext }) => {
         throw new Error("No response from AI service");
       }
       
+      // Extract text from response object
+      let responseText = aiResponse;
+      
+      // If aiResponse is an object with response text, extract it
+      if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
+        responseText = aiResponse.response.text();
+      } else if (typeof aiResponse === 'object' && aiResponse.response) {
+        responseText = aiResponse.response;
+      }
+      
       // Parse the response as JSON
       let parsedResponse;
       try {
-        parsedResponse = JSON.parse(aiResponse);
+        parsedResponse = JSON.parse(responseText);
       } catch (parseError) {
-        const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
         } else {
@@ -115,6 +155,7 @@ const Skills = ({ resumeId, email, enableNext }) => {
         throw new Error('Invalid response format from AI');
       }
 
+      console.log("Parsed Response:", parsedResponse);
       setAiGeneratedSkills(parsedResponse);
       toast.success("AI skill suggestions generated successfully!");
       
@@ -160,25 +201,14 @@ const Skills = ({ resumeId, email, enableNext }) => {
                   Auto-saving...
                 </div>
               )}
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-white transition-colors flex gap-2 w-full sm:w-auto"
+              <AIButton
                 onClick={generateSkillSuggestions}
-                disabled={aiLoading}
+                loading={aiLoading}
+                loadingText="Creating skills..."
+                className="w-full sm:w-auto"
               >
-                {aiLoading ? (
-                  <>
-                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Brain className="h-4 w-4" />
-                    <span>Generate from AI</span>
-                  </>
-                )}
-              </Button>
+                Generate Skills
+              </AIButton>
             </div>
           </div>
         </div>
@@ -242,7 +272,7 @@ const Skills = ({ resumeId, email, enableNext }) => {
               {aiGeneratedSkills.map((skillCategory, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-3 hover:bg-gray-50 hover:border-[rgb(63,39,34)] transition-colors"
                 >
                   <h3 className="font-semibold text-sm sm:text-base text-primary">
                     {skillCategory.category}
@@ -266,4 +296,4 @@ const Skills = ({ resumeId, email, enableNext }) => {
   );
 };
 
-export default Skills;
+export default memo(Skills);

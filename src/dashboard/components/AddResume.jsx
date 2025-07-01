@@ -12,16 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "@/context/UserContext";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  collection,
-  query,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 
 const AddResume = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -29,7 +20,6 @@ const AddResume = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
-  const db = getFirestore();
 
   const onCreate = async () => {
     if (!user?.uid || !resumeTitle) {
@@ -39,42 +29,26 @@ const AddResume = () => {
 
     setLoading(true);
     try {
-      const resumesRef = collection(db, "usersByEmail", user.email, "resumes");
-
-      const q = query(resumesRef, orderBy("resumeId", "desc"), limit(1));
-      const querySnapshot = await getDocs(q);
-
-      let newResumeId = 1;
-      if (!querySnapshot.empty) {
-        const lastResume = querySnapshot.docs[0].data();
-        newResumeId = (lastResume.resumeId || 0) + 1;
-      }
-
       const resumeData = {
-        resumeId: newResumeId,
         title: resumeTitle,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         userId: user.uid,
         userEmail: user.email,
-        data: {
-          basics: {},
-          work: [],
-          education: [],
-          skills: [],
-          projects: [],
-        },
+        personalDetail: {},
+        summary: '',
+        experience: [],
+        skills: [],
+        projects: [],
+        education: []
       };
 
-      const resumeDocRef = doc(resumesRef, `resume-${newResumeId}`);
-      await setDoc(resumeDocRef, resumeData);
+      const result = await EncryptedFirebaseService.createNewResume(user.email, resumeData);
 
-      console.log("Resume created successfully!");
-      setLoading(false);
+      console.log("Encrypted resume created successfully!");
       setOpenDialog(false);
-      navigate(`/dashboard/${user.email}/${newResumeId}/edit`);
+      setResumeTitle("");
+      navigate(`/dashboard/${user.email}/${result.resumeId}/edit`);
     } catch (error) {
-      console.error("Error creating resume:", error);
+      console.error("Error creating encrypted resume:", error);
     } finally {
       setLoading(false);
     }
@@ -85,9 +59,9 @@ const AddResume = () => {
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogTrigger asChild>
           <div
-            className="flex rounded-xl border-2 border-dashed bg-card border-foreground/20 p-8 shadow-xl transition hover:shadow-lg hover:scale-105 cursor-pointer h-[280px] items-center justify-center"
+            className="flex rounded-xl border-2 border-dashed bg-card border-foreground/20 hover:border-[rgb(63,39,34)] p-4 sm:p-6 md:p-8 shadow-xl transition hover:shadow-lg hover:scale-105 cursor-pointer h-[200px] sm:h-[240px] md:h-[260px] lg:h-[280px] items-center justify-center"
           >
-            <PlusSquare className="h-20 w-20 text-muted-foreground" />
+            <PlusSquare className="h-12 w-12 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-20 lg:w-20 text-muted-foreground" />
           </div>
         </DialogTrigger>
         <DialogContent className="bg-background">
@@ -109,7 +83,7 @@ const AddResume = () => {
               <Button
                 onClick={() => setOpenDialog(false)}
                 variant="ghost"
-                className="text-foreground hover:bg-muted border-2"
+                className="text-foreground hover:bg-muted hover:border-[rgb(63,39,34)] border-2"
               >
                 Cancel
               </Button>

@@ -5,8 +5,7 @@ import ResumePreview from "@/dashboard/resume/component/ResumePreview";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { RWebShare } from "react-web-share";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { app } from "@/utils/firebase_config";
+import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { LoaderCircle } from "lucide-react";
 
 const ViewResume = () => {
@@ -17,23 +16,18 @@ const ViewResume = () => {
   useEffect(() => {
     const fetchResumeData = async () => {
       try {
-        const db = getFirestore(app);
-        const resumeRef = doc(
-          db,
-          `usersByEmail/${email}/resumes`,
-          `resume-${resumeId}`
-        );
-
-        const resumeSnap = await getDoc(resumeRef);
-
-        if (resumeSnap.exists()) {
-          const data = resumeSnap.data();
-          setResumeInfo(data)
-        } else {
-          console.error("No resume found!");
-        }
+        const decryptedData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+        
+        console.log('📄 Encrypted resume data loaded and decrypted:', { 
+          templateName: decryptedData.templateName, 
+          aiTemplateName: decryptedData.aiTemplateName,
+          hasPdfBase64: !!decryptedData.pdfBase64,
+          pdfSize: decryptedData.pdfBase64 ? decryptedData.pdfBase64.length : 0
+        });
+        setResumeInfo(decryptedData);
+        
       } catch (error) {
-        console.error("Error fetching resume:", error);
+        console.error("Error fetching encrypted resume:", error);
       } finally {
         setLoading(false);
       }
@@ -45,16 +39,48 @@ const ViewResume = () => {
   }, [email, resumeId]);
 
   const handleDownload = () => {
-    // Detect if we're on mobile device
+    // If this is a template-generated resume with PDF, download the PDF directly
+    if (resumeInfo?.pdfBase64) {
+      downloadPdfFromBase64(resumeInfo.pdfBase64, `${resumeInfo.title || 'Resume'}.pdf`);
+      return;
+    }
+
+    // For default resumes, use the print-to-PDF approach
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                      window.innerWidth <= 768;
     
     if (isMobile) {
-      // For mobile devices, use direct print without popup
       handleMobilePrint();
     } else {
-      // For desktop, use the popup approach
       handleDesktopPrint();
+    }
+  };
+
+  const downloadPdfFromBase64 = (base64Data, filename) => {
+    try {
+      // Convert base64 to blob
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Error downloading PDF. Please try again.');
     }
   };
 
@@ -316,7 +342,7 @@ const ViewResume = () => {
       </div>
 
       {/* Responsive container that maintains resume proportions */}
-      <div className="my-4 sm:my-8 mx-auto px-2 sm:px-4 print:p-0 print:max-w-none print:mx-0">
+      <div className="my-2 sm:my-8 mx-auto px-1 sm:px-4 print:p-0 print:max-w-none print:mx-0">
         <div className="w-full max-w-4xl mx-auto">
           <div 
             id="print-area" 
@@ -326,7 +352,38 @@ const ViewResume = () => {
               boxSizing: 'border-box'
             }}
           >
-            <ResumePreview />
+            {resumeInfo?.pdfBase64 ? (
+              // Display the actual generated PDF for template resumes
+              <div className="w-full h-full">
+                <div className="pdf-viewer-container">
+                  {/* Desktop PDF embed - original style */}
+                  <embed
+                    src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                    type="application/pdf"
+                    width="100%"
+                    height="800px"
+                    className="border-0 rounded-lg hidden lg:block"
+                    style={{ minHeight: '29.7cm' }}
+                  />
+                  
+                  {/* Mobile/Tablet iframe - improved style */}
+                  <iframe
+                    src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                    width="100%"
+                    height="600px"
+                    className="border-0 rounded-lg block lg:hidden"
+                    style={{ 
+                      minHeight: 'min(80vh, 600px)',
+                      height: 'min(80vh, 600px)'
+                    }}
+                    title="Resume PDF"
+                  />
+                </div>
+              </div>
+            ) : (
+              // Fall back to ResumePreview for default resumes
+              <ResumePreview />
+            )}
           </div>
         </div>
       </div>
@@ -338,18 +395,61 @@ const ViewResume = () => {
           padding: clamp(0.5rem, 2vw, 2rem);
         }
         
-        /* Mobile styles */
+        /* PDF viewer styles */
+        .pdf-viewer-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+        
+        /* PDF embed and iframe styling */
+        embed[type="application/pdf"], .pdf-iframe-fallback {
+          border-radius: 8px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Hide iframe fallback by default */
+        .pdf-iframe-fallback {
+          display: none;
+        }
+        
+        /* Base responsive container */
+        .resume-container {
+          width: min(100%, 21cm);
+          padding: clamp(0.5rem, 2vw, 2rem);
+        }
+        
+        /* PDF viewer styles */
+        .pdf-viewer-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+        
+        /* Mobile styles - improved iframe viewing */
         @media (max-width: 640px) {
           .resume-container {
-            aspect-ratio: 210/297;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 0.75rem;
+            height: 85vh;
+            max-height: 85vh;
+            overflow: hidden;
+            padding: 0.25rem;
+            margin: 0;
+          }
+          
+          .pdf-viewer-container {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .pdf-viewer-container iframe {
+            height: 100% !important;
+            min-height: unset !important;
           }
         }
         
         /* Tablet styles */
-        @media (min-width: 641px) and (max-width: 768px) {
+        @media (min-width: 641px) and (max-width: 1023px) {
           .resume-container {
             aspect-ratio: 210/297;
             max-height: 85vh;
@@ -358,8 +458,8 @@ const ViewResume = () => {
           }
         }
         
-        /* Desktop styles */
-        @media (min-width: 769px) {
+        /* Desktop styles - original layout */
+        @media (min-width: 1024px) {
           .resume-container {
             width: min(21cm, 90vw);
             max-width: 21cm;

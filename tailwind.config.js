@@ -8,7 +8,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    screens: {
+      'xs': '475px',
+      ...require('tailwindcss/defaultTheme').screens,
+    },
     extend: {
+      screens: {
+        'xs': '475px',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
@@ -18,6 +25,7 @@ export default {
         brown: {
           DEFAULT: '#3E2723',
           light: '#5D4037',
+          hover: '#3F2722', // rgb(63,39,34)
         },
         background: {
           DEFAULT: 'hsl(var(--background))',

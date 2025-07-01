@@ -7,7 +7,11 @@ import Dashboard from "./dashboard/index.jsx";
 import LoginSignup from "./auth/sign-in/index.jsx";
 import ProtectedRoute from "./utils/ProtectedRoute.jsx";
 import ViewResume from "./my-resume/[resumeId]/view/index.jsx";
+import SharedResumeView from "./shared/resume/view/index.jsx";
 import EditResume from "./dashboard/resume/[resumeId]/edit/index.jsx";
+import CreationModeSelector from "./components/ResumeCreation/CreationModeSelector.jsx";
+import TemplateGallery from "./components/ResumeCreation/TemplateGallery.jsx";
+import TemplateForm from "./components/ResumeCreation/TemplateForm.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -24,11 +28,31 @@ const router = createBrowserRouter([
         element: <LoginSignup />,
       },
       {
+        path: "/my-resume/:email/:resumeId/view",
+        element: <SharedResumeView />,
+      },
+      {
         element: <ProtectedRoute />,
         children: [
           {
             path: "/dashboard",
             element: <Dashboard />,
+          },
+          {
+            path: "/create",
+            element: <CreationModeSelector />,
+          },
+          {
+            path: "/create/templates",
+            element: <TemplateGallery />,
+          },
+          {
+            path: "/create/templates/:templateId",
+            element: <TemplateForm />,
+          },
+          {
+            path: "/dashboard/resume/edit-template/:resumeId",
+            element: <TemplateForm />,
           },
           {
             path: "/dashboard/:email/:resumeId/edit",
