@@ -45,12 +45,104 @@ const ViewResume = () => {
   }, [email, resumeId]);
 
   const handleDownload = () => {
-    // Create a completely clean PDF with no browser elements
+    // Detect if we're on mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // For mobile devices, use direct print without popup
+      handleMobilePrint();
+    } else {
+      // For desktop, use the popup approach
+      handleDesktopPrint();
+    }
+  };
+
+  const handleMobilePrint = () => {
+    // Add mobile-specific print styles
+    const printStyles = document.createElement('style');
+    printStyles.id = 'mobile-print-styles';
+    printStyles.innerHTML = `
+      @media print {
+        /* Hide everything except the resume */
+        body * {
+          visibility: hidden !important;
+        }
+        
+        #print-area, #print-area * {
+          visibility: visible !important;
+        }
+        
+        /* Position the print area for printing */
+        #print-area {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 21cm !important;
+          min-height: 29.7cm !important;
+          margin: 0 !important;
+          padding: 1cm !important;
+          background: white !important;
+          box-shadow: none !important;
+          transform: none !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        
+        /* Hide the non-print elements */
+        .no-print, #no-print {
+          display: none !important;
+        }
+        
+        /* Page setup */
+        @page {
+          size: A4 portrait;
+          margin: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          color-adjust: exact;
+        }
+        
+        /* Force color preservation */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+      }
+    `;
+    
+    document.head.appendChild(printStyles);
+    
+    // Trigger print dialog
+    setTimeout(() => {
+      window.print();
+      
+      // Clean up after print dialog closes
+      setTimeout(() => {
+        const styleElement = document.getElementById('mobile-print-styles');
+        if (styleElement) {
+          styleElement.remove();
+        }
+      }, 1000);
+    }, 100);
+  };
+
+  const handleDesktopPrint = () => {
     const printContent = document.getElementById('print-area').innerHTML;
     const fullName = `${resumeInfo?.personalInfo?.firstName || 'Resume'}_${resumeInfo?.personalInfo?.lastName || 'Document'}`;
     
-    // Create a new window with minimal browser chrome
+    // Try to open popup window
     const printWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    
+    // Check if popup was blocked
+    if (!printWindow || printWindow.closed || typeof printWindow.closed == 'undefined') {
+      // Fallback to mobile print method if popup is blocked
+      alert('Popup blocked. Using alternative print method...');
+      handleMobilePrint();
+      return;
+    }
     
     const cleanPrintDocument = `
     <!DOCTYPE html>
@@ -60,7 +152,6 @@ const ViewResume = () => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${fullName}</title>
       <style>
-        /* Reset all margins and remove browser default styles */
         * {
           margin: 0;
           padding: 0;
@@ -70,7 +161,6 @@ const ViewResume = () => {
           color-adjust: exact !important;
         }
         
-        /* Page setup for clean A4 PDF */
         @page {
           size: A4 portrait;
           margin: 0;
@@ -91,7 +181,6 @@ const ViewResume = () => {
           color-adjust: exact;
         }
         
-        /* Clean resume container */
         .resume-container {
           width: 21cm;
           min-height: 29.7cm;
@@ -103,41 +192,29 @@ const ViewResume = () => {
           color-adjust: exact;
         }
         
-        /* Force color preservation for all styled elements */
         [style*="border"], [style*="color"], hr {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
           color-adjust: exact !important;
         }
         
-        /* Typography optimization for PDF */
         .text-xs { font-size: 10pt; line-height: 1.3; }
         .text-sm { font-size: 11pt; line-height: 1.4; }
         .text-base { font-size: 12pt; line-height: 1.4; }
         .text-lg { font-size: 13pt; line-height: 1.4; }
-        
-        /* Spacing optimization */
         .p-8 { padding: 16pt; }
         .my-1 { margin: 3pt 0; }
         .my-2 { margin: 6pt 0; }
         .mb-1 { margin-bottom: 3pt; }
         .mb-2 { margin-bottom: 6pt; }
         .space-y-2 > * + * { margin-top: 6pt; }
-        
-        /* Font weights */
         .font-bold { font-weight: 700; }
         .font-semibold { font-weight: 600; }
         .font-medium { font-weight: 500; }
-        
-        /* Text alignment */
         .text-center { text-align: center; }
         .text-justify { text-align: justify; }
-        
-        /* Colors */
         .text-gray-500 { color: #6B7280; }
         .text-gray-600 { color: #4B5563; }
-        
-        /* Layout utilities */
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .justify-between { justify-content: space-between; }
@@ -145,40 +222,17 @@ const ViewResume = () => {
         .items-baseline { align-items: baseline; }
         .break-words { word-wrap: break-word; }
         .leading-relaxed { line-height: 1.6; }
-        
-        /* Grid utilities */
         .grid { display: grid; }
         .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         .gap-1 { gap: 3pt; }
         .gap-2 { gap: 6pt; }
-        
-        /* Hide shadows and borders in print */
         .shadow-lg, .shadow-xl { box-shadow: none !important; }
         .border-t-\\[20px\\] { border-top-width: 20px !important; border-top-style: solid !important; }
-        
-        /* Responsive utilities for print */
         .min-w-fit { min-width: fit-content; }
         .mr-1 { margin-right: 3pt; }
-        
-        /* List styles */
         .list-disc { list-style-type: disc; }
         .list-inside { list-style-position: inside; }
         .pl-5 { padding-left: 15pt; }
-        
-        /* Remove any potential browser styling */
-        @media print {
-          html, body {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-          
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-        }
       </style>
     </head>
     <body>
@@ -187,22 +241,16 @@ const ViewResume = () => {
       </div>
       
       <script>
-        // Auto-print when page loads and close after printing
         window.onload = function() {
-          // Small delay to ensure content is fully rendered
           setTimeout(function() {
-            // Focus the window to ensure print dialog appears
             window.focus();
-            // Trigger print
             window.print();
-            // Close window after print dialog (user may cancel, so we don't force close immediately)
             setTimeout(function() {
               window.close();
             }, 1000);
           }, 500);
         };
         
-        // Handle print completion
         window.onafterprint = function() {
           window.close();
         };
@@ -210,7 +258,6 @@ const ViewResume = () => {
     </body>
     </html>`;
     
-    // Write the clean document to the new window
     printWindow.document.write(cleanPrintDocument);
     printWindow.document.close();
   };
@@ -320,8 +367,19 @@ const ViewResume = () => {
           }
         }
         
-        /* Print styles */
+        /* Print styles - Default fallback */
         @media print {
+          /* Hide header and buttons during print */
+          .no-print, #no-print {
+            display: none !important;
+          }
+          
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+          }
+          
           .resume-container {
             width: 21cm !important;
             min-height: 29.7cm !important;
@@ -330,6 +388,21 @@ const ViewResume = () => {
             max-width: none !important;
             max-height: none !important;
             overflow: visible !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+          }
+          
+          /* Ensure colors and styles are preserved */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          
+          /* Page settings */
+          @page {
+            size: A4 portrait;
+            margin: 0;
           }
         }
       `}</style>
