@@ -1468,6 +1468,7 @@ Email: ${contact.email}
 Phone: ${contact.phone}
 LinkedIn: ${contact.linkedin}
 GitHub: ${contact.github}
+Portfolio: ${contact.portfolio}
 
 Professional Summary: ${summary}
 
