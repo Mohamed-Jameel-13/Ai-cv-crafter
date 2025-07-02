@@ -387,9 +387,9 @@ const SharedResumeView = () => {
           <div className="max-w-5xl mx-auto">
             <div 
               id="print-area" 
-              className="bg-white shadow-xl mx-auto print:shadow-none w-full max-w-full overflow-hidden resume-container"
+              className={`bg-white shadow-xl mx-auto print:shadow-none w-full max-w-full overflow-hidden ${resumeInfo?.pdfBase64 ? 'resume-container' : 'default-resume-container'}`}
               style={{ 
-                minHeight: '29.7cm',
+                minHeight: resumeInfo?.pdfBase64 ? '29.7cm' : 'auto',
                 boxSizing: 'border-box'
               }}
             >
@@ -407,18 +407,42 @@ const SharedResumeView = () => {
                       style={{ minHeight: '29.7cm' }}
                     />
                     
-                    {/* Mobile/Tablet iframe - improved style */}
-                    <iframe
-                      src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
-                      width="100%"
-                      height="600px"
-                      className="border-0 rounded-lg block lg:hidden"
-                      style={{ 
-                        minHeight: 'min(80vh, 600px)',
-                        height: 'min(80vh, 600px)'
-                      }}
-                      title="Resume PDF"
-                    />
+                    {/* Mobile PDF Display - Improved with better fallback */}
+                    <div className="block lg:hidden">
+                      {/* Try iframe first with error handling */}
+                      <iframe
+                        src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                        width="100%"
+                        height="600px"
+                        className="border-0 rounded-lg mobile-pdf-iframe"
+                        style={{ 
+                          minHeight: 'min(75vh, 600px)',
+                          height: 'min(75vh, 600px)',
+                          backgroundColor: '#f8f9fa'
+                        }}
+                        title="Resume PDF"
+                        onError={() => {
+                          console.warn('PDF iframe failed to load, showing fallback');
+                          document.querySelector('.mobile-pdf-iframe').style.display = 'none';
+                          document.querySelector('.mobile-pdf-fallback').style.display = 'block';
+                        }}
+                      />
+                      
+                      {/* Compact fallback for mobile browsers that can't display PDF in iframe */}
+                      <div className="mobile-pdf-fallback flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" style={{ display: 'none', height: '200px' }}>
+                        <a
+                          href={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex flex-col items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 min-w-[160px]"
+                        >
+                          <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="text-sm font-medium">Open Resume</span>
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -448,12 +472,64 @@ const SharedResumeView = () => {
         </div>
       </div>
 
+      {/* Mobile PDF Detection Script */}
+      <script dangerouslySetInnerHTML={{__html: `
+        // Auto-detect PDF iframe loading issues on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+          const iframe = document.querySelector('.mobile-pdf-iframe');
+          const fallback = document.querySelector('.mobile-pdf-fallback');
+          
+          if (iframe && fallback) {
+            // Set a timeout to check if iframe loads properly
+            setTimeout(() => {
+              try {
+                // Check if iframe content is accessible
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!iframeDoc || iframeDoc.body.innerHTML === '') {
+                  console.warn('PDF iframe appears empty, showing fallback');
+                  iframe.style.display = 'none';
+                  fallback.style.display = 'block';
+                }
+              } catch (e) {
+                // Cross-origin or loading error - show fallback
+                console.warn('PDF iframe loading error, showing fallback:', e);
+                iframe.style.display = 'none';
+                fallback.style.display = 'block';
+              }
+            }, 3000);
+            
+            // Also listen for load events
+            iframe.addEventListener('load', function() {
+              setTimeout(() => {
+                try {
+                  // Additional check after load
+                  if (iframe.offsetHeight < 100) {
+                    console.warn('PDF iframe height too small, showing fallback');
+                    iframe.style.display = 'none';
+                    fallback.style.display = 'block';
+                  }
+                } catch (e) {
+                  console.warn('Error checking iframe after load:', e);
+                }
+              }, 1000);
+            });
+          }
+        });
+      `}} />
+
       {/* Responsive CSS Styles */}
       <style>{`
-        /* Base responsive container */
+        /* Base responsive container for PDF resumes */
         .resume-container {
           width: min(100%, 21cm);
           padding: clamp(0.5rem, 2vw, 2rem);
+        }
+        
+        /* Default resume container - more flexible for mobile */
+        .default-resume-container {
+          width: 100%;
+          padding: 0;
+          min-height: auto;
         }
         
         /* PDF viewer styles */
@@ -474,12 +550,6 @@ const SharedResumeView = () => {
           display: none;
         }
         
-        /* Base responsive container */
-        .resume-container {
-          width: min(100%, 21cm);
-          padding: clamp(0.5rem, 2vw, 2rem);
-        }
-        
         /* PDF viewer styles */
         .pdf-viewer-container {
           position: relative;
@@ -487,26 +557,45 @@ const SharedResumeView = () => {
           height: 100%;
         }
         
-        /* Mobile styles - improved iframe viewing */
+        /* Mobile styles - improved iframe viewing and fallback handling */
         @media (max-width: 640px) {
           .resume-container {
-            height: 85vh;
-            max-height: 85vh;
-            overflow: hidden;
-            padding: 0.25rem;
+            min-height: 80vh;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0.5rem;
             margin: 0;
+            background: white;
+          }
+          
+          .default-resume-container {
+            min-height: auto;
+            max-height: none;
+            overflow: visible;
+            padding: 0;
+            margin: 0;
+            background: transparent;
+            width: 100%;
           }
           
           .pdf-viewer-container {
             height: 100%;
             margin: 0;
             padding: 0;
+            position: relative;
           }
           
-          .pdf-viewer-container iframe {
-            height: 100% !important;
-            min-height: unset !important;
+          .mobile-pdf-iframe {
+            height: 75vh !important;
+            min-height: 500px !important;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
           }
+          
+                     .mobile-pdf-fallback {
+             height: 200px !important;
+             min-height: 200px;
+           }
         }
         
         /* Tablet styles */
@@ -517,6 +606,14 @@ const SharedResumeView = () => {
             overflow-y: auto;
             padding: 0.75rem;
           }
+          
+          .default-resume-container {
+            aspect-ratio: unset;
+            max-height: none;
+            overflow: visible;
+            padding: 0;
+            width: 100%;
+          }
         }
         
         /* Desktop styles - original layout */
@@ -525,6 +622,12 @@ const SharedResumeView = () => {
             width: min(21cm, 85vw);
             max-width: 21cm;
             padding: clamp(1rem, 2vw, 2rem);
+          }
+          
+          .default-resume-container {
+            width: min(21cm, 85vw);
+            max-width: 21cm;
+            padding: 0;
           }
         }
         
@@ -541,7 +644,7 @@ const SharedResumeView = () => {
             background: white !important;
           }
           
-          .resume-container {
+          .resume-container, .default-resume-container {
             width: 21cm !important;
             min-height: 29.7cm !important;
             padding: 1cm !important;
@@ -551,6 +654,7 @@ const SharedResumeView = () => {
             overflow: visible !important;
             box-shadow: none !important;
             margin: 0 !important;
+            background: white !important;
           }
           
           /* Ensure colors and styles are preserved */
@@ -574,6 +678,13 @@ const SharedResumeView = () => {
             max-height: 80vh;
             padding: 0.15rem;
             overflow: hidden;
+          }
+          
+          .default-resume-container {
+            height: auto;
+            max-height: none;
+            padding: 0;
+            overflow: visible;
           }
         }
       `}</style>

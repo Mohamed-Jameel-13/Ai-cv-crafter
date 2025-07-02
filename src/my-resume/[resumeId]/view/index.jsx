@@ -366,18 +366,42 @@ const ViewResume = () => {
                     style={{ minHeight: '29.7cm' }}
                   />
                   
-                  {/* Mobile/Tablet iframe - improved style */}
-                  <iframe
-                    src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
-                    width="100%"
-                    height="600px"
-                    className="border-0 rounded-lg block lg:hidden"
-                    style={{ 
-                      minHeight: 'min(80vh, 600px)',
-                      height: 'min(80vh, 600px)'
-                    }}
-                    title="Resume PDF"
-                  />
+                  {/* Mobile PDF Display - Improved with better fallback */}
+                  <div className="block lg:hidden">
+                    {/* Try iframe first with error handling */}
+                    <iframe
+                      src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                      width="100%"
+                      height="600px"
+                      className="border-0 rounded-lg mobile-pdf-iframe"
+                      style={{ 
+                        minHeight: 'min(75vh, 600px)',
+                        height: 'min(75vh, 600px)',
+                        backgroundColor: '#f8f9fa'
+                      }}
+                      title="Resume PDF"
+                      onError={() => {
+                        console.warn('PDF iframe failed to load, showing fallback');
+                        document.querySelector('.mobile-pdf-iframe').style.display = 'none';
+                        document.querySelector('.mobile-pdf-fallback').style.display = 'block';
+                      }}
+                    />
+                    
+                    {/* Compact fallback for mobile browsers that can't display PDF in iframe */}
+                    <div className="mobile-pdf-fallback flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" style={{ display: 'none', height: '200px' }}>
+                      <a
+                        href={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 min-w-[160px]"
+                      >
+                        <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="text-sm font-medium">Open Resume</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -426,26 +450,35 @@ const ViewResume = () => {
           height: 100%;
         }
         
-        /* Mobile styles - improved iframe viewing */
+        /* Mobile styles - improved iframe viewing and fallback handling */
         @media (max-width: 640px) {
           .resume-container {
-            height: 85vh;
-            max-height: 85vh;
-            overflow: hidden;
-            padding: 0.25rem;
+            min-height: 80vh;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0.5rem;
             margin: 0;
+            background: white;
           }
           
           .pdf-viewer-container {
             height: 100%;
             margin: 0;
             padding: 0;
+            position: relative;
           }
           
-          .pdf-viewer-container iframe {
-            height: 100% !important;
-            min-height: unset !important;
+          .mobile-pdf-iframe {
+            height: 75vh !important;
+            min-height: 500px !important;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
           }
+          
+                     .mobile-pdf-fallback {
+             height: 200px !important;
+             min-height: 200px;
+           }
         }
         
         /* Tablet styles */
