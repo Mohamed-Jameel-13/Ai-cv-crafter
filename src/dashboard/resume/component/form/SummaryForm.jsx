@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AIButton } from "@/components/ui/ai-button";
 import { ResumeContext } from "@/context/ResumeContext";
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { Brain, Loader2 } from "lucide-react";
 import { AIchatSession } from "../../../../../service/AiModel";
@@ -10,12 +10,16 @@ import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 
 const prompt = `Given the job title "{jobTitle}", provide three job summary suggestions for a resume. Each suggestion should be in JSON format with fields "experience_level" (values can be "Fresher", "Mid-level", "Experienced") and "summary" (a brief summary). Output an array of JSON objects.`;
 
-const SummaryForm = ({ resumeId, email, enableNext }) => {
+const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [summary, setSummary] = useState(resumeInfo?.summary || "");
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState();
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [canRegenerate, setCanRegenerate] = useState(true);
+  const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState(0);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     if (summary) {
@@ -26,10 +30,57 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
     }
   }, [summary, setResumeInfo]);
 
+  useEffect(() => {
+    // Check cooldown status when component mounts
+    checkAiGenerationCooldown();
+  }, [resumeId, email]);
+
+  useEffect(() => {
+    // Update cooldown timer every minute if in cooldown
+    if (!canRegenerate && cooldownTimeRemaining > 0) {
+      intervalRef.current = setInterval(() => {
+        setCooldownTimeRemaining(prev => {
+          const newTime = prev - (1/60); // Subtract 1 minute in hours
+          if (newTime <= 0) {
+            setCanRegenerate(true);
+            clearInterval(intervalRef.current);
+            return 0;
+          }
+          return newTime;
+        });
+      }, 60000); // Update every minute
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [canRegenerate, cooldownTimeRemaining]);
+
+  const checkAiGenerationCooldown = async () => {
+    if (!resumeId || !email || isTemplateMode) return;
+    
+    try {
+      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'summary');
+      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'summary');
+      
+      setCanRegenerate(canRegen);
+      setCooldownTimeRemaining(timeRemaining);
+      
+      if (resumeData.aiGenerationTimestamps?.summary) {
+        setHasGenerated(true);
+      }
+    } catch (error) {
+      console.error('Error checking AI cooldown:', error);
+    }
+  };
+
   // Auto-save function
   const autoSave = useCallback(async (summaryData) => {
-    // Skip auto-save if no resumeId (template mode)
-    if (!resumeId) {
+    // Skip auto-save if in template mode or no resumeId
+    if (isTemplateMode || !resumeId) {
       enableNext(true);
       return;
     }
@@ -44,49 +95,46 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
     } finally {
       setIsAutoSaving(false);
     }
-  }, [email, resumeId, enableNext]);
+  }, [email, resumeId, enableNext, isTemplateMode]);
 
   // Debounced auto-save
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (summary.trim()) {
-        autoSave(summary);
-      }
-    }, 1000); // Auto-save after 1 second of inactivity
+    const timer = setTimeout(() => {
+      autoSave(summary);
+    }, 1000);
 
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(timer);
   }, [summary, autoSave]);
 
   const generateSummary = async () => {
+    if (!canRegenerate) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      return;
+    }
+
+    const jobTitle = resumeInfo?.personalDetail?.jobTitle;
+    if (!jobTitle) {
+      toast.error("Please add your job title first in Personal Details section");
+      return;
+    }
+
     setLoading(true);
     try {
-      const PROMPT = prompt.replace("{jobTitle}", resumeInfo?.personalDetail?.jobTitle || "your job title");
+      const finalPrompt = prompt.replace("{jobTitle}", jobTitle);
+      const result = await AIchatSession.sendMessage(finalPrompt);
       
-      // Call the AI service
-      const aiResponse = await AIchatSession.sendMessage(PROMPT);
-      console.log("AI Response:", aiResponse);
-      
-      if (!aiResponse) {
-        throw new Error("No response from AI service");
+      // Handle response text extraction
+      let responseText = result;
+      if (typeof result === 'object' && result.response && result.response.text) {
+        responseText = result.response.text();
+      } else if (typeof result === 'object' && result.response) {
+        responseText = result.response;
       }
-      
-      // Extract text from response object
-      let responseText = aiResponse;
-      
-      // If aiResponse is an object with response text, extract it
-      if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
-        responseText = aiResponse.response.text();
-      } else if (typeof aiResponse === 'object' && aiResponse.response) {
-        responseText = aiResponse.response;
-      }
-      
-      // Parse the response as JSON
+
       let parsedResponse;
       try {
-        // Try to parse the response directly
         parsedResponse = JSON.parse(responseText);
       } catch (parseError) {
-        // If direct parsing fails, try to extract JSON from the response
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
@@ -95,13 +143,21 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
         }
       }
 
-      // Validate the parsed response
       if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
         throw new Error('Invalid response format from AI');
       }
 
       console.log("Parsed Response:", parsedResponse);
       setAiGenerateSummeryList(parsedResponse);
+      setHasGenerated(true);
+      setCanRegenerate(false);
+      
+      // Update AI generation timestamp
+      if (resumeId && email) {
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'summary');
+        setCooldownTimeRemaining(24); // Set 24-hour cooldown
+      }
+      
       toast.success("AI suggestions generated successfully!");
     } catch (error) {
       console.error("Error generating summaries:", error);
@@ -114,6 +170,13 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
   const handleSuggestionClick = (summaryText) => {
     setSummary(summaryText);
     setAiGenerateSummeryList(null);
+  };
+
+  const formatCooldownTime = (hours) => {
+    if (hours < 1) {
+      return `${Math.ceil(hours * 60)} minutes`;
+    }
+    return `${Math.ceil(hours)} hours`;
   };
 
   return (
@@ -138,62 +201,52 @@ const SummaryForm = ({ resumeId, email, enableNext }) => {
               onClick={generateSummary}
               loading={loading}
               loadingText="Creating summaries..."
-              className="w-full sm:w-auto"
+              disabled={loading || (!canRegenerate && hasGenerated)}
+              className={`w-full sm:w-auto ${!canRegenerate && hasGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+              style={{
+                opacity: !canRegenerate && hasGenerated ? '0.5' : '1',
+                cursor: !canRegenerate && hasGenerated ? 'not-allowed' : 'pointer'
+              }}
             >
-              Generate Summary
+              {hasGenerated && !canRegenerate ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}` : 
+               hasGenerated ? "Regenerate Summary" : "Generate Summary"}
             </AIButton>
           </div>
           <Textarea
-            className="mt-5 w-full min-h-[100px]"
+            className="mt-5 w-full min-h-32 resize-none"
             required
-            onChange={(e) => setSummary(e.target.value)}
             value={summary}
-            placeholder="Write your job summary here..."
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="Write a compelling summary that highlights your key strengths and career objectives"
           />
         </div>
       </div>
+
+      {/* AI Generated Summaries Section */}
       {aiGeneratedSummeryList && (
-        <div className="mt-6 w-full">
-          <div className="p-3 sm:p-5 shadow-lg rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center">
-                <Brain className="h-4 w-4 text-white" />
-              </div>
-              <h3 className="font-bold text-lg text-gray-900">AI Suggestions</h3>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="mt-5 w-full">
+          <div className="p-3 sm:p-5 shadow-lg rounded-lg">
+            <h2 className="font-bold text-base sm:text-lg mb-3">AI Generated Summaries</h2>
+            <div className="space-y-3">
               {aiGeneratedSummeryList.map((item, index) => (
                 <div
                   key={index}
-                  className="group p-4 bg-white rounded-lg border border-gray-200 cursor-pointer hover:shadow-lg hover:border-[rgb(63,39,34)] transition-all duration-300 transform hover:scale-105"
                   onClick={() => handleSuggestionClick(item.summary)}
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-[rgb(63,39,34)] transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-2 py-1 text-xs font-medium bg-gradient-to-r from-violet-100 to-purple-100 text-violet-700 rounded-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                    <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded">
                       {item.experience_level}
                     </span>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="text-xs text-violet-600 font-medium">Click to apply</div>
-                    </div>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed">{item.summary}</p>
-                  <div className="mt-3 pt-2 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center justify-center text-xs text-violet-600 font-medium">
-                      Use this summary
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {item.summary}
+                  </p>
                 </div>
               ))}
             </div>
-            <div className="mt-4 text-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAiGenerateSummeryList(null)}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Dismiss Suggestions
-              </Button>
+            <div className="mt-4 text-xs text-gray-500">
+              Click on any summary to use it
             </div>
           </div>
         </div>

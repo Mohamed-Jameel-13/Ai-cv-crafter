@@ -7,6 +7,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +25,7 @@ import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 
 const AddResume = () => {
   const [openDialog, setOpenDialog] = useState(false);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [resumeTitle, setResumeTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
@@ -49,6 +59,14 @@ const AddResume = () => {
       navigate(`/dashboard/${user.email}/${result.resumeId}/edit`);
     } catch (error) {
       console.error("Error creating encrypted resume:", error);
+      
+      if (error.message === 'RESUME_LIMIT_REACHED') {
+        setOpenDialog(false);
+        setShowLimitDialog(true);
+      } else {
+        // Handle other errors
+        console.error("Other error:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -98,6 +116,31 @@ const AddResume = () => {
           </DialogHeader>
         </DialogContent>
       </Dialog>
+
+      {/* Resume Limit Reached Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground text-xl font-semibold">
+              Resume Limit Reached
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              <div className="space-y-3">
+                <p>You have reached the maximum limit of <span className="font-semibold text-foreground">3 resumes</span>.</p>
+                <p>To create a new resume, please delete an existing one from your dashboard first.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => setShowLimitDialog(false)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

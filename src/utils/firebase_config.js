@@ -7,6 +7,7 @@ import {
   CACHE_SIZE_UNLIMITED 
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import Logger from './logger.js';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyARvwYhTqRXMEUbfUzQWdPasuSvy2A4mkY",
@@ -17,7 +18,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:991488890950:web:30746f9d81de0e5724d247",
 };
 
-console.log("Auth Domain:", import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
+Logger.log("Auth Domain:", import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
@@ -34,11 +35,11 @@ try {
   db = initializeFirestore(app, firestoreSettings);
   enableIndexedDbPersistence(db).catch((error) => {
     if (error.code === 'failed-precondition') {
-      console.warn('Multiple tabs open, persistence enabled in another tab');
+      Logger.warn('Multiple tabs open, persistence enabled in another tab');
     } else if (error.code === 'unimplemented') {
-      console.warn('Browser doesn\'t support persistence');
+      Logger.warn('Browser doesn\'t support persistence');
     } else if (error.name === 'BloomFilterError') {
-      console.warn('BloomFilter error detected, falling back to memory-only mode');
+      Logger.warn('BloomFilter error detected, falling back to memory-only mode');
       db = initializeFirestore(app, {
         ...firestoreSettings,
         memoryOnly: true
@@ -46,7 +47,7 @@ try {
     }
   });
 } catch (error) {
-  console.error('Firestore initialization error:', error);
+  Logger.error('Firestore initialization error:', error);
   db = getFirestore(app); // Fallback to default configuration
 }
 

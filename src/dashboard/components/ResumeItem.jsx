@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { getFirestore, collection, doc, deleteDoc } from "firebase/firestore";
 import { app } from "@/utils/firebase_config";
 import { UserContext } from "@/context/UserContext";
+import Logger from "@/utils/logger";
 
 const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected, onSelect }) => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
 
   // Utility function to restore focus and clear any stuck states
   const restoreFocusAndInteraction = () => {
-    console.log("🔄 Restoring focus and clearing stuck states");
+    Logger.log("🔄 Restoring focus and clearing stuck states");
     
     // Clear any active element focus
     if (document.activeElement && document.activeElement !== document.body) {
@@ -43,7 +44,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
     const ariaHiddenElements = document.querySelectorAll('[aria-hidden="true"]');
     ariaHiddenElements.forEach(el => {
       if (el.contains(document.activeElement)) {
-        console.log("🔄 Removing problematic aria-hidden");
+        Logger.log("🔄 Removing problematic aria-hidden");
         el.removeAttribute('aria-hidden');
       }
     });
@@ -72,7 +73,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       // If user clicks but nothing responds, restore interactions
       setTimeout(() => {
         if (document.querySelectorAll('[aria-hidden="true"]').length > 2) {
-          console.log("🚨 Detected stuck UI state, restoring...");
+          Logger.log("🚨 Detected stuck UI state, restoring...");
           restoreFocusAndInteraction();
         }
       }, 100);
@@ -83,19 +84,19 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
   }, []);
 
   const handleDelete = async () => {
-    console.log("🔄 Starting deletion process...");
+    Logger.log("🔄 Starting deletion process...");
     
     if (!user?.email) {
-      console.log("❌ No user email");
+      Logger.log("❌ No user email");
       return;
     }
 
     if (!resume?.id) {
-      console.log("❌ No resume ID");
+      Logger.log("❌ No resume ID");
       return;
     }
 
-    console.log("🔄 Setting isDeleting to true");
+    Logger.log("🔄 Setting isDeleting to true");
     setIsDeleting(true);
 
     try {
@@ -103,14 +104,14 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       const resumesRef = collection(db, "usersByEmail", user.email, "resumes");
       const resumeRef = doc(resumesRef, resume.id);
 
-      console.log("🔄 Deleting from Firestore...");
+      Logger.log("🔄 Deleting from Firestore...");
       await deleteDoc(resumeRef);
-      console.log("✅ Firestore deletion successful");
+      Logger.log("✅ Firestore deletion successful");
       
-      console.log("🔄 Closing dialog...");
+      Logger.log("🔄 Closing dialog...");
       setOpenAlert(false);
       
-      console.log("🔄 Updating UI...");
+      Logger.log("🔄 Updating UI...");
       // Use onDelete callback to immediately remove from UI without refetching
       if (onDelete) {
         onDelete(resume.id);
@@ -119,7 +120,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
         refreshData(true);
       }
       
-      console.log("✅ Resume deleted successfully!");
+      Logger.log("✅ Resume deleted successfully!");
       
       // Restore focus to prevent focus trapping
       setTimeout(() => {
@@ -127,12 +128,12 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       }, 300);
       
     } catch (error) {
-      console.error("❌ Error deleting resume:", error);
+      Logger.error("❌ Error deleting resume:", error);
     }
     
-    console.log("🔄 Setting isDeleting to false");
+    Logger.log("🔄 Setting isDeleting to false");
     setIsDeleting(false);
-    console.log("✅ Deletion process complete");
+    Logger.log("✅ Deletion process complete");
   };
 
   const handleCloseDialog = () => {

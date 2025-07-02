@@ -15,7 +15,7 @@ const formField = {
 
 const prompt = `Given the job title "{jobTitle}", provide skill suggestions organized by categories for a resume. Return a JSON array with objects containing "category" (skill category name) and "skills" (comma-separated list of relevant ATS-friendly skills). Include 4-6 categories like Technical Skills, Programming Languages, Tools & Technologies, Soft Skills, etc. Format: [{"category": "Technical Skills", "skills": "skill1, skill2, skill3"}, ...]`;
 
-const Skills = ({ resumeId, email, enableNext }) => {
+const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [skillsList, setSkillsList] = useState(() =>
     resumeInfo?.skills?.length > 0 ? resumeInfo.skills : [formField]
@@ -23,6 +23,10 @@ const Skills = ({ resumeId, email, enableNext }) => {
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiGeneratedSkills, setAiGeneratedSkills] = useState(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [canRegenerate, setCanRegenerate] = useState(true);
+  const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState(0);
+  const intervalRef = useRef(null);
   
   // Track previous data to prevent unnecessary context updates
   const previousDataRef = useRef(null);
@@ -64,20 +68,15 @@ const Skills = ({ resumeId, email, enableNext }) => {
   }, [skillsList, setResumeInfo]);
 
   // Auto-save function
-  const autoSave = useCallback(async (data) => {
-    // Skip auto-save if no resumeId (template mode)
-    if (!resumeId) {
+  const autoSave = useCallback(async (skillsData) => {
+    // Skip auto-save if in template mode or no resumeId
+    if (isTemplateMode || !resumeId) {
       enableNext(true);
       return;
     }
     
     setIsAutoSaving(true);
     try {
-      const skillsData = data.map((skill) => ({
-        category: skill.category || "",
-        skills: skill.skills || "",
-      }));
-      
       await EncryptedFirebaseService.updateResumeField(email, resumeId, 'skills', skillsData);
       enableNext(true);
     } catch (error) {
@@ -86,7 +85,7 @@ const Skills = ({ resumeId, email, enableNext }) => {
     } finally {
       setIsAutoSaving(false);
     }
-  }, [email, resumeId, enableNext]);
+  }, [email, resumeId, enableNext, isTemplateMode]);
 
   // Debounced auto-save
   useEffect(() => {
@@ -94,7 +93,11 @@ const Skills = ({ resumeId, email, enableNext }) => {
     
     const timeoutId = setTimeout(() => {
       if (skillsList.length > 0 && skillsList.some(skill => skill.category?.trim())) {
-        autoSave(skillsList);
+        const skillsData = skillsList.map((skill) => ({
+          category: skill.category || "",
+          skills: skill.skills || "",
+        }));
+        autoSave(skillsData);
       }
     }, 1000);
 
@@ -109,36 +112,77 @@ const Skills = ({ resumeId, email, enableNext }) => {
     });
   }, []);
 
+  useEffect(() => {
+    // Check cooldown status when component mounts
+    checkAiGenerationCooldown();
+  }, [resumeId, email]);
+
+  useEffect(() => {
+    // Update cooldown timer every minute if in cooldown
+    if (!canRegenerate && cooldownTimeRemaining > 0) {
+      intervalRef.current = setInterval(() => {
+        setCooldownTimeRemaining(prev => {
+          const newTime = prev - (1/60); // Subtract 1 minute in hours
+          if (newTime <= 0) {
+            setCanRegenerate(true);
+            clearInterval(intervalRef.current);
+            return 0;
+          }
+          return newTime;
+        });
+      }, 60000); // Update every minute
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [canRegenerate, cooldownTimeRemaining]);
+
+  const checkAiGenerationCooldown = async () => {
+    if (!resumeId || !email || isTemplateMode) return;
+    
+    try {
+      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'skills');
+      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'skills');
+      
+      setCanRegenerate(canRegen);
+      setCooldownTimeRemaining(timeRemaining);
+      
+      if (resumeData.aiGenerationTimestamps?.skills) {
+        setHasGenerated(true);
+      }
+    } catch (error) {
+      console.error('Error checking AI cooldown:', error);
+    }
+  };
+
   const generateSkillSuggestions = async () => {
-    if (!resumeInfo?.personalDetail?.jobTitle) {
-      toast.error("Please add job title in Personal Details section first");
+    if (!canRegenerate) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      return;
+    }
+
+    const jobTitle = resumeInfo?.personalDetail?.jobTitle;
+    if (!jobTitle) {
+      toast.error("Please add your job title first in Personal Details section");
       return;
     }
 
     setAiLoading(true);
     try {
-      const PROMPT = prompt.replace("{jobTitle}", resumeInfo.personalDetail.jobTitle);
-      console.log("Prompt:", PROMPT);
-      
-      // Call AI service
+      const PROMPT = prompt.replace("{jobTitle}", jobTitle);
       const aiResponse = await AIchatSession.sendMessage(PROMPT);
-      console.log("AI Response:", aiResponse);
       
-      if (!aiResponse) {
-        throw new Error("No response from AI service");
-      }
-      
-      // Extract text from response object
       let responseText = aiResponse;
-      
-      // If aiResponse is an object with response text, extract it
       if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
         responseText = aiResponse.response.text();
       } else if (typeof aiResponse === 'object' && aiResponse.response) {
         responseText = aiResponse.response;
       }
       
-      // Parse the response as JSON
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseText);
@@ -155,13 +199,20 @@ const Skills = ({ resumeId, email, enableNext }) => {
         throw new Error('Invalid response format from AI');
       }
 
-      console.log("Parsed Response:", parsedResponse);
       setAiGeneratedSkills(parsedResponse);
-      toast.success("AI skill suggestions generated successfully!");
+      setHasGenerated(true);
+      setCanRegenerate(false);
       
+      // Update AI generation timestamp
+      if (resumeId && email) {
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'skills');
+        setCooldownTimeRemaining(24); // Set 24-hour cooldown
+      }
+      
+      toast.success("AI skills generated successfully!");
     } catch (error) {
       console.error("Error generating skills:", error);
-      toast.error("Failed to generate skill suggestions. Please try again.");
+      toast.error("Failed to generate skills. Please try again.");
     } finally {
       setAiLoading(false);
     }
@@ -185,6 +236,13 @@ const Skills = ({ resumeId, email, enableNext }) => {
     }
   }, [skillsList.length]);
 
+  const formatCooldownTime = (hours) => {
+    if (hours < 1) {
+      return `${Math.ceil(hours * 60)} minutes`;
+    }
+    return `${Math.ceil(hours)} hours`;
+  };
+
   return (
     <div className="w-full">
       <div className="p-3 sm:p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10 w-full">
@@ -205,9 +263,15 @@ const Skills = ({ resumeId, email, enableNext }) => {
                 onClick={generateSkillSuggestions}
                 loading={aiLoading}
                 loadingText="Creating skills..."
-                className="w-full sm:w-auto"
+                disabled={aiLoading || (!canRegenerate && hasGenerated)}
+                className={`w-full sm:w-auto ${!canRegenerate && hasGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={{
+                  opacity: !canRegenerate && hasGenerated ? '0.5' : '1',
+                  cursor: !canRegenerate && hasGenerated ? 'not-allowed' : 'pointer'
+                }}
               >
-                Generate Skills
+                {hasGenerated && !canRegenerate ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}` : 
+                 hasGenerated ? "Regenerate Skills" : "Generate Skills"}
               </AIButton>
             </div>
           </div>

@@ -16,10 +16,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CreationModeSelector = () => {
   const navigate = useNavigate();
   const [showDefaultDialog, setShowDefaultDialog] = useState(false);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
@@ -57,6 +67,14 @@ const CreationModeSelector = () => {
       navigate(`/dashboard/${user.email}/${result.resumeId}/edit`);
     } catch (error) {
       console.error("Error creating encrypted resume:", error);
+      
+      if (error.message === 'RESUME_LIMIT_REACHED') {
+        setShowDefaultDialog(false);
+        setShowLimitDialog(true);
+      } else {
+        // Handle other errors
+        console.error("Other error:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -272,6 +290,40 @@ const CreationModeSelector = () => {
           </DialogHeader>
         </DialogContent>
       </Dialog>
+
+      {/* Resume Limit Reached Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent className="bg-white border-slate-200 shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-900 text-xl font-semibold">
+              Resume Limit Reached
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600">
+              <div className="space-y-3">
+                <p>You have reached the maximum limit of <span className="font-semibold text-slate-900">3 resumes</span>.</p>
+                <p>To create a new resume, please delete an existing one from your dashboard first.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => setShowLimitDialog(false)}
+              className="text-black"
+              style={{ 
+                background: 'linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))';
+              }}
+            >
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef, memo } from "react";
 import { ResumeContext } from "@/context/ResumeContext";
 import { toast } from "sonner";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
@@ -46,7 +46,7 @@ Example format:
   }
 ]`;
 
-const Education = ({ resumeId, email, enableNext }) => {
+const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [educationList, setEducationList] = useState(() => 
     resumeInfo?.education?.length > 0 ? resumeInfo.education : [formField]
@@ -56,6 +56,9 @@ const Education = ({ resumeId, email, enableNext }) => {
   const [currentEducationIndex, setCurrentEducationIndex] = useState(null);
   const [aiGeneratedContent, setAiGeneratedContent] = useState(null);
   const [hasGenerated, setHasGenerated] = useState({});
+  const [canRegenerate, setCanRegenerate] = useState({});
+  const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState({});
+  const intervalRef = useRef(null);
 
   // Update context whenever educationList changes
   useEffect(() => {
@@ -66,16 +69,16 @@ const Education = ({ resumeId, email, enableNext }) => {
   }, [educationList, setResumeInfo]);
 
   // Auto-save function
-  const autoSave = useCallback(async (data) => {
-    // Skip auto-save if no resumeId (template mode)
-    if (!resumeId) {
+  const autoSave = useCallback(async (educationData) => {
+    // Skip auto-save if in template mode or no resumeId
+    if (isTemplateMode || !resumeId) {
       enableNext(true);
       return;
     }
     
     setIsAutoSaving(true);
     try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'education', data);
+      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'education', educationData);
       enableNext(true);
     } catch (error) {
       console.error("Error auto-saving encrypted education:", error);
@@ -83,7 +86,7 @@ const Education = ({ resumeId, email, enableNext }) => {
     } finally {
       setIsAutoSaving(false);
     }
-  }, [email, resumeId, enableNext]);
+  }, [email, resumeId, enableNext, isTemplateMode]);
 
   // Debounced auto-save
   useEffect(() => {
@@ -123,15 +126,89 @@ const Education = ({ resumeId, email, enableNext }) => {
     });
   }, []);
 
+  useEffect(() => {
+    // Check cooldown status when component mounts
+    checkAiGenerationCooldown();
+  }, [resumeId, email]);
+
+  useEffect(() => {
+    // Update cooldown timers every minute
+    const activeEducation = Object.keys(cooldownTimeRemaining).filter(index => 
+      !canRegenerate[index] && cooldownTimeRemaining[index] > 0
+    );
+
+    if (activeEducation.length > 0) {
+      intervalRef.current = setInterval(() => {
+        setCooldownTimeRemaining(prev => {
+          const updated = { ...prev };
+          let hasChanges = false;
+          
+          activeEducation.forEach(index => {
+            const newTime = prev[index] - (1/60); // Subtract 1 minute in hours
+            if (newTime <= 0) {
+              setCanRegenerate(prevCan => ({ ...prevCan, [index]: true }));
+              updated[index] = 0;
+              hasChanges = true;
+            } else {
+              updated[index] = newTime;
+            }
+          });
+          
+          if (hasChanges && Object.values(updated).every(time => time <= 0)) {
+            clearInterval(intervalRef.current);
+          }
+          
+          return updated;
+        });
+      }, 60000); // Update every minute
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [canRegenerate, cooldownTimeRemaining]);
+
+  const checkAiGenerationCooldown = async () => {
+    if (!resumeId || !email || isTemplateMode) return;
+    
+    try {
+      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const newCanRegenerate = {};
+      const newCooldownTime = {};
+      const newHasGenerated = {};
+      
+      educationList.forEach((_, index) => {
+        const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'education');
+        const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'education');
+        
+        newCanRegenerate[index] = canRegen;
+        newCooldownTime[index] = timeRemaining;
+        
+        if (resumeData.aiGenerationTimestamps?.education) {
+          newHasGenerated[index] = true;
+        }
+      });
+      
+      setCanRegenerate(newCanRegenerate);
+      setCooldownTimeRemaining(newCooldownTime);
+      setHasGenerated(newHasGenerated);
+    } catch (error) {
+      console.error('Error checking AI cooldown:', error);
+    }
+  };
+
   const generateContent = async (educationIndex) => {
     const education = educationList[educationIndex];
     
-    // Validation - check required fields
-    const requiredFields = ['school', 'degree', 'fieldOfStudy'];
-    const missingFields = requiredFields.filter(field => !education[field]?.trim());
-    
-    if (missingFields.length > 0) {
-      toast.error(`Please fill in the following fields first: ${missingFields.join(', ')}`);
+    if (!canRegenerate[educationIndex]) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[educationIndex] || 0)} hours`);
+      return;
+    }
+
+    if (!education.school || !education.degree) {
+      toast.error("Please enter school and degree first");
       return;
     }
 
@@ -155,7 +232,6 @@ const Education = ({ resumeId, email, enableNext }) => {
       // Extract text from response object
       let responseText = aiResponse;
       
-      // If aiResponse is an object with response text, extract it
       if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
         responseText = aiResponse.response.text();
       } else if (typeof aiResponse === 'object' && aiResponse.response) {
@@ -180,6 +256,14 @@ const Education = ({ resumeId, email, enableNext }) => {
 
       setAiGeneratedContent(parsedResponse);
       setHasGenerated(prev => ({ ...prev, [educationIndex]: true }));
+      setCanRegenerate(prev => ({ ...prev, [educationIndex]: false }));
+      
+      // Update AI generation timestamp
+      if (resumeId && email) {
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'education');
+        setCooldownTimeRemaining(prev => ({ ...prev, [educationIndex]: 24 })); // Set 24-hour cooldown
+      }
+      
       toast.success("AI suggestions generated successfully!");
       
     } catch (error) {
@@ -222,9 +306,21 @@ const Education = ({ resumeId, email, enableNext }) => {
   }, [currentEducationIndex, aiGeneratedContent]);
 
   const handleRegenerateContent = (educationIndex) => {
+    if (!canRegenerate[educationIndex]) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[educationIndex] || 0)} hours`);
+      return;
+    }
+    
     setHasGenerated(prev => ({ ...prev, [educationIndex]: false }));
     setAiGeneratedContent(null);
     generateContent(educationIndex);
+  };
+
+  const formatCooldownTime = (hours) => {
+    if (hours < 1) {
+      return `${Math.ceil(hours * 60)} minutes`;
+    }
+    return `${Math.ceil(hours)} hours`;
   };
 
   return (
@@ -313,10 +409,16 @@ const Education = ({ resumeId, email, enableNext }) => {
                       onClick={() => hasGenerated[index] ? handleRegenerateContent(index) : generateContent(index)}
                       loading={aiLoading && currentEducationIndex === index}
                       loadingText="Creating content..."
-                      disabled={aiLoading && currentEducationIndex === index}
-                      className="w-full sm:w-auto text-xs sm:text-sm"
+                      disabled={(aiLoading && currentEducationIndex === index) || (!canRegenerate[index] && hasGenerated[index])}
+                      className={`w-full sm:w-auto text-xs sm:text-sm ${!canRegenerate[index] && hasGenerated[index] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      style={{
+                        opacity: !canRegenerate[index] && hasGenerated[index] ? '0.5' : '1',
+                        cursor: !canRegenerate[index] && hasGenerated[index] ? 'not-allowed' : 'pointer'
+                      }}
                     >
-                      {hasGenerated[index] ? "Regenerate Content" : "Generate Content"}
+                      {hasGenerated[index] && !canRegenerate[index] ? 
+                        `Available in ${formatCooldownTime(cooldownTimeRemaining[index] || 0)}` : 
+                        hasGenerated[index] ? "Regenerate Content" : "Generate Content"}
                     </AIButton>
                   </div>
                   <Textarea

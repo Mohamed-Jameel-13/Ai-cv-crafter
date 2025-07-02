@@ -1,44 +1,45 @@
 import { AIchatSession } from '../../service/AiModel.js';
+import Logger from '../utils/logger.js';
 
 class TemplateAiService {
   static async generateTemplateResume(templateName, resumeData, options = {}) {
     try {
-      console.log('🚀 Starting template resume generation:', { templateName, resumeData });
+      Logger.log('🚀 Starting template resume generation:', { templateName, resumeData });
       
       // Step 1: Generate AI prompt with template name and resume data
       const aiPrompt = this.generatePrompt(templateName, resumeData);
-      console.log('📝 Generated AI prompt for template:', templateName);
-      console.log('📝 Full AI prompt:', aiPrompt);
+      Logger.log('📝 Generated AI prompt for template:', templateName);
+      Logger.log('📝 Full AI prompt:', aiPrompt);
 
       // Step 2: Get LaTeX code from AI
-      console.log('🤖 Calling AI with prompt...');
+      Logger.log('🤖 Calling AI with prompt...');
       const latexResponse = await AIchatSession.sendMessage(aiPrompt);
-      console.log('🤖 Raw AI response:', latexResponse);
+      Logger.log('🤖 Raw AI response:', latexResponse);
       
       const latexContent = latexResponse?.response?.text?.() || latexResponse;
-      console.log('🤖 Extracted LaTeX content:', typeof latexContent);
-      console.log('🤖 LaTeX content preview:', latexContent?.substring(0, 500) + '...');
+      Logger.log('🤖 Extracted LaTeX content:', typeof latexContent);
+      Logger.log('🤖 LaTeX content preview:', latexContent?.substring(0, 500) + '...');
 
       if (!latexContent || typeof latexContent !== 'string') {
-        console.error('❌ Invalid AI response:', { latexResponse, latexContent });
+        Logger.error('❌ Invalid AI response:', { latexResponse, latexContent });
         throw new Error('AI did not return valid LaTeX content');
       }
 
       // Check if the response contains actual LaTeX
       if (!latexContent.includes('\\documentclass') && !latexContent.includes('\\begin{document}')) {
-        console.warn('⚠️ AI response does not contain valid LaTeX structure');
+        Logger.warn('⚠️ AI response does not contain valid LaTeX structure');
         throw new Error('AI response does not contain valid LaTeX document');
       }
 
       // Step 3: Clean and validate LaTeX code
       let cleanedLatex = this.cleanLatexCode(latexContent);
-      console.log('🧹 Cleaned LaTeX code length:', cleanedLatex.length);
-      console.log('🧹 First 500 chars of cleaned LaTeX:', cleanedLatex.substring(0, 500));
+      Logger.log('🧹 Cleaned LaTeX code length:', cleanedLatex.length);
+      Logger.log('🧹 First 500 chars of cleaned LaTeX:', cleanedLatex.substring(0, 500));
 
       // Step 3.5: Validate LaTeX structure
       const validationResult = this.validateLatexStructure(cleanedLatex);
       if (!validationResult.isValid) {
-        console.warn('⚠️ LaTeX structure validation failed:', validationResult.errors);
+        Logger.warn('⚠️ LaTeX structure validation failed:', validationResult.errors);
         throw new Error(`LaTeX structure validation failed: ${validationResult.errors.join(', ')}`);
       }
 

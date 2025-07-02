@@ -55,7 +55,7 @@ Example format:
   }
 ]`;
 
-const Projects = ({ resumeId, email, enableNext }) => {
+const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   
   // Initialize with context data first, then fallback to default
@@ -68,6 +68,9 @@ const Projects = ({ resumeId, email, enableNext }) => {
   const [currentProjectIndex, setCurrentProjectIndex] = useState(null);
   const [aiGeneratedContent, setAiGeneratedContent] = useState(null);
   const [hasGenerated, setHasGenerated] = useState({});
+  const [canRegenerate, setCanRegenerate] = useState({});
+  const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState({});
+  const intervalRef = useRef(null);
   
   // Track previous data to prevent unnecessary context updates
   const previousDataRef = useRef(null);
@@ -109,16 +112,16 @@ const Projects = ({ resumeId, email, enableNext }) => {
   }, [projectsList, setResumeInfo]);
 
   // Auto-save function
-  const autoSave = useCallback(async (data) => {
-    // Skip auto-save if no resumeId (template mode)
-    if (!resumeId) {
+  const autoSave = useCallback(async (projectsData) => {
+    // Skip auto-save if in template mode or no resumeId
+    if (isTemplateMode || !resumeId) {
       enableNext(true);
       return;
     }
     
     setIsAutoSaving(true);
     try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'projects', data);
+      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'projects', projectsData);
       enableNext(true);
     } catch (error) {
       console.error("Error auto-saving encrypted projects:", error);
@@ -126,7 +129,7 @@ const Projects = ({ resumeId, email, enableNext }) => {
     } finally {
       setIsAutoSaving(false);
     }
-  }, [email, resumeId, enableNext]);
+  }, [email, resumeId, enableNext, isTemplateMode]);
 
   // Debounced auto-save
   useEffect(() => {
@@ -155,6 +158,79 @@ const Projects = ({ resumeId, email, enableNext }) => {
     };
   }, [projectsList, setResumeInfo]);
 
+  useEffect(() => {
+    // Check cooldown status when component mounts
+    checkAiGenerationCooldown();
+  }, [resumeId, email]);
+
+  useEffect(() => {
+    // Update cooldown timers every minute
+    const activeProjects = Object.keys(cooldownTimeRemaining).filter(index => 
+      !canRegenerate[index] && cooldownTimeRemaining[index] > 0
+    );
+
+    if (activeProjects.length > 0) {
+      intervalRef.current = setInterval(() => {
+        setCooldownTimeRemaining(prev => {
+          const updated = { ...prev };
+          let hasChanges = false;
+          
+          activeProjects.forEach(index => {
+            const newTime = prev[index] - (1/60); // Subtract 1 minute in hours
+            if (newTime <= 0) {
+              setCanRegenerate(prevCan => ({ ...prevCan, [index]: true }));
+              updated[index] = 0;
+              hasChanges = true;
+            } else {
+              updated[index] = newTime;
+            }
+          });
+          
+          if (hasChanges && Object.values(updated).every(time => time <= 0)) {
+            clearInterval(intervalRef.current);
+          }
+          
+          return updated;
+        });
+      }, 60000); // Update every minute
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [canRegenerate, cooldownTimeRemaining]);
+
+  const checkAiGenerationCooldown = async () => {
+    if (!resumeId || !email || isTemplateMode) return;
+    
+    try {
+      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const newCanRegenerate = {};
+      const newCooldownTime = {};
+      const newHasGenerated = {};
+      
+      projectsList.forEach((_, index) => {
+        const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'projects');
+        const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'projects');
+        
+        newCanRegenerate[index] = canRegen;
+        newCooldownTime[index] = timeRemaining;
+        
+        if (resumeData.aiGenerationTimestamps?.projects) {
+          newHasGenerated[index] = true;
+        }
+      });
+      
+      setCanRegenerate(newCanRegenerate);
+      setCooldownTimeRemaining(newCooldownTime);
+      setHasGenerated(newHasGenerated);
+    } catch (error) {
+      console.error('Error checking AI cooldown:', error);
+    }
+  };
+
   const handleChange = useCallback((projectIndex, field, value) => {
     setProjectsList(prev => {
       const newProjects = [...prev];
@@ -174,14 +250,13 @@ const Projects = ({ resumeId, email, enableNext }) => {
   const generateContent = async (projectIndex) => {
     const project = projectsList[projectIndex];
     
-    // Validation - check required fields
-    if (!project.name?.trim()) {
-      toast.error("Please enter a project name first");
+    if (!canRegenerate[projectIndex]) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[projectIndex] || 0)} hours`);
       return;
     }
-    
-    if (!project.technologies?.trim()) {
-      toast.error("Please enter the technologies used in this project first");
+
+    if (!project.name || !project.technologies) {
+      toast.error("Please enter project name and technologies first");
       return;
     }
 
@@ -230,6 +305,14 @@ const Projects = ({ resumeId, email, enableNext }) => {
 
       setAiGeneratedContent(parsedResponse);
       setHasGenerated(prev => ({ ...prev, [projectIndex]: true }));
+      setCanRegenerate(prev => ({ ...prev, [projectIndex]: false }));
+      
+      // Update AI generation timestamp
+      if (resumeId && email) {
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'projects');
+        setCooldownTimeRemaining(prev => ({ ...prev, [projectIndex]: 24 })); // Set 24-hour cooldown
+      }
+      
       toast.success("AI suggestions generated successfully!");
       
     } catch (error) {
@@ -274,6 +357,11 @@ const Projects = ({ resumeId, email, enableNext }) => {
   }, [currentProjectIndex, aiGeneratedContent]);
 
   const handleRegenerateContent = (projectIndex) => {
+    if (!canRegenerate[projectIndex]) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[projectIndex] || 0)} hours`);
+      return;
+    }
+    
     setHasGenerated(prev => ({ ...prev, [projectIndex]: false }));
     setAiGeneratedContent(null);
     generateContent(projectIndex);
@@ -306,6 +394,13 @@ const Projects = ({ resumeId, email, enableNext }) => {
       return newProjects;
     });
   }, []);
+
+  const formatCooldownTime = (hours) => {
+    if (hours < 1) {
+      return `${Math.ceil(hours * 60)} minutes`;
+    }
+    return `${Math.ceil(hours)} hours`;
+  };
 
   return (
     <div className="w-full">
@@ -353,10 +448,16 @@ const Projects = ({ resumeId, email, enableNext }) => {
                     onClick={() => hasGenerated[projectIndex] ? handleRegenerateContent(projectIndex) : generateContent(projectIndex)}
                     loading={aiLoading && currentProjectIndex === projectIndex}
                     loadingText="Creating content..."
-                    disabled={aiLoading && currentProjectIndex === projectIndex}
-                    className="w-full sm:w-auto text-xs sm:text-sm"
+                    disabled={(aiLoading && currentProjectIndex === projectIndex) || (!canRegenerate[projectIndex] && hasGenerated[projectIndex])}
+                    className={`w-full sm:w-auto text-xs sm:text-sm ${!canRegenerate[projectIndex] && hasGenerated[projectIndex] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{
+                      opacity: !canRegenerate[projectIndex] && hasGenerated[projectIndex] ? '0.5' : '1',
+                      cursor: !canRegenerate[projectIndex] && hasGenerated[projectIndex] ? 'not-allowed' : 'pointer'
+                    }}
                   >
-                    {hasGenerated[projectIndex] ? "Regenerate Content" : "Generate Content"}
+                    {hasGenerated[projectIndex] && !canRegenerate[projectIndex] ? 
+                      `Available in ${formatCooldownTime(cooldownTimeRemaining[projectIndex] || 0)}` : 
+                      hasGenerated[projectIndex] ? "Regenerate Content" : "Generate Content"}
                   </AIButton>
                 </div>
                 <Textarea

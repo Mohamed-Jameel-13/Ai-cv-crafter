@@ -18,7 +18,7 @@ const formField = {
   workSummery: "",
 };
 
-const ExperienceForm = ({ resumeId, email, enableNext }) => {
+const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const userContext = useContext(UserContext);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
@@ -37,6 +37,7 @@ const ExperienceForm = ({ resumeId, email, enableNext }) => {
   const previousDataRef = useRef(null);
   const hasInitialized = useRef(false);
   const isContextUpdating = useRef(false);
+  const lastSavedData = useRef(null);
 
   // Initialize ONLY ONCE when component first mounts or when resumeInfo first becomes available
   useEffect(() => {
@@ -52,81 +53,34 @@ const ExperienceForm = ({ resumeId, email, enableNext }) => {
     }
   }, [resumeInfo?.experience]); // This will only run when resumeInfo.experience first becomes available
 
-  // Enhanced auto-save function with better error handling
-  const autoSave = useCallback(async (data) => {
-    // Skip auto-save if no resumeId (template mode)
-    if (!resumeId) {
+  // Auto-save function with optimizations
+  const autoSave = useCallback(async (experienceData) => {
+    // Skip auto-save if in template mode or no resumeId
+    if (isTemplateMode || !resumeId || !experienceData || experienceData.length === 0) {
       enableNext(true);
       return;
     }
 
-    // Clear any previous save errors
-    setSaveError(null);
-    
-    // Enhanced email validation with multiple fallback sources
-    let userEmail = email;
-    if (!userEmail) {
-      userEmail = getCurrentUserEmail(userContext);
-    }
-
-    if (!userEmail) {
-      console.error("❌ No valid email found for saving experience");
-      setSaveError("Unable to save: User email not found. Please refresh the page.");
-      toast.error("Unable to save: User email not found. Please refresh the page.");
+    // Skip if data hasn't actually changed
+    const dataString = JSON.stringify(experienceData);
+    if (lastSavedData.current === dataString) {
       return;
     }
 
-    // Check if user is authenticated
-    if (!isUserAuthenticated(userContext)) {
-      setSaveError("Please sign in to save your work experience");
-      toast.error("Please sign in to save your work experience");
-      return;
-    }
-    
     setIsAutoSaving(true);
+    setSaveError('');
+    
     try {
-      console.log("💾 Saving encrypted experience data:", {
-        userEmail,
-        resumeId,
-        experienceCount: data.length
-      });
-      
-      await EncryptedFirebaseService.updateResumeField(userEmail, resumeId, 'experience', data);
-
-      // Prevent circular updates by flagging context update
-      isContextUpdating.current = true;
-      setResumeInfo((prevInfo) => ({
-        ...prevInfo,
-        experience: data,
-      }));
-      
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isContextUpdating.current = false;
-      }, 100);
-
-      // Update previous data reference
-      previousDataRef.current = JSON.stringify(data);
-
+      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'experience', experienceData);
+      lastSavedData.current = dataString;
       enableNext(true);
-      console.log("✅ Experience data saved successfully");
-      
-      // Show success feedback only for significant saves
-      if (data.some(exp => exp.title?.trim() || exp.companyName?.trim())) {
-        toast.success("Work experience saved successfully!");
-      }
-      
     } catch (error) {
-      console.error("❌ Error auto-saving experience to Firestore:", error);
-      setSaveError("Failed to save work experience. Please check your connection.");
-      handleFirebaseError(error, 'save work experience');
-      
-      // Don't prevent navigation if it's just a save error
-      enableNext(true);
+      console.error("Error auto-saving encrypted experience:", error);
+      setSaveError("Auto-save failed. Please check your connection and try again.");
     } finally {
       setIsAutoSaving(false);
     }
-  }, [email, resumeId, enableNext, setResumeInfo, userContext]);
+  }, [email, resumeId, enableNext, isTemplateMode]);
 
   // Function to check if data has actually changed
   const hasDataChanged = useCallback((newData) => {
@@ -345,6 +299,8 @@ const ExperienceForm = ({ resumeId, email, enableNext }) => {
                     index={index}
                     defaultValue={item?.workSummery || ''}
                     jobTitle={item?.title || ''}
+                    resumeId={resumeId}
+                    email={email}
                     onRichTextEditorChange={(event) =>
                       handleRichTextEditor(event, "workSummery", index)
                     }

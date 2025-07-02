@@ -8,7 +8,7 @@ import { FaLinkedin, FaGithub, FaPhone, FaEnvelope } from "react-icons/fa";
 import { IoLocationSharp } from "react-icons/io5";
 import { BiWorld } from "react-icons/bi";
 
-const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
+const PersonalDetailForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
 
@@ -38,8 +38,8 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
 
   // Auto-save function with encryption
   const autoSave = useCallback(async (data) => {
-    // Skip auto-save if no resumeId (template mode)
-    if (!resumeId) {
+    // Skip auto-save if in template mode or no resumeId
+    if (isTemplateMode || !resumeId) {
       enableNext(true);
       return;
     }
@@ -59,7 +59,7 @@ const PersonalDetailForm = ({ resumeId, email, enableNext }) => {
     } finally {
       setIsAutoSaving(false);
     }
-  }, [email, resumeId, enableNext]);
+  }, [email, resumeId, enableNext, isTemplateMode]);
 
   // Debounced auto-save
   useEffect(() => {

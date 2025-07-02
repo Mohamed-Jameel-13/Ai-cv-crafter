@@ -1,3 +1,5 @@
+import Logger from '../src/utils/logger.js';
+
 // Get Azure OpenAI configuration from environment variables
 const azureEndpoint = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT;
 const azureApiKey = import.meta.env.VITE_AZURE_OPENAI_API_KEY;
@@ -5,7 +7,7 @@ const azureApiVersion = import.meta.env.VITE_AZURE_OPENAI_API_VERSION || '2024-0
 const azureDeploymentName = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4o';
 
 // Debug logging (without exposing sensitive data)
-console.log('Azure OpenAI Environment check:', {
+Logger.log('Azure OpenAI Environment check:', {
   hasEndpoint: !!azureEndpoint,
   hasApiKey: !!azureApiKey,
   apiVersion: azureApiVersion,
@@ -32,16 +34,16 @@ class AIchatSession {
       if (azureEndpoint.includes('/chat/completions')) {
         // Full URL provided - use as is
         apiUrl = azureEndpoint;
-        console.log('🔗 Using provided full URL');
+        Logger.log('🔗 Using provided full URL');
       } else {
         // Base URL provided - construct full URL
         apiUrl = `${azureEndpoint}/openai/deployments/${azureDeploymentName}/chat/completions?api-version=${azureApiVersion}`;
-        console.log('🔗 Constructed URL from base endpoint');
+        Logger.log('🔗 Constructed URL from base endpoint');
       }
       
-      console.log('Making request to Azure OpenAI...');
-      console.log('🔗 Full API URL (for debugging):', apiUrl);
-      console.log('📋 Request details:', {
+      Logger.log('Making request to Azure OpenAI...');
+      Logger.log('🔗 Full API URL (for debugging):', apiUrl);
+      Logger.log('📋 Request details:', {
         endpoint: azureEndpoint,
         deployment: azureDeploymentName,
         apiVersion: azureApiVersion,
@@ -79,7 +81,7 @@ class AIchatSession {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Azure OpenAI API Error:', {
+        Logger.error('Azure OpenAI API Error:', {
           status: response.status,
           statusText: response.statusText,
           error: errorData
@@ -104,19 +106,19 @@ class AIchatSession {
       
       if (data.choices && data.choices[0] && data.choices[0].message) {
         const text = data.choices[0].message.content;
-        console.log('✅ Successfully received response from Azure OpenAI GPT-4o');
+        Logger.log('✅ Successfully received response from Azure OpenAI GPT-4o');
         return {
           response: {
             text: () => text
           }
         };
       } else {
-        console.error('Unexpected response format:', data);
+        Logger.error('Unexpected response format:', data);
         throw new Error('Invalid response format from Azure OpenAI');
       }
 
     } catch (error) {
-      console.error('Azure OpenAI API Error:', {
+      Logger.error('Azure OpenAI API Error:', {
         message: error.message,
         stack: error.stack
       });

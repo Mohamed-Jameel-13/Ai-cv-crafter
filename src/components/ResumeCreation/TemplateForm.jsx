@@ -11,6 +11,16 @@ import { ResumeContext } from "@/context/ResumeContext";
 import EncryptedFirebaseService from '@/utils/firebase_encrypted';
 import { toast } from "sonner";
 import TemplateAiService from '@/service/TemplateAiService';
+import Logger from '@/utils/logger';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Import form components from default resume workflow
 import PersonalDetailForm from '@/dashboard/resume/component/form/PersonalDetailForm';
@@ -31,6 +41,7 @@ const TemplateForm = () => {
   const [resumeTitle, setResumeTitle] = useState('');
   const [resumeInfo, setResumeInfo] = useState({});
   const [tempResumeId, setTempResumeId] = useState(null);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   // Form sections configuration
   const formSections = [
@@ -56,7 +67,7 @@ const TemplateForm = () => {
           setTemplate(templateData);
           setTempResumeId(resumeId);
         } catch (error) {
-          console.error("Error loading resume:", error);
+          Logger.error("Error loading resume:", error);
           toast.error("Resume not found.");
           navigate('/dashboard');
         }
@@ -97,7 +108,7 @@ const TemplateForm = () => {
     }
 
     setLoading(true);
-    console.log("🚀 Starting AI resume generation with template:", template.aiTemplateName);
+    Logger.log("🚀 Starting AI resume generation with template:", template.aiTemplateName);
 
     try {
       // Validate required data
@@ -119,7 +130,7 @@ const TemplateForm = () => {
         education: resumeInfo.education || []
       };
 
-      console.log("📊 Resume data prepared:", resumeData);
+      Logger.log("📊 Resume data prepared:", resumeData);
 
       // Generate resume with AI using template name
       const aiResult = await TemplateAiService.generateTemplateResume(
@@ -131,23 +142,13 @@ const TemplateForm = () => {
         throw new Error("Failed to generate resume");
       }
 
-      console.log("✅ AI generation successful");
+      Logger.log("✅ AI generation successful");
 
-      // Save to Firestore (Create or Update) with encryption
-      let finalResumeId;
-
-      if (resumeId) {
-        // UPDATE existing resume
-        finalResumeId = resumeId;
-      } else {
-        // CREATE new resume and get the new ID
-        const createResult = await EncryptedFirebaseService.createNewResume(user.email, {});
-        finalResumeId = createResult.resumeId;
-      }
-      
+      // Prepare complete resume document data
       const resumeDocData = {
-        resumeId: finalResumeId,
         title: resumeTitle,
+        userId: user.uid,
+        userEmail: user.email,
         templateId: template.id,
         templateName: template.name,
         aiTemplateName: template.aiTemplateName,
@@ -161,24 +162,46 @@ const TemplateForm = () => {
         latexCode: aiResult.latexCode,
         updatedAt: new Date().toISOString(),
         status: 'completed',
-        themeColor: '#F6C49E' // Default orange theme
+        themeColor: '#F6C49E', // Default orange theme
+        aiGenerationTimestamps: {
+          summary: null,
+          experience: null,
+          skills: null,
+          projects: null,
+          education: null
+        }
       };
 
-      if (!resumeId) {
-        resumeDocData.createdAt = new Date().toISOString();
+      // Save to Firestore (Create or Update) with encryption
+      let finalResumeId;
+
+      if (resumeId) {
+        // UPDATE existing resume
+        finalResumeId = resumeId;
+        await EncryptedFirebaseService.saveResumeData(user.email, finalResumeId, {
+          ...resumeDocData,
+          resumeId: finalResumeId
+        }, { merge: true });
+      } else {
+        // CREATE new resume with complete data (no empty resume creation)
+        const createResult = await EncryptedFirebaseService.createNewResume(user.email, resumeDocData);
+        finalResumeId = createResult.resumeId;
       }
 
-      await EncryptedFirebaseService.saveResumeData(user.email, finalResumeId, resumeDocData, { merge: resumeId ? true : false });
-
-      console.log("💾 Resume saved to Firestore");
+      Logger.log("💾 Resume saved to Firestore");
       toast.success(resumeId ? "Resume updated successfully!" : "Resume generated successfully!");
 
       // Navigate to view the created/updated resume
       navigate(`/dashboard/${user.email}/${finalResumeId}/view`);
 
     } catch (error) {
-      console.error("❌ Resume generation failed:", error);
-      toast.error(`Failed to generate resume: ${error.message}`);
+      Logger.error("❌ Resume generation failed:", error);
+      
+      if (error.message === 'RESUME_LIMIT_REACHED') {
+        setShowLimitDialog(true);
+      } else {
+        toast.error(`Failed to generate resume: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -186,10 +209,10 @@ const TemplateForm = () => {
 
   const renderFormSection = () => {
     const commonProps = {
-      resumeId: resumeId || tempResumeId,
+      resumeId: resumeId,
       email: user?.email,
       enableNext: setEnableNext,
-      isTemplateMode: true // Flag to indicate template mode
+      isTemplateMode: !resumeId
     };
 
     switch (currentSection.component) {
@@ -399,6 +422,43 @@ const TemplateForm = () => {
           </div>
         </div>
       </div>
+
+      {/* Resume Limit Reached Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent className="bg-white border-slate-200 shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-900 text-xl font-semibold">
+              Resume Limit Reached
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600">
+              <div className="space-y-3">
+                <p>You have reached the maximum limit of <span className="font-semibold text-slate-900">3 resumes</span>.</p>
+                <p>To create a new resume, please delete an existing one from your dashboard first.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => {
+                setShowLimitDialog(false);
+                navigate('/dashboard');
+              }}
+              className="text-black"
+              style={{ 
+                background: 'linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))';
+              }}
+            >
+              Go to Dashboard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

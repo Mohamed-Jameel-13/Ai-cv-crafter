@@ -8,6 +8,8 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { AIButton } from "@/components/ui/ai-button";
 import { AIchatSession } from "../../../../service/AiModel";
+import EncryptedFirebaseService from "@/utils/firebase_encrypted";
+import Logger from "@/utils/logger";
 
 const PROMPT = `You are a professional resume expert specializing in writing compelling work experience descriptions. 
 
@@ -34,79 +36,109 @@ Example format:
   ]
 }`;
 
-function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle }) {
-  const [value, setValue] = useState(defaultValue || "");
+function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle, resumeId, email }) {
+  const [value, setValue] = useState(defaultValue);
   const [loading, setLoading] = useState(false);
   const [aiGeneratedSuggestions, setAiGeneratedSuggestions] = useState(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [canRegenerate, setCanRegenerate] = useState(true);
+  const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState(0);
+  const intervalRef = useRef(null);
 
-  // Update local value when defaultValue changes (important for form reset/load)
-  // Use ref to prevent flickering
-  const isInitializing = useRef(true);
-  
   useEffect(() => {
-    if (isInitializing.current && defaultValue !== undefined) {
-      setValue(defaultValue || "");
-      isInitializing.current = false;
-    }
+    setValue(defaultValue);
   }, [defaultValue]);
 
+  useEffect(() => {
+    // Check cooldown status when component mounts
+    checkAiGenerationCooldown();
+  }, [resumeId, email]);
+
+  useEffect(() => {
+    // Update cooldown timer every minute if in cooldown
+    if (!canRegenerate && cooldownTimeRemaining > 0) {
+      intervalRef.current = setInterval(() => {
+        setCooldownTimeRemaining(prev => {
+          const newTime = prev - (1/60); // Subtract 1 minute in hours
+          if (newTime <= 0) {
+            setCanRegenerate(true);
+            clearInterval(intervalRef.current);
+            return 0;
+          }
+          return newTime;
+        });
+      }, 60000); // Update every minute
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [canRegenerate, cooldownTimeRemaining]);
+
+  const checkAiGenerationCooldown = async () => {
+    if (!resumeId || !email) return;
+    
+    try {
+      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'experience');
+      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'experience');
+      
+      setCanRegenerate(canRegen);
+      setCooldownTimeRemaining(timeRemaining);
+      
+      if (resumeData.aiGenerationTimestamps?.experience) {
+        setHasGenerated(true);
+      }
+    } catch (error) {
+      Logger.error('Error checking AI cooldown:', error);
+    }
+  };
+
   const GenerateSummaryFromaI = async () => {
-    if (!jobTitle || jobTitle.trim() === '') {
-      toast.error("Please first add job title, then try to generate");
+    if (!canRegenerate) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
       return;
     }
 
     setLoading(true);
+    const prompt = PROMPT.replace("{positionTitle}", jobTitle || "Professional");
+
     try {
-      const prompt = PROMPT.replace("{positionTitle}", jobTitle);
-      console.log("Prompt:", prompt);
-      
-      // Call AI service
-      const aiResponse = await AIchatSession.sendMessage(prompt);
-      console.log("AI Response:", aiResponse);
-      
-      if (!aiResponse) {
-        throw new Error("No response from AI service");
-      }
-      
-      // Parse the response as JSON
-      let parsedResponse;
-      let responseText = aiResponse;
-      
-      // If aiResponse is an object with response text, extract it
-      if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
-        responseText = aiResponse.response.text();
-      } else if (typeof aiResponse === 'object' && aiResponse.response) {
-        responseText = aiResponse.response;
-      }
+      const result = await AIchatSession.sendMessage(prompt);
+      let parsedResult;
       
       try {
-        // Try to parse the response directly
-        parsedResponse = JSON.parse(responseText);
+        const responseText = typeof result === 'object' && result.response && result.response.text 
+          ? result.response.text() 
+          : result.toString();
+        
+        parsedResult = JSON.parse(responseText);
       } catch (parseError) {
-        // If direct parsing fails, try to extract JSON from the response
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsedResponse = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Failed to parse AI response as JSON');
+        Logger.error("Error parsing AI response:", parseError);
+        toast.error("Failed to parse AI response. Please try again.");
+        return;
+      }
+
+      if (parsedResult && parsedResult.bullets && Array.isArray(parsedResult.bullets)) {
+        setAiGeneratedSuggestions(parsedResult);
+        setHasGenerated(true);
+        setCanRegenerate(false);
+        
+        // Update AI generation timestamp
+        if (resumeId && email) {
+          await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'experience');
+          setCooldownTimeRemaining(24); // Set 24-hour cooldown
         }
+        
+        toast.success("AI suggestions generated successfully!");
+      } else {
+        toast.error("Invalid response format from AI. Please try again.");
       }
-
-      // Validate the parsed response
-      if (!parsedResponse?.bullets || !Array.isArray(parsedResponse.bullets)) {
-        throw new Error('Invalid response format from AI');
-      }
-
-      console.log("Parsed Response:", parsedResponse);
-      setAiGeneratedSuggestions(parsedResponse);
-      setHasGenerated(true);
-      toast.success("AI suggestions generated successfully!");
-      
     } catch (error) {
-      console.error("Error generating summary:", error);
-      toast.error("Failed to generate AI suggestions. Please try again.");
+      Logger.error("AI Generation Error:", error);
+      toast.error("Failed to generate suggestions. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -152,6 +184,11 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle 
   };
 
   const handleRegenerateContent = () => {
+    if (!canRegenerate) {
+      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      return;
+    }
+    
     setHasGenerated(false);
     setAiGeneratedSuggestions(null);
     GenerateSummaryFromaI();
@@ -166,6 +203,13 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle 
     }
   };
 
+  const formatCooldownTime = (hours) => {
+    if (hours < 1) {
+      return `${Math.ceil(hours * 60)} minutes`;
+    }
+    return `${Math.ceil(hours)} hours`;
+  };
+
   return (
     <div className="w-full">
       <div className="flex justify-between my-2">
@@ -175,11 +219,16 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle 
             onClick={hasGenerated ? handleRegenerateContent : GenerateSummaryFromaI}
             loading={loading}
             loadingText="Creating content..."
-            disabled={loading}
+            disabled={loading || (!canRegenerate && hasGenerated)}
             size="sm"
-            className="text-xs h-8"
+            className={`text-xs h-8 ${!canRegenerate && hasGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{
+              opacity: !canRegenerate && hasGenerated ? '0.5' : '1',
+              cursor: !canRegenerate && hasGenerated ? 'not-allowed' : 'pointer'
+            }}
           >
-            {hasGenerated ? "Regenerate Content" : "Generate Content"}
+            {hasGenerated && !canRegenerate ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}` : 
+             hasGenerated ? "Regenerate Content" : "Generate Content"}
           </AIButton>
         </div>
       </div>
@@ -226,24 +275,29 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle 
                   onClick={handleRegenerateContent}
                   variant="outline"
                   size="sm"
-                  className="border-violet-300 hover:border-[rgb(63,39,34)] text-violet-700 hover:bg-violet-50 text-sm sm:text-xs h-8 w-full sm:w-auto"
+                  disabled={!canRegenerate}
+                  className={`border-violet-300 hover:border-[rgb(63,39,34)] text-violet-700 hover:bg-violet-50 text-sm sm:text-xs h-8 w-full sm:w-auto ${!canRegenerate ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Regenerate
+                  {canRegenerate ? 'Regenerate' : `Available in ${formatCooldownTime(cooldownTimeRemaining)}`}
                 </Button>
               </div>
             </div>
+
+            {/* Rest of the suggestions display */}
             <div className="space-y-3">
-              {aiGeneratedSuggestions.bullets.map((suggestion, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-2 p-3 bg-white rounded-lg border border-violet-100">
-                  <p className="text-sm text-gray-700 leading-relaxed flex-1">{suggestion}</p>
-                  <Button
-                    onClick={() => handleApplySuggestion(`<li>${suggestion}</li>`)}
-                    size="sm"
-                    variant="outline"
-                    className="border-violet-300 hover:border-[rgb(63,39,34)] text-violet-700 hover:bg-violet-50 text-xs h-7 w-full sm:w-auto sm:min-w-16"
-                  >
-                    Apply
-                  </Button>
+              {aiGeneratedSuggestions.bullets.map((bullet, bulletIndex) => (
+                <div key={bulletIndex} className="p-2 sm:p-3 bg-white rounded border hover:border-violet-300 transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <p className="text-sm text-gray-700 flex-1">{bullet}</p>
+                    <Button
+                      onClick={() => handleApplySuggestion(bullet)}
+                      size="sm"
+                      variant="outline"
+                      className="text-xs w-full sm:w-auto"
+                    >
+                      Use This
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

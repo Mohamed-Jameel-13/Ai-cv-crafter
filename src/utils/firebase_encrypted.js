@@ -3,6 +3,7 @@ import { app } from "./firebase_config";
 import { getCurrentUserEmail, handleFirebaseError } from "./firebase_helpers";
 import EncryptionService from "./encryption";
 import { getAuth } from "firebase/auth";
+import Logger from "./logger.js";
 
 class EncryptedFirebaseService {
   constructor() {
@@ -31,11 +32,11 @@ class EncryptedFirebaseService {
       
       await setDoc(resumeRef, encryptedData, { merge: options.merge });
       
-      console.log('✅ Encrypted resume data saved successfully');
+      Logger.log('✅ Encrypted resume data saved successfully');
       return { success: true };
       
     } catch (error) {
-      console.error('❌ Error saving encrypted resume:', error);
+      Logger.error('❌ Error saving encrypted resume:', error);
       handleFirebaseError(error, 'save encrypted resume');
       throw error;
     }
@@ -56,11 +57,11 @@ class EncryptedFirebaseService {
       const encryptedData = resumeSnap.data();
       const decryptedData = EncryptionService.decryptResumeData(encryptedData, key);
       
-      console.log('✅ Resume data decrypted successfully');
+      Logger.log('✅ Resume data decrypted successfully');
       return decryptedData;
       
     } catch (error) {
-      console.error('❌ Error getting encrypted resume:', error);
+      Logger.error('❌ Error getting encrypted resume:', error);
       handleFirebaseError(error, 'get encrypted resume');
       throw error;
     }
@@ -88,11 +89,11 @@ class EncryptedFirebaseService {
       const resumeRef = doc(this.db, `usersByEmail/${userEmail}/resumes`, `resume-${resumeId}`);
       await setDoc(resumeRef, updateData, { merge: true });
       
-      console.log(`✅ Encrypted field ${fieldName} updated successfully`);
+      Logger.log(`✅ Encrypted field ${fieldName} updated successfully`);
       return { success: true };
       
     } catch (error) {
-      console.error(`❌ Error updating encrypted field ${fieldName}:`, error);
+      Logger.error(`❌ Error updating encrypted field ${fieldName}:`, error);
       handleFirebaseError(error, `update encrypted field ${fieldName}`);
       throw error;
     }
@@ -127,11 +128,11 @@ class EncryptedFirebaseService {
       const resumeRef = doc(this.db, `usersByEmail/${userEmail}/resumes`, `resume-${resumeId}`);
       await setDoc(resumeRef, updateData, { merge: true });
       
-      console.log('✅ Encrypted fields updated successfully');
+      Logger.log('✅ Encrypted fields updated successfully');
       return { success: true };
       
     } catch (error) {
-      console.error('❌ Error updating encrypted fields:', error);
+      Logger.error('❌ Error updating encrypted fields:', error);
       handleFirebaseError(error, 'update encrypted fields');
       throw error;
     }
@@ -165,7 +166,7 @@ class EncryptedFirebaseService {
       return resumes;
       
     } catch (error) {
-      console.error('❌ Error getting resumes list:', error);
+      Logger.error('❌ Error getting resumes list:', error);
       handleFirebaseError(error, 'get resumes list');
       throw error;
     }
@@ -174,6 +175,12 @@ class EncryptedFirebaseService {
   // Create new encrypted resume
   async createNewResume(userEmail, resumeData) {
     try {
+      // Check resume limit before creating
+      const resumeCount = await this.getResumeCount(userEmail);
+      if (resumeCount >= 3) {
+        throw new Error('RESUME_LIMIT_REACHED');
+      }
+
       // Get next resume ID
       const resumesRef = collection(this.db, `usersByEmail/${userEmail}/resumes`);
       const q = query(resumesRef, orderBy("resumeId", "desc"), limit(1));
@@ -189,7 +196,14 @@ class EncryptedFirebaseService {
         ...resumeData,
         resumeId: newResumeId,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        aiGenerationTimestamps: {
+          summary: null,
+          experience: null,
+          skills: null,
+          projects: null,
+          education: null
+        }
       };
 
       await this.saveResumeData(userEmail, newResumeId, resumeDataWithId);
@@ -197,10 +211,71 @@ class EncryptedFirebaseService {
       return { success: true, resumeId: newResumeId };
       
     } catch (error) {
-      console.error('❌ Error creating encrypted resume:', error);
+      Logger.error('❌ Error creating encrypted resume:', error);
       handleFirebaseError(error, 'create encrypted resume');
       throw error;
     }
+  }
+
+  // Get resume count for a user
+  async getResumeCount(userEmail) {
+    try {
+      const resumesRef = collection(this.db, `usersByEmail/${userEmail}/resumes`);
+      const querySnapshot = await getDocs(resumesRef);
+      return querySnapshot.size;
+    } catch (error) {
+      Logger.error('❌ Error getting resume count:', error);
+      handleFirebaseError(error, 'get resume count');
+      throw error;
+    }
+  }
+
+  // Update AI generation timestamp for a specific section
+  async updateAiGenerationTimestamp(userEmail, resumeId, section) {
+    try {
+      const timestamp = new Date().toISOString();
+      const updateData = {
+        [`aiGenerationTimestamps.${section}`]: timestamp,
+        updatedAt: timestamp
+      };
+      
+      const resumeRef = doc(this.db, `usersByEmail/${userEmail}/resumes`, `resume-${resumeId}`);
+      await setDoc(resumeRef, updateData, { merge: true });
+      
+      Logger.log(`✅ AI generation timestamp updated for ${section}`);
+      return { success: true };
+      
+    } catch (error) {
+      Logger.error(`❌ Error updating AI timestamp for ${section}:`, error);
+      handleFirebaseError(error, `update AI timestamp for ${section}`);
+      throw error;
+    }
+  }
+
+  // Check if AI regeneration is allowed (24-hour cooldown)
+  canRegenerateAI(aiGenerationTimestamps, section) {
+    if (!aiGenerationTimestamps || !aiGenerationTimestamps[section]) {
+      return true; // No previous generation, allow
+    }
+    
+    const lastGeneration = new Date(aiGenerationTimestamps[section]);
+    const now = new Date();
+    const hoursDifference = (now - lastGeneration) / (1000 * 60 * 60);
+    
+    return hoursDifference >= 24;
+  }
+
+  // Get time remaining for AI regeneration cooldown
+  getAiCooldownTimeRemaining(aiGenerationTimestamps, section) {
+    if (!aiGenerationTimestamps || !aiGenerationTimestamps[section]) {
+      return 0;
+    }
+    
+    const lastGeneration = new Date(aiGenerationTimestamps[section]);
+    const now = new Date();
+    const hoursRemaining = 24 - (now - lastGeneration) / (1000 * 60 * 60);
+    
+    return Math.max(0, hoursRemaining);
   }
 }
 

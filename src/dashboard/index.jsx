@@ -3,6 +3,7 @@ import ResumeItem from "./components/ResumeItem";
 import { UserContext } from "@/context/UserContext";
 import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { app } from "../utils/firebase_config";
+import Logger from "@/utils/logger";
 import Header from "@/components/custom/Header";
 import Loader from "@/components/ui/loader";
 import { Link } from "react-router-dom";
@@ -40,7 +41,7 @@ const Dashboard = () => {
   useEffect(() => {
     const handleFocus = () => {
       if (user?.email) {
-        console.log("🔄 Window focused, refreshing resume list");
+        Logger.log("🔄 Window focused, refreshing resume list");
         getResumesList(true);
       }
     };
@@ -51,7 +52,7 @@ const Dashboard = () => {
 
   const getResumesList = async (isRefresh = false) => {
     try {
-      console.log("🔄 getResumesList called, isRefresh:", isRefresh);
+      Logger.log("🔄 getResumesList called, isRefresh:", isRefresh);
       
       // Only show loading spinner on initial load, not on refresh after deletion
       if (!isRefresh) {
@@ -67,13 +68,13 @@ const Dashboard = () => {
         ...doc.data(),
       }));
 
-      console.log("📊 Resumes fetched from Firestore:", resumes.length, "resumes");
+      Logger.log("📊 Resumes fetched from Firestore:", resumes.length, "resumes");
       setResumeList(resumes);
     } catch (error) {
-      console.error("❌ Error fetching resumes: ", error);
+      Logger.error("❌ Error fetching resumes: ", error);
     } finally {
       // Always ensure loading is set to false
-      console.log("🔄 Setting loading to false");
+      Logger.log("🔄 Setting loading to false");
       setLoading(false);
     }
   };
@@ -128,7 +129,7 @@ const Dashboard = () => {
       toast.success(`Successfully deleted ${selectedResumes.length} resume${selectedResumes.length > 1 ? 's' : ''}`);
       
     } catch (error) {
-      console.error("❌ Error deleting resumes:", error);
+      Logger.error("❌ Error deleting resumes:", error);
       toast.error("Failed to delete resumes. Please try again.");
     } finally {
       setIsDeleting(false);
@@ -220,7 +221,7 @@ const Dashboard = () => {
                     resume={resume} 
                     refreshData={() => getResumesList(true)}
                     onDelete={(deletedResumeId) => {
-                      console.log("🔄 Removing resume from local state:", deletedResumeId);
+                      Logger.log("🔄 Removing resume from local state:", deletedResumeId);
                       setResumeList(prev => prev.filter(r => r.id !== deletedResumeId));
                     }}
                     isSelectionMode={isSelectionMode}
