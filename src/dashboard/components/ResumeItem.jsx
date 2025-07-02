@@ -268,30 +268,31 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
         )}
       </div>
       <div
-        className={`border p-2 sm:p-3 flex justify-between text-white rounded-b-lg shadow-lg transition-all ${
+        className={`border p-2 sm:p-3 flex justify-between items-center text-white rounded-b-lg shadow-lg transition-all ${
           isSelectionMode && isSelected ? 'ring-2 ring-blue-500' : ''
         }`}
         style={{
           background: isSelectionMode && isSelected ? "rgb(59, 130, 246)" : "rgb(62,39,35)",
         }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
           {isSelectionMode && isSelected && (
-            <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+            <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-white flex-shrink-0" />
           )}
-          <h2 className="text-xs sm:text-sm truncate font-medium">{resume.title}</h2>
+          <h2 className="text-xs sm:text-sm truncate font-medium min-w-0">{resume.title}</h2>
         </div>
 
         {!isSelectionMode && (
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className="p-1 rounded hover:bg-gray-700/20 transition-colors"
-                aria-label="Resume actions"
-              >
-                <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
-              </button>
-            </DropdownMenuTrigger>
+          <div className="flex-shrink-0">
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="p-1 rounded hover:bg-gray-700/20 transition-colors"
+                  aria-label="Resume actions"
+                >
+                  <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
+                </button>
+              </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem
               onClick={handleEditClick}
@@ -337,6 +338,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+          </div>
         )}
 
         <AlertDialog 
