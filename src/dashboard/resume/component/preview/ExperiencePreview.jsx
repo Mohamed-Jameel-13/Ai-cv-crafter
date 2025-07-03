@@ -44,7 +44,7 @@ const ExperiencePreview = ({ resumeInfo }) => {
                exp?.state ? `, ${exp?.state}` : ""}
             </span>
             <span>
-              {formatDate(exp?.startDate)} - {formatDate(exp?.endDate) || "Present"}
+              {formatDate(exp?.startDate)} - {exp?.currentlyWorking ? "Present" : (formatDate(exp?.endDate) || "Present")}
             </span>
           </h2>
           <div

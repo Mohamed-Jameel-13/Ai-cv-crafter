@@ -15,7 +15,9 @@ const initialProject = {
   description: "",
   bullets: [""],
   liveDemo: "",
-  githubRepo: ""
+  githubRepo: "",
+  startDate: "",
+  endDate: ""
 };
 
 const prompt = `You are a professional resume expert specializing in technical project descriptions.
@@ -438,6 +440,26 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   onChange={(e) => handleChange(projectIndex, "technologies", e.target.value)}
                   className="w-full"
                   placeholder="React, Node.js, MongoDB"
+                />
+              </div>
+
+              <div className="w-full">
+                <label className="text-xs sm:text-sm font-medium mb-1 block">Start Date <span className="text-xs text-gray-500">(optional)</span></label>
+                <Input
+                  type="date"
+                  value={project.startDate}
+                  onChange={(e) => handleChange(projectIndex, "startDate", e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="w-full">
+                <label className="text-xs sm:text-sm font-medium mb-1 block">End Date <span className="text-xs text-gray-500">(optional)</span></label>
+                <Input
+                  type="date"
+                  value={project.endDate}
+                  onChange={(e) => handleChange(projectIndex, "endDate", e.target.value)}
+                  className="w-full"
                 />
               </div>
 

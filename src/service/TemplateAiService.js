@@ -144,6 +144,20 @@ class TemplateAiService {
         .trim();
     };
 
+    // Helper function to format dates to "May 2024" format
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch (error) {
+        return dateString; // Return original if formatting fails
+      }
+    };
+
     // Create formatted data for AI prompt
     const fullName = `${personal.firstName || ''} ${personal.lastName || ''}`.trim();
     const jobTitle = personal.jobTitle || '';
@@ -161,7 +175,7 @@ class TemplateAiService {
       title: job.title || '',
       company: job.companyName || '',
       startDate: job.startDate || '',
-      endDate: job.endDate || job.currentlyWorking ? 'Present' : '',
+      endDate: job.currentlyWorking ? 'Present' : (job.endDate || ''),
       description: cleanHtml(job.workSummery || '') // Clean HTML content
     }));
 
@@ -185,8 +199,10 @@ class TemplateAiService {
     // Format projects
     const projectsList = projects.map(project => ({
       title: project.title || project.name || '',
-      description: cleanHtml(project.description || ''), // Clean HTML content
+      description: cleanHtml(project.description || ''),
       technologies: project.techStack || project.technologies || '',
+      startDate: formatDate(project.startDate) || '',
+      endDate: formatDate(project.endDate) || '',
       liveDemo: project.liveDemo || '',
       githubRepo: project.githubRepo || '',
       url: project.projectUrl || '',
@@ -628,15 +644,8 @@ ${escapeLatex(resumeData.summary || 'Dedicated professional seeking new opportun
 \\section*{Experience}
 ${(resumeData.work || []).map(job => `
 \\textbf{${escapeLatex(job.title || '')}} - ${escapeLatex(job.companyName || '')}\\\\
-${escapeLatex(job.startDate || '')} - ${escapeLatex(job.endDate || job.currentlyWorking ? 'Present' : '')}\\\\
+${escapeLatex(job.startDate || '')} - ${escapeLatex(job.currentlyWorking ? 'Present' : (job.endDate || ''))}\\\\
 ${escapeLatex(job.workSummery || job.workSummary || '')}\\\\[6pt]
-`).join('')}
-
-\\section*{Education}
-${(resumeData.education || []).map(edu => `
-\\textbf{${escapeLatex(edu.degree || '')}}\\\\
-${escapeLatex(edu.school || '')}\\\\
-${escapeLatex(edu.fieldOfStudy || '')} | ${escapeLatex(edu.graduationDate || '')}\\\\[6pt]
 `).join('')}
 
 \\section*{Skills}
@@ -646,6 +655,20 @@ ${(resumeData.skills || []).map(skill => {
   }
   return escapeLatex(skill.name || skill);
 }).filter(Boolean).join('\\\\[3pt]')}
+
+\\section*{Projects}
+${(resumeData.projects || []).map(project => `
+\\textbf{${escapeLatex(project.title || project.name || '')}}\\\\
+${escapeLatex(project.technologies || project.techStack || '')}\\\\
+${escapeLatex(project.description || '')}\\\\[6pt]
+`).join('')}
+
+\\section*{Education}
+${(resumeData.education || []).map(edu => `
+\\textbf{${escapeLatex(edu.degree || '')}}\\\\
+${escapeLatex(edu.school || '')}\\\\
+${escapeLatex(edu.fieldOfStudy || '')} | ${escapeLatex(edu.graduationDate || '')}\\\\[6pt]
+`).join('')}
 
 \\end{document}`;
   }
@@ -815,6 +838,20 @@ ${(resumeData.skills || []).map(skill => {
         .trim();
     };
 
+    // Helper function to format dates to "May 2024" format
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch (error) {
+        return dateString; // Return original if formatting fails
+      }
+    };
+
     const fullName = `${personal.firstName || ''} ${personal.lastName || ''}`.trim();
     const jobTitle = personal.jobTitle || '';
     const contact = {
@@ -830,7 +867,7 @@ ${(resumeData.skills || []).map(skill => {
       title: job.title || '',
       company: job.companyName || '',
       startDate: job.startDate || '',
-      endDate: job.endDate || job.currentlyWorking ? 'Present' : '',
+      endDate: job.currentlyWorking ? 'Present' : (job.endDate || ''),
       description: cleanHtml(job.workSummery || '')
     }));
 
@@ -849,11 +886,15 @@ ${(resumeData.skills || []).map(skill => {
     }).filter(Boolean) : [];
 
     const projectsList = projects.map(project => ({
-      title: project.title || '',
+      title: project.title || project.name || '',
       description: cleanHtml(project.description || ''),
-      technologies: project.techStack || '',
+      technologies: project.techStack || project.technologies || '',
+      startDate: formatDate(project.startDate) || '',
+      endDate: formatDate(project.endDate) || '',
+      liveDemo: project.liveDemo || '',
+      githubRepo: project.githubRepo || '',
       url: project.projectUrl || '',
-      bullets: project.bullets || [] // Include bullets for improved prompts too
+      bullets: project.bullets || [] // Include bullets in the mapping
     }));
 
     // Build error-specific corrections
@@ -880,12 +921,19 @@ JAKE TEMPLATE SPECIFIC REQUIREMENTS:
 - Use EXACT preamble: \\documentclass[a4paper,11pt]{article}
 - Required packages: latexsym, fullpage, titlesec, marvosym, color, verbatim, enumitem, hyperref, fancyhdr, babel, tabularx
 
+⚠️  MANDATORY SECTION ORDER (DO NOT CHANGE):
+1. Professional Summary (first)
+2. Experience
+3. Technical Skills 
+4. Projects
+5. Education (MUST BE LAST SECTION - DO NOT MOVE)
+
 CRITICAL - SECTION FORMATTING WITH BLACK LINES:
 - MUST include this EXACT command:
   \\titleformat{\\section}{\\vspace{-4pt}\\scshape\\raggedright\\large}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 - Use \\section{Section Name} NOT \\section*{Section Name} (asterisk removes lines)
 - Every section MUST have a black horizontal line underneath
-- Section names: Experience, Education, Technical Skills, Projects, Professional Summary
+- Education section MUST be the final section before \\end{document}
 
 EXACT COMMAND DEFINITIONS REQUIRED:
 - \\newcommand{\\resumeItem}[1]{\\item\\small{{#1 \\vspace{-2pt}}}}
@@ -998,6 +1046,20 @@ Generate a complete, error-free LaTeX document that will compile successfully. R
         .replace(/~/g, '\\textasciitilde{}');
     };
 
+    // Helper function to format dates to "May 2024" format
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch (error) {
+        return dateString; // Return original if formatting fails
+      }
+    };
+
     return `\\documentclass[a4paper,11pt]{article}
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -1070,6 +1132,7 @@ Generate a complete, error-free LaTeX document that will compile successfully. R
 
 \\begin{center}
     \\textbf{\\Huge \\scshape ${escapeLatex(fullName)}} \\\\ \\vspace{1pt}
+    ${personal.address ? `\\small \\faIcon{map-marker-alt} \\ ${escapeLatex(personal.address)} \\\\` : ''}
     \\small \\faIcon{phone} \\ ${escapeLatex(personal.phone || '')} \\textbf{\\textperiodcentered} \\faIcon{envelope} \\ \\href{mailto:${escapeLatex(personal.email || '')}}{${escapeLatex(personal.email || '')}} \\textbf{\\textperiodcentered} 
     \\faIcon{linkedin} \\ \\href{${escapeLatex(personal.linkedin || '')}}{LinkedIn} \\textbf{\\textperiodcentered}
     \\faIcon{github} \\ \\href{${escapeLatex(personal.github || '')}}{GitHub}${personal.portfolio ? ` \\textbf{\\textperiodcentered} \\faIcon{globe} \\ \\href{${escapeLatex(personal.portfolio)}}{Portfolio}` : ''}
@@ -1085,12 +1148,26 @@ Generate a complete, error-free LaTeX document that will compile successfully. R
 \\section{Experience}
 \\resumeSubHeadingListStart
 ${work.map(job => `  \\resumeSubheading
-    {${escapeLatex(job.title || '')}}{${escapeLatex(job.startDate || '')} -- ${escapeLatex(job.endDate || (job.currentlyWorking ? 'Present' : ''))}}
+    {${escapeLatex(job.title || '')}}{${escapeLatex(formatDate(job.startDate) || '')} -- ${escapeLatex(job.currentlyWorking ? 'Present' : (formatDate(job.endDate) || ''))}}
     {${escapeLatex(job.companyName || '')}}{${escapeLatex(job.location || personal.address || 'Remote')}}
     \\resumeItemListStart
       \\resumeItem{${escapeLatex(job.workSummery || job.workSummary || 'Contributed to team projects and company objectives.')}}
     \\resumeItemListEnd`).join('\n')}
 \\resumeSubHeadingListEnd
+
+\\section{Technical Skills}
+\\begin{itemize}[leftmargin=0.15in, label={}]
+    \\small{\\item{
+${skills.length > 0 ? skills.map(skill => {
+  if (typeof skill === 'object' && skill.skills) {
+    return `        \\textbf{${escapeLatex(skill.category || 'Skills')}}: ${escapeLatex(skill.skills)}`;
+  }
+  return `        \\textbf{Skills}: ${escapeLatex(skill.name || skill)}`;
+}).join(' \\\\ ') : `        \\textbf{Programming Languages}: Python, JavaScript, Java \\\\
+        \\textbf{Frameworks}: React, Node.js, Express \\\\
+        \\textbf{Tools}: Git, Docker, AWS`}
+    }}
+\\end{itemize}
 
 \\section{Projects}
 \\resumeSubHeadingListStart
@@ -1127,8 +1204,18 @@ ${projects.length > 0 ? projects.map(project => {
     projectItems.push(`      \\resumeItem{Project description and key achievements.}`);
   }
 
+  // Format project date range
+  let projectDate = '2024'; // Default fallback
+  if (project.startDate && project.endDate) {
+    projectDate = `${project.startDate} - ${project.endDate}`;
+  } else if (project.startDate) {
+    projectDate = project.startDate;
+  } else if (project.endDate) {
+    projectDate = project.endDate;
+  }
+
   return `  \\resumeProjectHeading
-    {\\textbf{${escapeLatex(project.title || project.name || 'Project Name')}} \\textbf{\\textperiodcentered} \\emph{${escapeLatex(project.techStack || project.technologies || 'Technology Stack')}}${linksSection}}{${escapeLatex(project.startDate || '2024')}}
+    {\\textbf{${escapeLatex(project.title || project.name || 'Project Name')}} \\textbf{\\textperiodcentered} \\emph{${escapeLatex(project.technologies || project.techStack || 'Technology Stack')}}${linksSection}}{${escapeLatex(projectDate)}}
     \\resumeItemListStart
 ${projectItems.join('\n')}
     \\resumeItemListEnd`;
@@ -1139,24 +1226,10 @@ ${projectItems.join('\n')}
     \\resumeItemListEnd`}
 \\resumeSubHeadingListEnd
 
-\\section{Technical Skills}
-\\begin{itemize}[leftmargin=0.15in, label={}]
-    \\small{\\item{
-${skills.length > 0 ? skills.map(skill => {
-  if (typeof skill === 'object' && skill.skills) {
-    return `        \\textbf{${escapeLatex(skill.category || 'Skills')}}: ${escapeLatex(skill.skills)}`;
-  }
-  return `        \\textbf{Skills}: ${escapeLatex(skill.name || skill)}`;
-}).join(' \\\\ ') : `        \\textbf{Programming Languages}: Python, JavaScript, Java \\\\
-        \\textbf{Frameworks}: React, Node.js, Express \\\\
-        \\textbf{Tools}: Git, Docker, AWS`}
-    }}
-\\end{itemize}
-
 \\section{Education}
 \\resumeSubHeadingListStart
 ${education.map(edu => `  \\resumeSubheading
-    {${escapeLatex(edu.degree || 'Bachelor of Science')}}{${escapeLatex(edu.graduationDate || '2024')}}
+    {${escapeLatex(edu.degree || 'Bachelor of Science')}}{${escapeLatex(formatDate(edu.graduationDate) || '2024')}}
     {${escapeLatex(edu.school || 'University Name')}}{${escapeLatex(edu.location || '')}}
     ${edu.fieldOfStudy ? `\\resumeItemListStart
       \\resumeItem{Major: ${escapeLatex(edu.fieldOfStudy)}}
@@ -1257,6 +1330,20 @@ ${education.map(edu => `  \\resumeSubheading
         .trim();
     };
 
+    // Helper function to format dates to "May 2024" format
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch (error) {
+        return dateString; // Return original if formatting fails
+      }
+    };
+
     const fullName = `${personal.firstName || ''} ${personal.lastName || ''}`.trim();
     const jobTitle = personal.jobTitle || '';
     const contact = {
@@ -1271,8 +1358,8 @@ ${education.map(edu => `  \\resumeSubheading
     const workExperience = work.map(job => ({
       title: job.title || '',
       company: job.companyName || '',
-      startDate: job.startDate || '',
-      endDate: job.endDate || job.currentlyWorking ? 'Present' : '',
+      startDate: formatDate(job.startDate) || '',
+      endDate: job.currentlyWorking ? 'Present' : (formatDate(job.endDate) || ''),
       description: cleanHtml(job.workSummery || '')
     }));
 
@@ -1280,7 +1367,7 @@ ${education.map(edu => `  \\resumeSubheading
       degree: edu.degree || '',
       school: edu.school || '',
       fieldOfStudy: edu.fieldOfStudy || '',
-      graduationDate: edu.graduationDate || '',
+      graduationDate: formatDate(edu.graduationDate) || '',
       description: cleanHtml(edu.description || '') // Clean HTML content from education description
     }));
 
@@ -1295,13 +1382,24 @@ ${education.map(edu => `  \\resumeSubheading
       title: project.title || project.name || '',
       description: cleanHtml(project.description || ''),
       technologies: project.techStack || project.technologies || '',
+      startDate: formatDate(project.startDate) || '',
+      endDate: formatDate(project.endDate) || '',
       liveDemo: project.liveDemo || '',
       githubRepo: project.githubRepo || '',
       url: project.projectUrl || '',
       bullets: project.bullets || [] // Include bullets in the mapping
     }));
 
-         const prompt = `Generate a JAKE TEMPLATE resume with this EXACT format and structure:
+         const prompt = `Generate a JAKE TEMPLATE resume with this EXACT format and structure.
+
+⚠️  CRITICAL SECTION ORDER REQUIREMENT: The sections MUST appear in this EXACT order:
+1. Professional Summary (first)
+2. Experience
+3. Technical Skills 
+4. Projects
+5. Education (MUST BE LAST - DO NOT MOVE THIS SECTION)
+
+DO NOT change or reorder these sections. Education MUST be the final section before \\end{document}.
 
 \\documentclass[a4paper,11pt]{article}
 \\usepackage{latexsym}
@@ -1373,10 +1471,18 @@ ${education.map(edu => `  \\resumeSubheading
 
 \\begin{center}
     \\textbf{\\Huge \\scshape ${fullName}} \\\\ \\vspace{1pt}
+    ${contact.address ? `\\small \\faIcon{map-marker-alt} \\ ${contact.address} \\\\` : ''}
     \\small \\faIcon{phone} \\ ${contact.phone} \\textbf{\\textperiodcentered} \\faIcon{envelope} \\ \\href{mailto:${contact.email}}{${contact.email}} \\textbf{\\textperiodcentered} 
     \\faIcon{linkedin} \\ \\href{${contact.linkedin}}{LinkedIn} \\textbf{\\textperiodcentered}
     \\faIcon{github} \\ \\href{${contact.github}}{GitHub}${contact.portfolio ? ` \\textbf{\\textperiodcentered} \\faIcon{globe} \\ \\href{${contact.portfolio}}{Portfolio}` : ''}
 \\end{center}
+
+\\section{Professional Summary}
+\\begin{itemize}[leftmargin=0.15in, label={}]
+    \\small{\\item{
+        ${cleanHtml(summary) || 'Dedicated professional with strong technical skills and experience.'}
+    }}
+\\end{itemize}
 
 \\section{Experience}
 \\resumeSubHeadingListStart
@@ -1432,8 +1538,18 @@ ${projectsList.map(project => {
     projectItems.push(`      \\resumeItem{${project.description || 'Project description and key achievements.'}}`);
   }
 
+  // Format project date range
+  let projectDate = new Date().getFullYear().toString(); // Default fallback to current year
+  if (project.startDate && project.endDate) {
+    projectDate = `${project.startDate} - ${project.endDate}`;
+  } else if (project.startDate) {
+    projectDate = project.startDate;
+  } else if (project.endDate) {
+    projectDate = project.endDate;
+  }
+
   return `  \\resumeProjectHeading
-    {\\textbf{${project.title}} \\textbf{\\textperiodcentered} \\emph{${project.technologies}}${linksSection}}{${new Date().getFullYear()}}
+    {\\textbf{${project.title}} \\textbf{\\textperiodcentered} \\emph{${project.technologies}}${linksSection}}{${projectDate}}
     \\resumeItemListStart
 ${projectItems.join('\n')}
     \\resumeItemListEnd`;
@@ -1460,6 +1576,7 @@ CRITICAL REQUIREMENTS:
 5. Replace placeholder data with actual resume data provided below
 6. IMPORTANT: For projects, include BOTH description AND all project highlights/bullets as separate \\resumeItem{} entries
 7. Each project bullet point should be its own \\resumeItem{} in the \\resumeItemListStart section
+8. MANDATORY SECTION ORDER: Professional Summary → Experience → Technical Skills → Projects → Education (EDUCATION MUST BE LAST SECTION)
 
 RESUME DATA:
 Name: ${fullName}
@@ -1492,6 +1609,7 @@ Skills: ${skillsList.join(', ')}
 Projects:
 ${projectsList.map((project, index) => `
 ${index + 1}. ${project.title}
+   ${project.startDate || project.endDate ? `Duration: ${project.startDate && project.endDate ? `${project.startDate} - ${project.endDate}` : (project.startDate || project.endDate)}` : ''}
    Technologies: ${project.technologies}
    Description: ${project.description}
    Highlights/Bullets: ${project.bullets && project.bullets.length > 0 ? project.bullets.filter(b => b && b.trim()).join(' | ') : 'None'}
@@ -1499,7 +1617,11 @@ ${index + 1}. ${project.title}
    GitHub Repo: ${project.githubRepo}
 `).join('')}
 
-Generate the complete LaTeX code using the EXACT Jake template structure above. Return ONLY the LaTeX code.`;
+Generate the complete LaTeX code using the EXACT Jake template structure above. 
+
+🚨 FINAL REMINDER: Education section MUST be the LAST section in the document before \\end{document}. Do NOT place it anywhere else.
+
+Return ONLY the LaTeX code.`;
 
     return prompt;
   }

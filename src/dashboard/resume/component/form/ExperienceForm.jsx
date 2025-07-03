@@ -15,6 +15,7 @@ const formField = {
   state: "",
   startDate: "",
   endDate: "",
+  currentlyWorking: false,
   workSummery: "",
 };
 
@@ -171,13 +172,19 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   // Optimized handleChange to prevent unnecessary re-renders
   const handleChange = useCallback((index, event) => {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
     setExperienceList((prevList) => {
       const newList = [...prevList];
       newList[index] = {
         ...newList[index],
-        [name]: value,
+        [name]: type === 'checkbox' ? checked : value,
       };
+      
+      // If currently working is checked, clear the end date
+      if (name === 'currentlyWorking' && checked) {
+        newList[index].endDate = '';
+      }
+      
       return newList;
     });
   }, []);
@@ -292,7 +299,20 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     value={item?.endDate || ""}
                     onChange={(event) => handleChange(index, event)}
                     className="w-full"
+                    disabled={item?.currentlyWorking}
                   />
+                  <div className="mt-2">
+                    <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="currentlyWorking"
+                        checked={item?.currentlyWorking || false}
+                        onChange={(event) => handleChange(index, event)}
+                        className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-2 focus:ring-primary focus:ring-offset-0"
+                      />
+                      <span className="select-none">I currently work here</span>
+                    </label>
+                  </div>
                 </div>
                 <div className="col-span-1 lg:col-span-2">
                   <RichTextEditor

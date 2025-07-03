@@ -4,6 +4,35 @@ import { useEffect } from "react";
 const ProjectsPreview = ({ resumeInfo }) => {
   const projects = resumeInfo?.projects;
 
+  // Helper function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return null;
+    }
+  };
+
+  // Helper function to format date range
+  const formatDateRange = (startDate, endDate) => {
+    const formattedStart = formatDate(startDate);
+    const formattedEnd = formatDate(endDate);
+    
+    if (formattedStart && formattedEnd) {
+      return `${formattedStart} - ${formattedEnd}`;
+    } else if (formattedStart) {
+      return formattedStart;
+    } else if (formattedEnd) {
+      return formattedEnd;
+    }
+    return null;
+  };
+
   // ------------ ENHANCED DIAGNOSTIC LOG ------------
   useEffect(() => {
     console.log("🕵️ [ProjectsPreview] Complete resumeInfo:", resumeInfo);
@@ -88,7 +117,17 @@ const ProjectsPreview = ({ resumeInfo }) => {
                   )}
                 </div>
               </div>
-              <span className="text-xs font-semibold text-gray-600 sm:ml-2">{project.technologies}</span>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                {formatDateRange(project.startDate, project.endDate) && (
+                  <span className="text-xs text-gray-600 order-2 sm:order-1">
+                    {formatDateRange(project.startDate, project.endDate)}
+                  </span>
+                )}
+                <span className="text-xs font-semibold text-gray-600 order-1 sm:order-2">
+                  {project.technologies}
+                </span>
+              </div>
             </div>
             
             {project.description && project.description.trim() && (
