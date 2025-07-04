@@ -398,44 +398,16 @@ const TemplateForm = () => {
   return (
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-          {/* Back to Dashboard Link */}
-          <div className="text-center mb-8">
-            <Link
-              to="/dashboard"
-              className="text-sm text-slate-500 hover:text-slate-700"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 lg:p-10 gap-6 lg:gap-10">
+        {/* Subtle header shadow enhancer */}
+        <div className="h-2 bg-gradient-to-b from-gray-200/20 to-transparent"></div>
+        
+        <div className="container mx-auto px-4 py-2 sm:py-3 md:py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 p-1 sm:p-2 lg:p-3 gap-3 lg:gap-4">
             {/* Left Column - Form */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-4 sm:p-6 border border-slate-200">
-              {/* Navigation Header */}
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                <div className="gap-3 hidden sm:flex">
-                  <Link to="/create/templates">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
-                    >
-                      <Home className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 border border-slate-200">
+              {/* Navigation Controls - Only Previous/Next buttons */}
+              <div className="flex justify-end mb-2">
+                <div className="flex gap-2">
                   {activeSection > 1 && (
                     <Button
                       size="sm"
@@ -480,14 +452,14 @@ const TemplateForm = () => {
               </div>
 
               {/* Form Section */}
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-slate-100">
                 {renderFormSection()}
               </div>
             </div>
 
             {/* Right Column - Preview */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-4 sm:p-6 border border-slate-200">
-              <h2 className="font-bold text-xl mb-4 text-slate-900">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 border border-slate-200">
+              <h2 className="font-bold text-xl mb-3 text-slate-900">
                 Template Preview
               </h2>
               <div
@@ -512,56 +484,56 @@ const TemplateForm = () => {
               </div>
             </div>
           </div>
-
-          {/* Resume Limit Reached Dialog */}
-          <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-            <AlertDialogContent className="bg-white border-slate-200 shadow-xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-slate-900 text-xl font-semibold">
-                  Resume Limit Reached
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-slate-600">
-                  <div className="space-y-3">
-                    <p>
-                      You have reached the maximum limit of{" "}
-                      <span className="font-semibold text-slate-900">
-                        3 resumes
-                      </span>
-                      .
-                    </p>
-                    <p>
-                      To create a new resume, please delete an existing one from
-                      your dashboard first.
-                    </p>
-                  </div>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogAction
-                  onClick={() => {
-                    setShowLimitDialog(false);
-                    navigate("/dashboard");
-                  }}
-                  className="text-black"
-                  style={{
-                    background:
-                      "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background =
-                      "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background =
-                      "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
-                  }}
-                >
-                  Go to Dashboard
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
+
+        {/* Resume Limit Reached Dialog */}
+        <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+          <AlertDialogContent className="bg-white border-slate-200 shadow-xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-slate-900 text-xl font-semibold">
+                Resume Limit Reached
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-600">
+                <div className="space-y-3">
+                  <p>
+                    You have reached the maximum limit of{" "}
+                    <span className="font-semibold text-slate-900">
+                      3 resumes
+                    </span>
+                    .
+                  </p>
+                  <p>
+                    To create a new resume, please delete an existing one from
+                    your dashboard first.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction
+                onClick={() => {
+                  setShowLimitDialog(false);
+                  navigate("/dashboard");
+                }}
+                className="text-black"
+                style={{
+                  background:
+                    "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background =
+                    "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background =
+                    "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
+                }}
+              >
+                Go to Dashboard
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </ResumeContext.Provider>
   );

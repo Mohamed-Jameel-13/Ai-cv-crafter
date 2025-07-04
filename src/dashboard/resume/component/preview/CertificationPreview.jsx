@@ -21,29 +21,34 @@ const CertificationPreview = ({ resumeInfo }) => {
 
       {certifications.map((certification, index) => (
         <div key={index} className="my-3">
-          {/* Top Row: Contains Name/Link and Date */}
-          <div className="flex justify-between items-center">
-            {/* Left side of the top row: A group for the Name and Link */}
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold">
-                {certification?.name || "Certification Not Specified"}
-              </h2>
-              {certification.link && (
-                <a
-                  href={certification.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs text-black hover:text-blue-600 flex-shrink-0"
-                >
-                  <FaExternalLinkAlt size={12} />
-                  <span>Link</span>
-                </a>
-              )}
+          {/* Top Row: Contains Name with inline Link and Date */}
+          <div className="flex justify-between items-start gap-2">
+            {/* Left side: Certification name with inline link - ALWAYS KEEP TOGETHER */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center flex-wrap gap-1">
+                <h2 className="text-sm font-bold">
+                  {certification?.name || "Certification Not Specified"}
+                </h2>
+                {certification.link && (
+                  <>
+                    <span className="text-sm font-bold text-gray-600">•</span>
+                    <a
+                      href={certification.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-black hover:text-blue-600 no-underline"
+                    >
+                      <FaExternalLinkAlt size={10} />
+                      <span>Link</span>
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
-            {/* Right side of the top row: Date */}
-            <p className="text-xs font-medium text-gray-600 flex-shrink-0">
+            {/* Right side: Date */}
+            <div className="text-xs font-medium text-gray-600 flex-shrink-0 ml-2">
               {certification?.date || "Date not specified"}
-            </p>
+            </div>
           </div>
 
           {/* Second Row: Issuer, placed below the flex container */}

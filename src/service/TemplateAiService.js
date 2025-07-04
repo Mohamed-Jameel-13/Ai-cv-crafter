@@ -1423,12 +1423,12 @@ ${
             const links = [];
             if (project.liveDemo) {
               links.push(
-                `\\href{${escapeLatex(project.liveDemo)}}{\\faIcon{link} \\ Live}`,
+                `\\href{${escapeLatex(project.liveDemo)}}{\\faIcon{link} \\ \\textbf{Live}}`,
               );
             }
             if (project.githubRepo) {
               links.push(
-                `\\href{${escapeLatex(project.githubRepo)}}{\\faIcon{github} \\ Code}`,
+                `\\href{${escapeLatex(project.githubRepo)}}{\\faIcon{github} \\ \\textbf{Code}}`,
               );
             }
             linksSection = ` \\textbf{\\textperiodcentered} ${links.join(" \\textbf{\\textperiodcentered} ")}`;
@@ -1493,7 +1493,7 @@ ${
           // Build links section for certifications similar to projects
           let linksSection = "";
           if (cert.link) {
-            linksSection = ` \\textbf{\\textperiodcentered} \\href{${cert.link}}{\\faIcon{link} \\ Link}`;
+            linksSection = ` \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{Link}}`;
           }
 
           return `  \\resumeSubheading
@@ -1836,10 +1836,10 @@ ${projectsList
     if (project.liveDemo || project.githubRepo) {
       const links = [];
       if (project.liveDemo) {
-        links.push(`\\href{${project.liveDemo}}{\\faIcon{link} \\ Live}`);
+        links.push(`\\href{${project.liveDemo}}{\\faIcon{link} \\ \\textbf{Live}}`);
       }
       if (project.githubRepo) {
-        links.push(`\\href{${project.githubRepo}}{\\faIcon{github} \\ Code}`);
+        links.push(`\\href{${project.githubRepo}}{\\faIcon{github} \\ \\textbf{Code}}`);
       }
       linksSection = ` \\textbf{\\textperiodcentered} ${links.join(" \\textbf{\\textperiodcentered} ")}`;
     }
@@ -1895,7 +1895,7 @@ ${
           // Build links section for certifications similar to projects
           let linksSection = "";
           if (cert.link) {
-            linksSection = ` \\textbf{\\textperiodcentered} \\href{${cert.link}}{\\faIcon{link} \\ Link}`;
+            linksSection = ` \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{Link}}`;
           }
 
           return `  \\resumeSubheading
