@@ -9,6 +9,7 @@ import Skills from "./form/Skills";
 import Projects from "./form/Projects";
 import { Link, Navigate, useParams } from "react-router-dom";
 import ThemeColor from "./ThemeColor";
+import Certification from "./form/Certification";
 
 const FormSection = () => {
   const [activeIndex, setActiveIndex] = useState(1);
@@ -37,13 +38,13 @@ const FormSection = () => {
               Previous
             </Button>
           )}
-          {/* Hide Next button on final section (6) in mobile view, show on desktop */}
-          {activeIndex < 7 && (
+          {/* Hide Next button on final section (7) in mobile view, show on desktop */}
+          {activeIndex < 8 && (
             <Button
               onClick={() => setActiveIndex(activeIndex + 1)}
               disabled={!enableNext}
               className={`gap-2 ${
-                activeIndex === 6 ? "hidden sm:flex" : "flex"
+                activeIndex === 7 ? "hidden sm:flex" : "flex"
               }`}
               size="sm"
             >
@@ -102,7 +103,15 @@ const FormSection = () => {
         />
       </div>
 
-      {activeIndex === 7 && (
+      <div style={{ display: activeIndex === 7 ? "block" : "none" }}>
+        <Certification
+          resumeId={resumeId}
+          email={email}
+          enableNext={(v) => setEnableNext(v)}
+        />
+      </div>
+
+      {activeIndex === 8 && (
         <Navigate to={`/dashboard/${email}/${resumeId}/view`} />
       )}
     </div>

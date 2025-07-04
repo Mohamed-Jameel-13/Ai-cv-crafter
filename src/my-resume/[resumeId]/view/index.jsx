@@ -1,4 +1,3 @@
-import Header from "@/components/custom/Header";
 import { Button } from "@/components/ui/button";
 import { ResumeContext } from "@/context/ResumeContext";
 import ResumePreview from "@/dashboard/resume/component/ResumePreview";
@@ -324,124 +323,129 @@ const ViewResume = () => {
 
   return (
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
-      <div id="no-print" className="no-print">
-        <Header />
-        <div className="my-5 mx-4 sm:mx-6 md:mx-10 lg:mx-20 xl:mx-36">
-          <h2 className="text-center text-xl sm:text-2xl font-medium px-2">
-            Congrats! Your Ultimate AI generated Resume is ready!
-          </h2>
-          <p className="text-center text-gray-400 text-sm sm:text-base px-4">
-            Now you are ready to download your resume and you can share your
-            unique resume to recruiters
-          </p>
-          <div className="w-auto m-auto flex flex-col sm:flex-row justify-center mt-3 items-center gap-2 sm:gap-4 px-4">
-            <Button
-              onClick={handleDownload}
-              className="bg-primary hover:bg-primary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base"
-            >
-              Download PDF
-            </Button>
-            <RWebShare
-              data={{
-                text: `${fullName}'s Resume`,
-                url: shareUrl,
-                title: `${fullName} - Resume`,
-              }}
-            >
-              <Button className="bg-secondary text-primary hover:bg-secondary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base">
-                Share Resume
-              </Button>
-            </RWebShare>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div id="no-print" className="no-print">
+          <div className="py-4 px-4 sm:px-8 md:px-12 lg:px-16">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                  Congrats! Your Ultimate AI generated Resume is ready!
+                </h2>
+                <p className="text-base text-gray-400">
+                  Now you are ready to download your resume and you can share your
+                  unique resume to recruiters
+                </p>
+              </div>
+              <div className="w-auto m-auto flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 px-4">
+                <Button
+                  onClick={handleDownload}
+                  className="bg-primary hover:bg-primary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base"
+                >
+                  Download PDF
+                </Button>
+                <RWebShare
+                  data={{
+                    text: `${fullName}'s Resume`,
+                    url: shareUrl,
+                    title: `${fullName} - Resume`,
+                  }}
+                >
+                  <Button className="bg-secondary text-primary hover:bg-secondary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base">
+                    Share Resume
+                  </Button>
+                </RWebShare>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Responsive container that maintains resume proportions */}
-      <div className="my-2 sm:my-8 mx-auto px-1 sm:px-4 print:p-0 print:max-w-none print:mx-0">
-        <div className="w-full max-w-4xl mx-auto">
-          <div
-            id="print-area"
-            className="bg-white shadow-xl mx-auto print:shadow-none w-full max-w-full overflow-hidden resume-container"
-            style={{
-              minHeight: "29.7cm",
-              boxSizing: "border-box",
-            }}
-          >
-            {resumeInfo?.pdfBase64 ? (
-              // Display the actual generated PDF for template resumes
-              <div className="w-full h-full">
-                <div className="pdf-viewer-container">
-                  {/* Desktop PDF embed - original style */}
-                  <embed
-                    src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
-                    type="application/pdf"
-                    width="100%"
-                    height="800px"
-                    className="border-0 rounded-lg hidden lg:block"
-                    style={{ minHeight: "29.7cm" }}
-                  />
-
-                  {/* Mobile PDF Display - Improved with better fallback */}
-                  <div className="block lg:hidden">
-                    {/* Try iframe first with error handling */}
-                    <iframe
+        {/* Responsive container that maintains resume proportions */}
+        <div className="pt-2 sm:pt-4 mx-auto px-1 sm:px-4 print:p-0 print:max-w-none print:mx-0">
+          <div className="w-full max-w-4xl mx-auto">
+            <div
+              id="print-area"
+              className="bg-white shadow-xl mx-auto print:shadow-none w-full max-w-full overflow-hidden resume-container"
+              style={{
+                minHeight: "29.7cm",
+                boxSizing: "border-box",
+              }}
+            >
+              {resumeInfo?.pdfBase64 ? (
+                // Display the actual generated PDF for template resumes
+                <div className="w-full h-full">
+                  <div className="pdf-viewer-container">
+                    {/* Desktop PDF embed - original style */}
+                    <embed
                       src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                      type="application/pdf"
                       width="100%"
-                      height="600px"
-                      className="border-0 rounded-lg mobile-pdf-iframe"
-                      style={{
-                        minHeight: "min(75vh, 600px)",
-                        height: "min(75vh, 600px)",
-                        backgroundColor: "#f8f9fa",
-                      }}
-                      title="Resume PDF"
-                      onError={() => {
-                        console.warn(
-                          "PDF iframe failed to load, showing fallback",
-                        );
-                        document.querySelector(
-                          ".mobile-pdf-iframe",
-                        ).style.display = "none";
-                        document.querySelector(
-                          ".mobile-pdf-fallback",
-                        ).style.display = "block";
-                      }}
+                      height="800px"
+                      className="border-0 rounded-lg hidden lg:block"
+                      style={{ minHeight: "29.7cm" }}
                     />
 
-                    {/* Compact fallback for mobile browsers that can't display PDF in iframe */}
-                    <div
-                      className="mobile-pdf-fallback flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
-                      style={{ display: "none", height: "200px" }}
-                    >
-                      <a
-                        href={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-col items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 min-w-[160px]"
+                    {/* Mobile PDF Display - Improved with better fallback */}
+                    <div className="block lg:hidden">
+                      {/* Try iframe first with error handling */}
+                      <iframe
+                        src={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                        width="100%"
+                        height="600px"
+                        className="border-0 rounded-lg mobile-pdf-iframe"
+                        style={{
+                          minHeight: "min(75vh, 600px)",
+                          height: "min(75vh, 600px)",
+                          backgroundColor: "#f8f9fa",
+                        }}
+                        title="Resume PDF"
+                        onError={() => {
+                          console.warn(
+                            "PDF iframe failed to load, showing fallback",
+                          );
+                          document.querySelector(
+                            ".mobile-pdf-iframe",
+                          ).style.display = "none";
+                          document.querySelector(
+                            ".mobile-pdf-fallback",
+                          ).style.display = "block";
+                        }}
+                      />
+
+                      {/* Compact fallback for mobile browsers that can't display PDF in iframe */}
+                      <div
+                        className="mobile-pdf-fallback flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
+                        style={{ display: "none", height: "200px" }}
                       >
-                        <svg
-                          className="w-8 h-8 mb-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                        <a
+                          href={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex flex-col items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 min-w-[160px]"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        <span className="text-sm font-medium">Open Resume</span>
-                      </a>
+                          <svg
+                            className="w-8 h-8 mb-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          <span className="text-sm font-medium">Open Resume</span>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              // Fall back to ResumePreview for default resumes
-              <ResumePreview />
-            )}
+              ) : (
+                // Fall back to ResumePreview for default resumes
+                <ResumePreview />
+              )}
+            </div>
           </div>
         </div>
       </div>

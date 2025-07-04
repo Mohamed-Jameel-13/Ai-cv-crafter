@@ -1,4 +1,4 @@
-import { AIchatSession } from "../../service/AiModel.js";
+import { sendMessageToAI } from "../../service/AiModel.js";
 import Logger from "../utils/logger.js";
 
 class TemplateAiService {
@@ -16,7 +16,7 @@ class TemplateAiService {
 
       // Step 2: Get LaTeX code from AI
       Logger.log("🤖 Calling AI with prompt...");
-      const latexResponse = await AIchatSession.sendMessage(aiPrompt);
+      const latexResponse = await sendMessageToAI(aiPrompt);
       Logger.log("🤖 Raw AI response:", latexResponse);
 
       const latexContent = latexResponse?.response?.text?.() || latexResponse;
@@ -110,7 +110,7 @@ class TemplateAiService {
 
             // Get new LaTeX from AI
             const retryResponse =
-              await AIchatSession.sendMessage(improvedPrompt);
+              await sendMessageToAI(improvedPrompt);
             const retryLatexContent =
               retryResponse?.response?.text?.() || retryResponse;
 

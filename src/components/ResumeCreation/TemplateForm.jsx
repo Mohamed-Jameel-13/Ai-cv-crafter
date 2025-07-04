@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, ArrowRight, Home, Loader2, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import Header from "@/components/custom/Header";
 import { UserContext } from "@/context/UserContext";
 import { getTemplateById } from "@/data/templates";
 import { ResumeContext } from "@/context/ResumeContext";
@@ -393,77 +392,161 @@ const TemplateForm = () => {
   };
 
   if (!template) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div
-          className="animate-spin h-8 w-8 border-2 border-t-transparent rounded-full"
-          style={{
-            borderColor: "rgb(246,196,158)",
-            borderTopColor: "transparent",
-          }}
-        ></div>
-      </div>
-    );
+    return <Loader2 className="animate-spin h-8 w-8 mx-auto mt-20" />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Header />
+    <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+          {/* Back to Dashboard Link */}
+          <div className="text-center mb-8">
+            <Link
+              to="/dashboard"
+              className="text-sm text-slate-500 hover:text-slate-700"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 lg:p-10 gap-6 lg:gap-10">
-        {/* Left Column - Form */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-4 sm:p-6 border border-slate-200">
-          {/* Navigation Header */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-            <div className="gap-3 hidden sm:flex">
-              <Link to="/create/templates">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
-                >
-                  <Home className="w-4 h-4" />
-                </Button>
-              </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 lg:p-10 gap-6 lg:gap-10">
+            {/* Left Column - Form */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-4 sm:p-6 border border-slate-200">
+              {/* Navigation Header */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+                <div className="gap-3 hidden sm:flex">
+                  <Link to="/create/templates">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/dashboard">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
+                    >
+                      <Home className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
+                  {activeSection > 1 && (
+                    <Button
+                      size="sm"
+                      onClick={handlePrevious}
+                      variant="outline"
+                      className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                  )}
+                  {/* Hide Next button on review page in mobile view, show on desktop */}
+                  {activeSection < formSections.length && (
+                    <Button
+                      onClick={handleNext}
+                      disabled={!enableNext}
+                      className={`gap-2 text-black ${
+                        activeSection === 7 ? "hidden sm:flex" : "flex"
+                      }`}
+                      style={{
+                        background:
+                          "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))",
+                        },
+                      }}
+                      size="sm"
+                      onMouseEnter={(e) => {
+                        e.target.style.background =
+                          "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background =
+                          "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
+                      }}
+                    >
+                      Next <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Section */}
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-slate-100">
+                {renderFormSection()}
+              </div>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
-              {activeSection > 1 && (
-                <Button
-                  size="sm"
-                  onClick={handlePrevious}
-                  variant="outline"
-                  className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-              )}
-              {/* Hide Next button on review page in mobile view, show on desktop */}
-              {activeSection < formSections.length && (
-                <Button
-                  onClick={handleNext}
-                  disabled={!enableNext}
-                  className={`gap-2 text-black ${
-                    activeSection === 7 ? "hidden sm:flex" : "flex"
-                  }`}
+
+            {/* Right Column - Preview */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-4 sm:p-6 border border-slate-200">
+              <h2 className="font-bold text-xl mb-4 text-slate-900">
+                Template Preview
+              </h2>
+              <div
+                className="h-64 sm:h-80 lg:h-96 rounded-lg flex items-center justify-center border border-slate-200"
+                style={{
+                  background:
+                    "linear-gradient(to bottom right, rgba(246,196,158,0.1), rgba(255,228,196,0.1))",
+                }}
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-3">📄</div>
+                  <h3 className="font-semibold text-lg text-slate-900">
+                    {template.name}
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-2 px-4">
+                    {template.description}
+                  </p>
+                  <div className="mt-4 text-xs text-slate-500">
+                    Preview will be available after generation
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Resume Limit Reached Dialog */}
+          <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+            <AlertDialogContent className="bg-white border-slate-200 shadow-xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-slate-900 text-xl font-semibold">
+                  Resume Limit Reached
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-slate-600">
+                  <div className="space-y-3">
+                    <p>
+                      You have reached the maximum limit of{" "}
+                      <span className="font-semibold text-slate-900">
+                        3 resumes
+                      </span>
+                      .
+                    </p>
+                    <p>
+                      To create a new resume, please delete an existing one from
+                      your dashboard first.
+                    </p>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction
+                  onClick={() => {
+                    setShowLimitDialog(false);
+                    navigate("/dashboard");
+                  }}
+                  className="text-black"
                   style={{
                     background:
                       "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
-                    "&:hover": {
-                      background:
-                        "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))",
-                    },
                   }}
-                  size="sm"
                   onMouseEnter={(e) => {
                     e.target.style.background =
                       "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
@@ -473,95 +556,14 @@ const TemplateForm = () => {
                       "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
                   }}
                 >
-                  Next <ArrowRight className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Form Section */}
-          <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-slate-100">
-            {renderFormSection()}
-          </div>
-        </div>
-
-        {/* Right Column - Preview */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-4 sm:p-6 border border-slate-200">
-          <h2 className="font-bold text-xl mb-4 text-slate-900">
-            Template Preview
-          </h2>
-          <div
-            className="h-64 sm:h-80 lg:h-96 rounded-lg flex items-center justify-center border border-slate-200"
-            style={{
-              background:
-                "linear-gradient(to bottom right, rgba(246,196,158,0.1), rgba(255,228,196,0.1))",
-            }}
-          >
-            <div className="text-center">
-              <div className="text-4xl mb-3">📄</div>
-              <h3 className="font-semibold text-lg text-slate-900">
-                {template.name}
-              </h3>
-              <p className="text-sm text-slate-600 mt-2 px-4">
-                {template.description}
-              </p>
-              <div className="mt-4 text-xs text-slate-500">
-                Preview will be available after generation
-              </div>
-            </div>
-          </div>
+                  Go to Dashboard
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
-
-      {/* Resume Limit Reached Dialog */}
-      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-        <AlertDialogContent className="bg-white border-slate-200 shadow-xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-900 text-xl font-semibold">
-              Resume Limit Reached
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-600">
-              <div className="space-y-3">
-                <p>
-                  You have reached the maximum limit of{" "}
-                  <span className="font-semibold text-slate-900">
-                    3 resumes
-                  </span>
-                  .
-                </p>
-                <p>
-                  To create a new resume, please delete an existing one from
-                  your dashboard first.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                setShowLimitDialog(false);
-                navigate("/dashboard");
-              }}
-              className="text-black"
-              style={{
-                background:
-                  "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background =
-                  "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background =
-                  "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
-              }}
-            >
-              Go to Dashboard
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </ResumeContext.Provider>
   );
 };
 

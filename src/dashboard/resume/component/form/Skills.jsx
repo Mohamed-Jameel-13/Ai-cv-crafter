@@ -13,7 +13,7 @@ import { AIButton } from "@/components/ui/ai-button";
 import { ResumeContext } from "@/context/ResumeContext";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { toast } from "sonner";
-import { AIchatSession } from "../../../../../service/AiModel";
+import { sendMessageToAI } from "../../../../../service/AiModel";
 
 const formField = {
   category: "",
@@ -211,7 +211,7 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
     setAiLoading(true);
     try {
       const PROMPT = prompt.replace("{jobTitle}", jobTitle);
-      const aiResponse = await AIchatSession.sendMessage(PROMPT);
+      const aiResponse = await sendMessageToAI(PROMPT);
 
       let responseText = aiResponse;
       if (

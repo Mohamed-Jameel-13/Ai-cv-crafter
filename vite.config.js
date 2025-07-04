@@ -3,8 +3,11 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { visualizer } from "rollup-plugin-visualizer";
 
-export default defineConfig({
-  plugins: [react(), visualizer({ open: true })],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    mode === "development" && visualizer({ open: true }),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -30,8 +33,4 @@ export default defineConfig({
     port: 3000,
     open: true,
   },
-  define: {
-    // Ensure environment variables are available in production
-    "process.env": {},
-  },
-});
+}));

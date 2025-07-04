@@ -5,7 +5,7 @@ import { ResumeContext } from "@/context/ResumeContext";
 import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { Brain, Loader2 } from "lucide-react";
-import { AIchatSession } from "../../../../../service/AiModel";
+import { sendMessageToAI } from "../../../../../service/AiModel";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 
 const prompt = `Given the job title "{jobTitle}", provide three job summary suggestions for a resume. Each suggestion should be in JSON format with fields "experience_level" (values can be "Fresher", "Mid-level", "Experienced") and "summary" (a brief summary). Output an array of JSON objects.`;
@@ -142,7 +142,7 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
     setLoading(true);
     try {
       const finalPrompt = prompt.replace("{jobTitle}", jobTitle);
-      const result = await AIchatSession.sendMessage(finalPrompt);
+      const result = await sendMessageToAI(finalPrompt);
 
       // Handle response text extraction
       let responseText = result;

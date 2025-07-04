@@ -14,6 +14,7 @@ import { getCurrentUserEmail, handleFirebaseError } from "./firebase_helpers";
 import EncryptionService from "./encryption";
 import { getAuth } from "firebase/auth";
 import Logger from "./logger.js";
+import { SENSITIVE_FIELDS } from "./constants.js";
 
 class EncryptedFirebaseService {
   constructor() {
@@ -102,20 +103,9 @@ class EncryptedFirebaseService {
     try {
       const key = this.getUserEncryptionKey();
 
-      const sensitiveFields = [
-        "personalDetail",
-        "summary",
-        "experience",
-        "skills",
-        "projects",
-        "education",
-        "pdfBase64",
-        "latexCode",
-      ];
-
       let updateData = {};
 
-      if (sensitiveFields.includes(fieldName)) {
+      if (SENSITIVE_FIELDS.includes(fieldName)) {
         updateData[fieldName] = EncryptionService.encryptData(fieldData, key);
         updateData.isEncrypted = true;
         updateData.encryptionVersion = "1.0";
@@ -146,22 +136,11 @@ class EncryptedFirebaseService {
     try {
       const key = this.getUserEncryptionKey();
 
-      const sensitiveFields = [
-        "personalDetail",
-        "summary",
-        "experience",
-        "skills",
-        "projects",
-        "education",
-        "pdfBase64",
-        "latexCode",
-      ];
-
       let updateData = {};
       let hasEncryptedFields = false;
 
       Object.entries(fieldsData).forEach(([fieldName, fieldData]) => {
-        if (sensitiveFields.includes(fieldName)) {
+        if (SENSITIVE_FIELDS.includes(fieldName)) {
           updateData[fieldName] = EncryptionService.encryptData(fieldData, key);
           hasEncryptedFields = true;
         } else {

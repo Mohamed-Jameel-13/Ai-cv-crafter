@@ -13,7 +13,7 @@ import { LoaderCircle, Brain, ExternalLink, Github } from "lucide-react";
 import { ResumeContext } from "@/context/ResumeContext";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { toast } from "sonner";
-import { AIchatSession } from "../../../../../service/AiModel";
+import { sendMessageToAI } from "../../../../../service/AiModel";
 import { AIButton } from "@/components/ui/ai-button";
 
 const initialProject = {
@@ -302,24 +302,14 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
     setCurrentProjectIndex(projectIndex);
 
     try {
-      const jobTitle =
-        resumeInfo?.personalDetail?.jobTitle || "software developer";
       const PROMPT = prompt
-        .replaceAll("{jobTitle}", jobTitle)
-        .replaceAll("{projectName}", project.name)
-        .replaceAll("{technologies}", project.technologies);
+        .replace(/{projectName}/g, project.name)
+        .replace(/{technologies}/g, project.technologies)
+        .replace(/{jobTitle}/g, resumeInfo?.personalDetail?.jobTitle);
 
-      const aiResponse = await AIchatSession.sendMessage(PROMPT);
-      console.log("AI Response:", aiResponse);
-
-      if (!aiResponse) {
-        throw new Error("No response from AI service");
-      }
-
-      // Extract text from response object
+      const aiResponse = await sendMessageToAI(PROMPT);
       let responseText = aiResponse;
 
-      // If aiResponse is an object with response text, extract it
       if (
         typeof aiResponse === "object" &&
         aiResponse.response &&

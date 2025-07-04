@@ -13,7 +13,7 @@ import { ResumeContext } from "@/context/ResumeContext";
 import { toast } from "sonner";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { AIButton } from "@/components/ui/ai-button";
-import { AIchatSession } from "../../../../../service/AiModel";
+import { sendMessageToAI } from "../../../../../service/AiModel";
 import { Brain } from "lucide-react";
 
 const formField = {
@@ -249,17 +249,10 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
         .replace("{fieldOfStudy}", education.fieldOfStudy)
         .replace(
           "{graduationDate}",
-          education.graduationDate || "Expected graduation",
+          education.graduationDate || "Not specified",
         );
 
-      const aiResponse = await AIchatSession.sendMessage(PROMPT);
-      console.log("AI Response:", aiResponse);
-
-      if (!aiResponse) {
-        throw new Error("No response from AI service");
-      }
-
-      // Extract text from response object
+      const aiResponse = await sendMessageToAI(PROMPT);
       let responseText = aiResponse;
 
       if (

@@ -32,13 +32,8 @@ export default [
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
-        js.configs.recommended,
-        {
-          rules: {
-            "no-unused-vars": "warn",
-          },
-        },
       ],
+      "no-unused-vars": "warn",
     },
   },
 ];

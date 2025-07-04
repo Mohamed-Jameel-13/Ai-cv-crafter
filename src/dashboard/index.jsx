@@ -10,7 +10,6 @@ import {
 } from "firebase/firestore";
 import { app } from "../utils/firebase_config";
 import Logger from "@/utils/logger";
-import Header from "@/components/custom/Header";
 import Loader from "@/components/ui/loader";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -151,7 +150,6 @@ const Dashboard = () => {
 
   return (
     <div>
-      <Header />
       <div className="p-4 sm:p-6 md:p-10 md:px-20 lg:px-32">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>

@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, Search, Star, CheckCircle, Eye, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import Header from "@/components/custom/Header";
 import {
   TEMPLATES,
   TEMPLATE_CATEGORIES,
@@ -281,7 +280,6 @@ const TemplateGallery = () => {
           transform: rotateY(180deg);
         }
       `}</style>
-      <Header />
 
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header Section */}

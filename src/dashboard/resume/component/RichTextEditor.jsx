@@ -19,7 +19,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { AIButton } from "@/components/ui/ai-button";
-import { AIchatSession } from "../../../../service/AiModel";
+import { sendMessageToAI } from "../../../../service/AiModel";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import Logger from "@/utils/logger";
 
@@ -139,7 +139,7 @@ function RichTextEditor({
     );
 
     try {
-      const result = await AIchatSession.sendMessage(prompt);
+      const result = await sendMessageToAI(prompt);
       let parsedResult;
 
       try {

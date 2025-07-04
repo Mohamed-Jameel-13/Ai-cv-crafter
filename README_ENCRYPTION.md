@@ -209,3 +209,23 @@ If you see decryption errors:
 5. **Easy Setup**: Minimal configuration required
 
 Your users' resume data is now protected with industry-standard encryption! 🔐
+
+# Encryption
+
+This document explains how the encryption is implemented in this application.
+
+## Key Generation
+
+The encryption key is generated using the user's email and UID. The `generateUserKey` function in `src/utils/encryption.js` is responsible for this. It uses the `PBKDF2` algorithm to derive a secure key from the user's credentials.
+
+## Encryption and Decryption
+
+The `encryptData` and `decryptData` functions in `src/utils/encryption.js` are used to encrypt and decrypt the data. They use the `AES` algorithm for encryption.
+
+## Encrypted Fields
+
+The `SENSITIVE_FIELDS` constant in `src/utils/constants.js` defines which fields of the resume data are encrypted. Any field added to this array will be automatically encrypted when the data is saved to Firestore.
+
+## Firebase Service
+
+The `EncryptedFirebaseService` in `src/utils/firebase_encrypted.js` is a wrapper around the Firebase SDK that handles the encryption and decryption of data when communicating with Firestore. It uses the `SENSITIVE_FIELDS` constant to determine which fields to encrypt.

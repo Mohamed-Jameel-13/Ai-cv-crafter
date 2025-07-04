@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "setup": "node scripts/setup-env.js",
+    "setup:env": "node scripts/setup-env.js",
     "test:azure": "node scripts/test-azure-openai.js",
     "test:firebase": "node scripts/test-firebase-connection.js",
     "firebase:build": "npm run build && firebase deploy --only hosting",

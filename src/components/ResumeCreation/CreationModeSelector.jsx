@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { FileText, Sparkles, ArrowRight, Home, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Header from "@/components/custom/Header";
 import { useState, useContext } from "react";
 import { UserContext } from "@/context/UserContext";
 import { Input } from "@/components/ui/input";
@@ -95,8 +94,6 @@ const CreationModeSelector = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Header />
-
       <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
         {/* Header Section */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">

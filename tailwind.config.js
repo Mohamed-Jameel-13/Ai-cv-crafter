@@ -3,6 +3,7 @@ const require = createRequire(import.meta.url);
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     screens: {
@@ -10,9 +11,6 @@ export default {
       ...require("tailwindcss/defaultTheme").screens,
     },
     extend: {
-      screens: {
-        xs: "475px",
-      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

@@ -1,4 +1,5 @@
 import CryptoJS from "crypto-js";
+import { SENSITIVE_FIELDS } from "./constants.js";
 
 class EncryptionService {
   constructor() {
@@ -74,21 +75,10 @@ class EncryptionService {
 
   // Encrypt only sensitive fields
   encryptResumeData(resumeData, key) {
-    const sensitiveFields = [
-      "personalDetail",
-      "summary",
-      "experience",
-      "skills",
-      "projects",
-      "education",
-      "pdfBase64",
-      "latexCode",
-    ];
-
     const encryptedResume = { ...resumeData };
 
     // Encrypt sensitive fields
-    sensitiveFields.forEach((field) => {
+    SENSITIVE_FIELDS.forEach((field) => {
       if (resumeData[field]) {
         encryptedResume[field] = this.encryptData(resumeData[field], key);
       }
@@ -111,19 +101,8 @@ class EncryptionService {
 
     const decryptedResume = { ...encryptedResumeData };
 
-    const sensitiveFields = [
-      "personalDetail",
-      "summary",
-      "experience",
-      "skills",
-      "projects",
-      "education",
-      "pdfBase64",
-      "latexCode",
-    ];
-
     // Decrypt sensitive fields
-    sensitiveFields.forEach((field) => {
+    SENSITIVE_FIELDS.forEach((field) => {
       if (encryptedResumeData[field] && encryptedResumeData[field].encrypted) {
         decryptedResume[field] = this.decryptData(
           encryptedResumeData[field],

@@ -13,7 +13,7 @@ import { ResumeContext } from "@/context/ResumeContext";
 import { toast } from "sonner";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { AIButton } from "@/components/ui/ai-button";
-import { AIchatSession } from "../../../../../service/AiModel";
+import { sendMessageToAI } from "../../../../../service/AiModel";
 import { Brain, ExternalLink } from "lucide-react";
 
 const formField = {
@@ -258,15 +258,12 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
       const certificationPrompt = prompt
         .replace("{name}", certification.name)
         .replace("{issuer}", certification.issuer)
-        .replace("{date}", certification.date || "Not specified")
-        .replace(
-          "{expirationDate}",
-          certification.expirationDate || "No expiration",
-        )
-        .replace("{link}", certification.link || "Not specified");
+        .replace("{date}", certification.date || "N/A")
+        .replace("{expirationDate}", certification.expirationDate || "N/A")
+        .replace("{link}", certification.link || "N/A");
 
-      const result = await AIchatSession.sendMessage(certificationPrompt);
-      const responseText = result.response.text();
+      const aiResponse = await sendMessageToAI(certificationPrompt);
+      let responseText = aiResponse;
 
       const jsonMatch = responseText.match(/\[[\s\S]*\]/);
       if (jsonMatch) {

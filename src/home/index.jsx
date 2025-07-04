@@ -1,4 +1,3 @@
-import Header from "@/components/custom/Header";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -101,8 +100,6 @@ const Home = () => {
         {/* Noise texture overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
       </div>
-
-      <Header />
 
       {/* Hero Section */}
       <motion.section

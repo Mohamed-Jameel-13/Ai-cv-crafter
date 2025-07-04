@@ -43,8 +43,8 @@ const ResumePreview = () => {
           <ExperiencePreview resumeInfo={resumeInfo} />
           <SkillsPreview resumeInfo={resumeInfo} />
           <ProjectsPreview resumeInfo={resumeInfo} />
-          <CertificationPreview resumeInfo={resumeInfo} />
           <EducationalPreview resumeInfo={resumeInfo} />
+          <CertificationPreview resumeInfo={resumeInfo} />
         </div>
       )}
     </div>
