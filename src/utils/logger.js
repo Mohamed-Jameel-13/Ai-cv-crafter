@@ -1,5 +1,6 @@
 // Development-only logging utility
-const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+const isDevelopment =
+  import.meta.env.MODE === "development" || import.meta.env.DEV;
 
 class Logger {
   static log(...args) {
@@ -33,4 +34,4 @@ class Logger {
   }
 }
 
-export default Logger; 
+export default Logger;

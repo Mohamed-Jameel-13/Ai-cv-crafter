@@ -1,12 +1,9 @@
-import React from 'react';
+import React from "react";
 
 const AnimatedCreateButton = ({ children, className = "", ...props }) => {
   return (
     <div className={`relative ${className}`}>
-      <button
-        className="animated-create-button w-full"
-        {...props}
-      >
+      <button className="animated-create-button w-full" {...props}>
         {children}
 
         {/* Icon 1 - Positioned at top right */}
@@ -15,11 +12,11 @@ const AnimatedCreateButton = ({ children, className = "", ...props }) => {
             xmlnsXlink="http://www.w3.org/1999/xlink"
             viewBox="0 0 26.3 65.33"
             style={{
-              shapeRendering: 'geometricPrecision',
-              textRendering: 'geometricPrecision',
-              imageRendering: 'optimizeQuality',
-              fillRule: 'evenodd',
-              clipRule: 'evenodd'
+              shapeRendering: "geometricPrecision",
+              textRendering: "geometricPrecision",
+              imageRendering: "optimizeQuality",
+              fillRule: "evenodd",
+              clipRule: "evenodd",
             }}
             version="1.1"
             xmlSpace="preserve"
@@ -40,11 +37,11 @@ const AnimatedCreateButton = ({ children, className = "", ...props }) => {
             xmlnsXlink="http://www.w3.org/1999/xlink"
             viewBox="0 0 11.67 37.63"
             style={{
-              shapeRendering: 'geometricPrecision',
-              textRendering: 'geometricPrecision',
-              imageRendering: 'optimizeQuality',
-              fillRule: 'evenodd',
-              clipRule: 'evenodd'
+              shapeRendering: "geometricPrecision",
+              textRendering: "geometricPrecision",
+              imageRendering: "optimizeQuality",
+              fillRule: "evenodd",
+              clipRule: "evenodd",
             }}
             version="1.1"
             xmlSpace="preserve"
@@ -65,11 +62,11 @@ const AnimatedCreateButton = ({ children, className = "", ...props }) => {
             xmlnsXlink="http://www.w3.org/1999/xlink"
             viewBox="0 0 25.29 76.92"
             style={{
-              shapeRendering: 'geometricPrecision',
-              textRendering: 'geometricPrecision',
-              imageRendering: 'optimizeQuality',
-              fillRule: 'evenodd',
-              clipRule: 'evenodd'
+              shapeRendering: "geometricPrecision",
+              textRendering: "geometricPrecision",
+              imageRendering: "optimizeQuality",
+              fillRule: "evenodd",
+              clipRule: "evenodd",
             }}
             version="1.1"
             xmlSpace="preserve"
@@ -84,10 +81,8 @@ const AnimatedCreateButton = ({ children, className = "", ...props }) => {
           </svg>
         </div>
       </button>
-
-
     </div>
   );
 };
 
-export default AnimatedCreateButton; 
+export default AnimatedCreateButton;

@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
 const ResumeSkeleton = () => {
   return (
     <div className="animate-pulse">
       {/* Placeholder for the top image section */}
       <div className="h-[280px] rounded-t-lg bg-gray-300 dark:bg-gray-700"></div>
-      
+
       {/* Placeholder for the bottom title/menu section */}
       <div className="border p-3 flex justify-between rounded-b-lg shadow-lg bg-gray-400 dark:bg-gray-600 h-[50px]">
         {/* Placeholder for title */}
@@ -17,4 +17,4 @@ const ResumeSkeleton = () => {
   );
 };
 
-export default ResumeSkeleton; 
+export default ResumeSkeleton;

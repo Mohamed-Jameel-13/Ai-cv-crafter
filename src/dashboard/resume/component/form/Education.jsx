@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useContext, useEffect, useState, useCallback, useRef, memo } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  memo,
+} from "react";
 import { ResumeContext } from "@/context/ResumeContext";
 import { toast } from "sonner";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
@@ -48,8 +55,8 @@ Example format:
 
 const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
-  const [educationList, setEducationList] = useState(() => 
-    resumeInfo?.education?.length > 0 ? resumeInfo.education : [formField]
+  const [educationList, setEducationList] = useState(() =>
+    resumeInfo?.education?.length > 0 ? resumeInfo.education : [formField],
   );
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -62,31 +69,39 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   // Update context whenever educationList changes
   useEffect(() => {
-    setResumeInfo(prev => ({
+    setResumeInfo((prev) => ({
       ...prev,
-      education: educationList
+      education: educationList,
     }));
   }, [educationList, setResumeInfo]);
 
   // Auto-save function
-  const autoSave = useCallback(async (educationData) => {
-    // Skip auto-save if in template mode or no resumeId
-    if (isTemplateMode || !resumeId) {
-      enableNext(true);
-      return;
-    }
-    
-    setIsAutoSaving(true);
-    try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'education', educationData);
-      enableNext(true);
-    } catch (error) {
-      console.error("Error auto-saving encrypted education:", error);
-      toast.error("Auto-save failed. Please check your connection.");
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [email, resumeId, enableNext, isTemplateMode]);
+  const autoSave = useCallback(
+    async (educationData) => {
+      // Skip auto-save if in template mode or no resumeId
+      if (isTemplateMode || !resumeId) {
+        enableNext(true);
+        return;
+      }
+
+      setIsAutoSaving(true);
+      try {
+        await EncryptedFirebaseService.updateResumeField(
+          email,
+          resumeId,
+          "education",
+          educationData,
+        );
+        enableNext(true);
+      } catch (error) {
+        console.error("Error auto-saving encrypted education:", error);
+        toast.error("Auto-save failed. Please check your connection.");
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [email, resumeId, enableNext, isTemplateMode],
+  );
 
   // Debounced auto-save
   useEffect(() => {
@@ -101,7 +116,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const handleChange = useCallback((index, event) => {
     const { name, value } = event.target;
-    setEducationList(prev => {
+    setEducationList((prev) => {
       const newEntries = [...prev];
       newEntries[index][name] = value;
       return newEntries;
@@ -109,17 +124,17 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
   }, []);
 
   const addNewEducation = useCallback(() => {
-    setEducationList(prev => [...prev, { ...formField }]);
+    setEducationList((prev) => [...prev, { ...formField }]);
   }, []);
 
   const removeEducation = useCallback(() => {
     if (educationList.length > 1) {
-      setEducationList(prev => prev.slice(0, -1));
+      setEducationList((prev) => prev.slice(0, -1));
     }
   }, [educationList.length]);
 
   const handleTextareaChange = useCallback((index, value) => {
-    setEducationList(prev => {
+    setEducationList((prev) => {
       const newEntries = [...prev];
       newEntries[index].description = value;
       return newEntries;
@@ -133,31 +148,31 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   useEffect(() => {
     // Update cooldown timers every minute
-    const activeEducation = Object.keys(cooldownTimeRemaining).filter(index => 
-      !canRegenerate[index] && cooldownTimeRemaining[index] > 0
+    const activeEducation = Object.keys(cooldownTimeRemaining).filter(
+      (index) => !canRegenerate[index] && cooldownTimeRemaining[index] > 0,
     );
 
     if (activeEducation.length > 0) {
       intervalRef.current = setInterval(() => {
-        setCooldownTimeRemaining(prev => {
+        setCooldownTimeRemaining((prev) => {
           const updated = { ...prev };
           let hasChanges = false;
-          
-          activeEducation.forEach(index => {
-            const newTime = prev[index] - (1/60); // Subtract 1 minute in hours
+
+          activeEducation.forEach((index) => {
+            const newTime = prev[index] - 1 / 60; // Subtract 1 minute in hours
             if (newTime <= 0) {
-              setCanRegenerate(prevCan => ({ ...prevCan, [index]: true }));
+              setCanRegenerate((prevCan) => ({ ...prevCan, [index]: true }));
               updated[index] = 0;
               hasChanges = true;
             } else {
               updated[index] = newTime;
             }
           });
-          
-          if (hasChanges && Object.values(updated).every(time => time <= 0)) {
+
+          if (hasChanges && Object.values(updated).every((time) => time <= 0)) {
             clearInterval(intervalRef.current);
           }
-          
+
           return updated;
         });
       }, 60000); // Update every minute
@@ -172,38 +187,50 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const checkAiGenerationCooldown = async () => {
     if (!resumeId || !email || isTemplateMode) return;
-    
+
     try {
-      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const resumeData = await EncryptedFirebaseService.getResumeData(
+        email,
+        resumeId,
+      );
       const newCanRegenerate = {};
       const newCooldownTime = {};
       const newHasGenerated = {};
-      
+
       educationList.forEach((_, index) => {
-        const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'education');
-        const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'education');
-        
+        const canRegen = EncryptedFirebaseService.canRegenerateAI(
+          resumeData.aiGenerationTimestamps,
+          "education",
+        );
+        const timeRemaining =
+          EncryptedFirebaseService.getAiCooldownTimeRemaining(
+            resumeData.aiGenerationTimestamps,
+            "education",
+          );
+
         newCanRegenerate[index] = canRegen;
         newCooldownTime[index] = timeRemaining;
-        
+
         if (resumeData.aiGenerationTimestamps?.education) {
           newHasGenerated[index] = true;
         }
       });
-      
+
       setCanRegenerate(newCanRegenerate);
       setCooldownTimeRemaining(newCooldownTime);
       setHasGenerated(newHasGenerated);
     } catch (error) {
-      console.error('Error checking AI cooldown:', error);
+      console.error("Error checking AI cooldown:", error);
     }
   };
 
   const generateContent = async (educationIndex) => {
     const education = educationList[educationIndex];
-    
+
     if (!canRegenerate[educationIndex]) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[educationIndex] || 0)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining[educationIndex] || 0)} hours`,
+      );
       return;
     }
 
@@ -214,30 +241,37 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
     setAiLoading(true);
     setCurrentEducationIndex(educationIndex);
-    
+
     try {
       const PROMPT = prompt
         .replace("{school}", education.school)
         .replace("{degree}", education.degree)
         .replace("{fieldOfStudy}", education.fieldOfStudy)
-        .replace("{graduationDate}", education.graduationDate || "Expected graduation");
+        .replace(
+          "{graduationDate}",
+          education.graduationDate || "Expected graduation",
+        );
 
       const aiResponse = await AIchatSession.sendMessage(PROMPT);
       console.log("AI Response:", aiResponse);
-      
+
       if (!aiResponse) {
         throw new Error("No response from AI service");
       }
-      
+
       // Extract text from response object
       let responseText = aiResponse;
-      
-      if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
+
+      if (
+        typeof aiResponse === "object" &&
+        aiResponse.response &&
+        aiResponse.response.text
+      ) {
         responseText = aiResponse.response.text();
-      } else if (typeof aiResponse === 'object' && aiResponse.response) {
+      } else if (typeof aiResponse === "object" && aiResponse.response) {
         responseText = aiResponse.response;
       }
-      
+
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseText);
@@ -246,26 +280,29 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
         } else {
-          throw new Error('Failed to parse AI response as JSON');
+          throw new Error("Failed to parse AI response as JSON");
         }
       }
 
       if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
-        throw new Error('Invalid response format from AI');
+        throw new Error("Invalid response format from AI");
       }
 
       setAiGeneratedContent(parsedResponse);
-      setHasGenerated(prev => ({ ...prev, [educationIndex]: true }));
-      setCanRegenerate(prev => ({ ...prev, [educationIndex]: false }));
-      
+      setHasGenerated((prev) => ({ ...prev, [educationIndex]: true }));
+      setCanRegenerate((prev) => ({ ...prev, [educationIndex]: false }));
+
       // Update AI generation timestamp
       if (resumeId && email) {
-        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'education');
-        setCooldownTimeRemaining(prev => ({ ...prev, [educationIndex]: 24 })); // Set 24-hour cooldown
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(
+          email,
+          resumeId,
+          "education",
+        );
+        setCooldownTimeRemaining((prev) => ({ ...prev, [educationIndex]: 24 })); // Set 24-hour cooldown
       }
-      
+
       toast.success("AI suggestions generated successfully!");
-      
     } catch (error) {
       console.error("Error generating education content:", error);
       toast.error("Failed to generate AI suggestions. Please try again.");
@@ -274,30 +311,33 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
     }
   };
 
-  const applyAiContent = useCallback((selectedSuggestion) => {
-    if (selectedSuggestion && currentEducationIndex !== null) {
-      setEducationList(prev => {
-        const newEducation = [...prev];
-        newEducation[currentEducationIndex] = {
-          ...newEducation[currentEducationIndex],
-          description: selectedSuggestion.description
-        };
-        return newEducation;
-      });
-      toast.success("AI content applied successfully");
-    }
-  }, [currentEducationIndex]);
+  const applyAiContent = useCallback(
+    (selectedSuggestion) => {
+      if (selectedSuggestion && currentEducationIndex !== null) {
+        setEducationList((prev) => {
+          const newEducation = [...prev];
+          newEducation[currentEducationIndex] = {
+            ...newEducation[currentEducationIndex],
+            description: selectedSuggestion.description,
+          };
+          return newEducation;
+        });
+        toast.success("AI content applied successfully");
+      }
+    },
+    [currentEducationIndex],
+  );
 
   const applyAllAiContent = useCallback(() => {
     if (aiGeneratedContent && currentEducationIndex !== null) {
       // Take the first (most comprehensive) suggestion for better UX
       const bestSuggestion = aiGeneratedContent[0];
-      
-      setEducationList(prev => {
+
+      setEducationList((prev) => {
         const newEducation = [...prev];
         newEducation[currentEducationIndex] = {
           ...newEducation[currentEducationIndex],
-          description: bestSuggestion.description
+          description: bestSuggestion.description,
         };
         return newEducation;
       });
@@ -307,11 +347,13 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const handleRegenerateContent = (educationIndex) => {
     if (!canRegenerate[educationIndex]) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[educationIndex] || 0)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining[educationIndex] || 0)} hours`,
+      );
       return;
     }
-    
-    setHasGenerated(prev => ({ ...prev, [educationIndex]: false }));
+
+    setHasGenerated((prev) => ({ ...prev, [educationIndex]: false }));
     setAiGeneratedContent(null);
     generateContent(educationIndex);
   };
@@ -329,7 +371,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-bold text-lg sm:text-xl">Education</h2>
-            <p className="text-sm sm:text-base text-gray-600">Add your educational background</p>
+            <p className="text-sm sm:text-base text-gray-600">
+              Add your educational background
+            </p>
           </div>
           {isAutoSaving && (
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -343,7 +387,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
             <div key={index}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 border p-3 sm:p-4 my-5 rounded-lg">
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">School/University</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    School/University
+                  </label>
                   <Input
                     name="school"
                     value={item.school}
@@ -353,7 +399,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">Degree</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    Degree
+                  </label>
                   <Input
                     name="degree"
                     value={item.degree}
@@ -363,7 +411,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">City</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    City
+                  </label>
                   <Input
                     name="city"
                     value={item.city}
@@ -373,7 +423,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">State</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    State
+                  </label>
                   <Input
                     name="state"
                     value={item.state}
@@ -383,7 +435,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">Field of Study</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    Field of Study
+                  </label>
                   <Input
                     name="fieldOfStudy"
                     value={item.fieldOfStudy}
@@ -393,7 +447,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">Graduation Date</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    Graduation Date
+                  </label>
                   <Input
                     type="date"
                     name="graduationDate"
@@ -404,26 +460,45 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 </div>
                 <div className="col-span-1 lg:col-span-2">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
-                    <label className="text-xs sm:text-sm font-medium">Description (Optional)</label>
+                    <label className="text-xs sm:text-sm font-medium">
+                      Description (Optional)
+                    </label>
                     <AIButton
-                      onClick={() => hasGenerated[index] ? handleRegenerateContent(index) : generateContent(index)}
+                      onClick={() =>
+                        hasGenerated[index]
+                          ? handleRegenerateContent(index)
+                          : generateContent(index)
+                      }
                       loading={aiLoading && currentEducationIndex === index}
                       loadingText="Creating content..."
-                      disabled={(aiLoading && currentEducationIndex === index) || (!canRegenerate[index] && hasGenerated[index])}
-                      className={`w-full sm:w-auto text-xs sm:text-sm ${!canRegenerate[index] && hasGenerated[index] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={
+                        (aiLoading && currentEducationIndex === index) ||
+                        (!canRegenerate[index] && hasGenerated[index])
+                      }
+                      className={`w-full sm:w-auto text-xs sm:text-sm ${!canRegenerate[index] && hasGenerated[index] ? "opacity-50 cursor-not-allowed" : ""}`}
                       style={{
-                        opacity: !canRegenerate[index] && hasGenerated[index] ? '0.5' : '1',
-                        cursor: !canRegenerate[index] && hasGenerated[index] ? 'not-allowed' : 'pointer'
+                        opacity:
+                          !canRegenerate[index] && hasGenerated[index]
+                            ? "0.5"
+                            : "1",
+                        cursor:
+                          !canRegenerate[index] && hasGenerated[index]
+                            ? "not-allowed"
+                            : "pointer",
                       }}
                     >
-                      {hasGenerated[index] && !canRegenerate[index] ? 
-                        `Available in ${formatCooldownTime(cooldownTimeRemaining[index] || 0)}` : 
-                        hasGenerated[index] ? "Regenerate Content" : "Generate Content"}
+                      {hasGenerated[index] && !canRegenerate[index]
+                        ? `Available in ${formatCooldownTime(cooldownTimeRemaining[index] || 0)}`
+                        : hasGenerated[index]
+                          ? "Regenerate Content"
+                          : "Generate Content"}
                     </AIButton>
                   </div>
                   <Textarea
-                    value={item.description || ''}
-                    onChange={(e) => handleTextareaChange(index, e.target.value)}
+                    value={item.description || ""}
+                    onChange={(e) =>
+                      handleTextareaChange(index, e.target.value)
+                    }
                     className="w-full min-h-[100px]"
                     placeholder="Describe your educational experience, relevant coursework, achievements, or projects..."
                   />
@@ -460,7 +535,9 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center">
                   <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <h3 className="font-bold text-base sm:text-lg text-gray-900">AI Education Suggestions</h3>
+                <h3 className="font-bold text-base sm:text-lg text-gray-900">
+                  AI Education Suggestions
+                </h3>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button
@@ -492,11 +569,15 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                       {suggestion.experience_level}
                     </span>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="text-xs text-violet-600 font-medium">Click to apply</div>
+                      <div className="text-xs text-violet-600 font-medium">
+                        Click to apply
+                      </div>
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700 leading-relaxed break-words">{suggestion.description}</p>
+                    <p className="text-sm text-gray-700 leading-relaxed break-words">
+                      {suggestion.description}
+                    </p>
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex items-center justify-center text-xs text-violet-600 font-medium">
@@ -513,4 +594,4 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
   );
 };
 
-export default Education; 
+export default Education;

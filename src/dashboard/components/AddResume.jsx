@@ -44,14 +44,17 @@ const AddResume = () => {
         userId: user.uid,
         userEmail: user.email,
         personalDetail: {},
-        summary: '',
+        summary: "",
         experience: [],
         skills: [],
         projects: [],
-        education: []
+        education: [],
       };
 
-      const result = await EncryptedFirebaseService.createNewResume(user.email, resumeData);
+      const result = await EncryptedFirebaseService.createNewResume(
+        user.email,
+        resumeData,
+      );
 
       console.log("Encrypted resume created successfully!");
       setOpenDialog(false);
@@ -59,8 +62,8 @@ const AddResume = () => {
       navigate(`/dashboard/${user.email}/${result.resumeId}/edit`);
     } catch (error) {
       console.error("Error creating encrypted resume:", error);
-      
-      if (error.message === 'RESUME_LIMIT_REACHED') {
+
+      if (error.message === "RESUME_LIMIT_REACHED") {
         setOpenDialog(false);
         setShowLimitDialog(true);
       } else {
@@ -76,9 +79,7 @@ const AddResume = () => {
     <div>
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogTrigger asChild>
-          <div
-            className="flex rounded-xl border-2 border-dashed bg-card border-foreground/20 hover:border-[rgb(63,39,34)] p-4 sm:p-6 md:p-8 shadow-xl transition hover:shadow-lg hover:scale-105 cursor-pointer h-[200px] sm:h-[240px] md:h-[260px] lg:h-[280px] items-center justify-center"
-          >
+          <div className="flex rounded-xl border-2 border-dashed bg-card border-foreground/20 hover:border-[rgb(63,39,34)] p-4 sm:p-6 md:p-8 shadow-xl transition hover:shadow-lg hover:scale-105 cursor-pointer h-[200px] sm:h-[240px] md:h-[260px] lg:h-[280px] items-center justify-center">
             <PlusSquare className="h-12 w-12 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-20 lg:w-20 text-muted-foreground" />
           </div>
         </DialogTrigger>
@@ -126,13 +127,22 @@ const AddResume = () => {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
               <div className="space-y-3">
-                <p>You have reached the maximum limit of <span className="font-semibold text-foreground">3 resumes</span>.</p>
-                <p>To create a new resume, please delete an existing one from your dashboard first.</p>
+                <p>
+                  You have reached the maximum limit of{" "}
+                  <span className="font-semibold text-foreground">
+                    3 resumes
+                  </span>
+                  .
+                </p>
+                <p>
+                  To create a new resume, please delete an existing one from
+                  your dashboard first.
+                </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => setShowLimitDialog(false)}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >

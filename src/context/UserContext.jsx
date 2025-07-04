@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 export const UserContext = createContext(null);
 
@@ -6,16 +6,16 @@ export const UserContext = createContext(null);
 export function UserProvider({ children }) {
   const [user, setUser] = useState(() => {
     // Initialize user from localStorage
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
   // Effect to update localStorage when user changes
   useEffect(() => {
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(user));
     } else {
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
     }
   }, [user]);
 
@@ -34,24 +34,22 @@ export function UserProvider({ children }) {
     user,
     setUser,
     login,
-    logout
+    logout,
   };
 
   return (
-    <UserContext.Provider value={contextValue}>
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
   );
 }
 
 // Custom hook to use the user context
 export function useUser() {
   const context = useContext(UserContext);
-  
+
   if (context === null) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
-  
+
   return context;
 }
 
@@ -59,5 +57,5 @@ export function useUser() {
 export default {
   UserContext,
   UserProvider,
-  useUser
+  useUser,
 };

@@ -46,7 +46,8 @@
     color-adjust: exact;
   }
 
-  html, body {
+  html,
+  body {
     height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -58,7 +59,9 @@
   }
 
   /* Global color preservation - Critical for Brave browser */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -68,7 +71,12 @@
   }
 
   /* Hide non-printable elements */
-  .no-print, #no-print, header, nav, footer, aside {
+  .no-print,
+  #no-print,
+  header,
+  nav,
+  footer,
+  aside {
     display: none !important;
     visibility: hidden !important;
   }
@@ -78,7 +86,8 @@
     visibility: hidden !important;
   }
 
-  #print-area, #print-area * {
+  #print-area,
+  #print-area * {
     visibility: visible !important;
   }
 
@@ -97,7 +106,7 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: "Times New Roman", serif !important;
     font-size: 12pt !important;
     line-height: 1.4 !important;
   }
@@ -210,9 +219,9 @@
   .template-card {
     @apply relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-105;
   }
-  
+
   .template-card:hover {
-    border-color: rgb(63,39,34);
+    border-color: rgb(63, 39, 34);
     @apply shadow-xl;
   }
 
@@ -266,11 +275,11 @@
   .template-card {
     @apply min-h-[320px];
   }
-  
+
   .template-gallery-container {
     @apply px-4 py-6;
   }
-  
+
   .template-form-container {
     @apply px-4 py-6;
   }
@@ -284,11 +293,11 @@
   .template-card {
     @apply min-h-[360px];
   }
-  
+
   .template-gallery-container {
     @apply px-6 py-8;
   }
-  
+
   .template-form-container {
     @apply px-6 py-8;
   }
@@ -302,11 +311,11 @@
   .template-card {
     @apply min-h-[400px];
   }
-  
+
   .template-gallery-container {
     @apply px-8 py-10;
   }
-  
+
   .template-form-container {
     @apply px-8 py-10;
   }
@@ -320,11 +329,11 @@
   .template-card {
     @apply min-h-[420px];
   }
-  
+
   .template-gallery-container {
     @apply px-12 py-12;
   }
-  
+
   .template-form-container {
     @apply px-12 py-12;
   }
@@ -341,7 +350,7 @@
   }
 
   .template-card:hover {
-    border-color: rgb(63,39,34) !important;
+    border-color: rgb(63, 39, 34) !important;
   }
 }
 
@@ -379,7 +388,8 @@
 }
 
 @keyframes templateLoadingPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

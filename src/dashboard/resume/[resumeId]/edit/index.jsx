@@ -16,21 +16,20 @@ const EditResume = () => {
   const GetResumeInfo = async () => {
     try {
       console.log("Fetching encrypted resume:", params);
-      
+
       const decryptedData = await EncryptedFirebaseService.getResumeData(
-        params.email, 
-        params.resumeId
+        params.email,
+        params.resumeId,
       );
-      
+
       console.log("✅ Resume decrypted successfully");
       setResumeInfo(decryptedData);
-      
     } catch (error) {
       console.error("Error fetching encrypted resume:", error);
       setResumeInfo(null);
     }
   };
-  
+
   return (
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">

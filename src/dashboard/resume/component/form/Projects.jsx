@@ -1,6 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useContext, useEffect, useState, useCallback, useRef, memo } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  memo,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, Brain, ExternalLink, Github } from "lucide-react";
 import { ResumeContext } from "@/context/ResumeContext";
@@ -17,7 +24,7 @@ const initialProject = {
   liveDemo: "",
   githubRepo: "",
   startDate: "",
-  endDate: ""
+  endDate: "",
 };
 
 const prompt = `You are a professional resume expert specializing in technical project descriptions.
@@ -59,12 +66,12 @@ Example format:
 
 const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
-  
+
   // Initialize with context data first, then fallback to default
   const [projectsList, setProjectsList] = useState(() =>
-    resumeInfo?.projects?.length > 0 ? resumeInfo.projects : [initialProject]
+    resumeInfo?.projects?.length > 0 ? resumeInfo.projects : [initialProject],
   );
-  
+
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [currentProjectIndex, setCurrentProjectIndex] = useState(null);
@@ -73,7 +80,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const [canRegenerate, setCanRegenerate] = useState({});
   const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState({});
   const intervalRef = useRef(null);
-  
+
   // Track previous data to prevent unnecessary context updates
   const previousDataRef = useRef(null);
   const hasInitialized = useRef(false);
@@ -94,18 +101,24 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   // Optimized context update - only when data actually changes
   useEffect(() => {
     if (!hasInitialized.current || isContextUpdating.current) return;
-    
+
     const currentDataString = JSON.stringify(projectsList);
     if (currentDataString !== previousDataRef.current) {
       // Only update if projects data has meaningful content
-      if (projectsList && projectsList.length > 0 && projectsList.some(project => project.name?.trim() || project.description?.trim())) {
+      if (
+        projectsList &&
+        projectsList.length > 0 &&
+        projectsList.some(
+          (project) => project.name?.trim() || project.description?.trim(),
+        )
+      ) {
         isContextUpdating.current = true;
-        setResumeInfo(prev => ({
+        setResumeInfo((prev) => ({
           ...prev,
-          projects: projectsList
+          projects: projectsList,
         }));
         previousDataRef.current = currentDataString;
-        
+
         setTimeout(() => {
           isContextUpdating.current = false;
         }, 100);
@@ -114,31 +127,42 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   }, [projectsList, setResumeInfo]);
 
   // Auto-save function
-  const autoSave = useCallback(async (projectsData) => {
-    // Skip auto-save if in template mode or no resumeId
-    if (isTemplateMode || !resumeId) {
-      enableNext(true);
-      return;
-    }
-    
-    setIsAutoSaving(true);
-    try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'projects', projectsData);
-      enableNext(true);
-    } catch (error) {
-      console.error("Error auto-saving encrypted projects:", error);
-      toast.error("Auto-save failed. Please check your connection.");
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [email, resumeId, enableNext, isTemplateMode]);
+  const autoSave = useCallback(
+    async (projectsData) => {
+      // Skip auto-save if in template mode or no resumeId
+      if (isTemplateMode || !resumeId) {
+        enableNext(true);
+        return;
+      }
+
+      setIsAutoSaving(true);
+      try {
+        await EncryptedFirebaseService.updateResumeField(
+          email,
+          resumeId,
+          "projects",
+          projectsData,
+        );
+        enableNext(true);
+      } catch (error) {
+        console.error("Error auto-saving encrypted projects:", error);
+        toast.error("Auto-save failed. Please check your connection.");
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [email, resumeId, enableNext, isTemplateMode],
+  );
 
   // Debounced auto-save
   useEffect(() => {
     if (!hasInitialized.current) return;
-    
+
     const timeoutId = setTimeout(() => {
-      if (projectsList.length > 0 && projectsList.some(project => project.name?.trim())) {
+      if (
+        projectsList.length > 0 &&
+        projectsList.some((project) => project.name?.trim())
+      ) {
         autoSave(projectsList);
       }
     }, 1000);
@@ -167,31 +191,31 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   useEffect(() => {
     // Update cooldown timers every minute
-    const activeProjects = Object.keys(cooldownTimeRemaining).filter(index => 
-      !canRegenerate[index] && cooldownTimeRemaining[index] > 0
+    const activeProjects = Object.keys(cooldownTimeRemaining).filter(
+      (index) => !canRegenerate[index] && cooldownTimeRemaining[index] > 0,
     );
 
     if (activeProjects.length > 0) {
       intervalRef.current = setInterval(() => {
-        setCooldownTimeRemaining(prev => {
+        setCooldownTimeRemaining((prev) => {
           const updated = { ...prev };
           let hasChanges = false;
-          
-          activeProjects.forEach(index => {
-            const newTime = prev[index] - (1/60); // Subtract 1 minute in hours
+
+          activeProjects.forEach((index) => {
+            const newTime = prev[index] - 1 / 60; // Subtract 1 minute in hours
             if (newTime <= 0) {
-              setCanRegenerate(prevCan => ({ ...prevCan, [index]: true }));
+              setCanRegenerate((prevCan) => ({ ...prevCan, [index]: true }));
               updated[index] = 0;
               hasChanges = true;
             } else {
               updated[index] = newTime;
             }
           });
-          
-          if (hasChanges && Object.values(updated).every(time => time <= 0)) {
+
+          if (hasChanges && Object.values(updated).every((time) => time <= 0)) {
             clearInterval(intervalRef.current);
           }
-          
+
           return updated;
         });
       }, 60000); // Update every minute
@@ -206,35 +230,45 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const checkAiGenerationCooldown = async () => {
     if (!resumeId || !email || isTemplateMode) return;
-    
+
     try {
-      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
+      const resumeData = await EncryptedFirebaseService.getResumeData(
+        email,
+        resumeId,
+      );
       const newCanRegenerate = {};
       const newCooldownTime = {};
       const newHasGenerated = {};
-      
+
       projectsList.forEach((_, index) => {
-        const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'projects');
-        const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'projects');
-        
+        const canRegen = EncryptedFirebaseService.canRegenerateAI(
+          resumeData.aiGenerationTimestamps,
+          "projects",
+        );
+        const timeRemaining =
+          EncryptedFirebaseService.getAiCooldownTimeRemaining(
+            resumeData.aiGenerationTimestamps,
+            "projects",
+          );
+
         newCanRegenerate[index] = canRegen;
         newCooldownTime[index] = timeRemaining;
-        
+
         if (resumeData.aiGenerationTimestamps?.projects) {
           newHasGenerated[index] = true;
         }
       });
-      
+
       setCanRegenerate(newCanRegenerate);
       setCooldownTimeRemaining(newCooldownTime);
       setHasGenerated(newHasGenerated);
     } catch (error) {
-      console.error('Error checking AI cooldown:', error);
+      console.error("Error checking AI cooldown:", error);
     }
   };
 
   const handleChange = useCallback((projectIndex, field, value) => {
-    setProjectsList(prev => {
+    setProjectsList((prev) => {
       const newProjects = [...prev];
       newProjects[projectIndex][field] = value;
       return newProjects;
@@ -242,7 +276,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   }, []);
 
   const handleBulletChange = useCallback((projectIndex, bulletIndex, value) => {
-    setProjectsList(prev => {
+    setProjectsList((prev) => {
       const newProjects = [...prev];
       newProjects[projectIndex].bullets[bulletIndex] = value;
       return newProjects;
@@ -251,9 +285,11 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const generateContent = async (projectIndex) => {
     const project = projectsList[projectIndex];
-    
+
     if (!canRegenerate[projectIndex]) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[projectIndex] || 0)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining[projectIndex] || 0)} hours`,
+      );
       return;
     }
 
@@ -264,9 +300,10 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
     setAiLoading(true);
     setCurrentProjectIndex(projectIndex);
-    
+
     try {
-      const jobTitle = resumeInfo?.personalDetail?.jobTitle || "software developer";
+      const jobTitle =
+        resumeInfo?.personalDetail?.jobTitle || "software developer";
       const PROMPT = prompt
         .replaceAll("{jobTitle}", jobTitle)
         .replaceAll("{projectName}", project.name)
@@ -274,21 +311,25 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
       const aiResponse = await AIchatSession.sendMessage(PROMPT);
       console.log("AI Response:", aiResponse);
-      
+
       if (!aiResponse) {
         throw new Error("No response from AI service");
       }
-      
+
       // Extract text from response object
       let responseText = aiResponse;
-      
+
       // If aiResponse is an object with response text, extract it
-      if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
+      if (
+        typeof aiResponse === "object" &&
+        aiResponse.response &&
+        aiResponse.response.text
+      ) {
         responseText = aiResponse.response.text();
-      } else if (typeof aiResponse === 'object' && aiResponse.response) {
+      } else if (typeof aiResponse === "object" && aiResponse.response) {
         responseText = aiResponse.response;
       }
-      
+
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseText);
@@ -297,26 +338,29 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
         } else {
-          throw new Error('Failed to parse AI response as JSON');
+          throw new Error("Failed to parse AI response as JSON");
         }
       }
 
       if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
-        throw new Error('Invalid response format from AI');
+        throw new Error("Invalid response format from AI");
       }
 
       setAiGeneratedContent(parsedResponse);
-      setHasGenerated(prev => ({ ...prev, [projectIndex]: true }));
-      setCanRegenerate(prev => ({ ...prev, [projectIndex]: false }));
-      
+      setHasGenerated((prev) => ({ ...prev, [projectIndex]: true }));
+      setCanRegenerate((prev) => ({ ...prev, [projectIndex]: false }));
+
       // Update AI generation timestamp
       if (resumeId && email) {
-        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'projects');
-        setCooldownTimeRemaining(prev => ({ ...prev, [projectIndex]: 24 })); // Set 24-hour cooldown
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(
+          email,
+          resumeId,
+          "projects",
+        );
+        setCooldownTimeRemaining((prev) => ({ ...prev, [projectIndex]: 24 })); // Set 24-hour cooldown
       }
-      
+
       toast.success("AI suggestions generated successfully!");
-      
     } catch (error) {
       console.error("Error generating project content:", error);
       toast.error("Failed to generate AI suggestions. Please try again.");
@@ -325,32 +369,35 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
     }
   };
 
-  const applyAiContent = useCallback((selectedSuggestion) => {
-    if (selectedSuggestion && currentProjectIndex !== null) {
-      setProjectsList(prev => {
-        const newProjects = [...prev];
-        newProjects[currentProjectIndex] = {
-          ...newProjects[currentProjectIndex],
-          description: selectedSuggestion.description,
-          bullets: selectedSuggestion.highlights
-        };
-        return newProjects;
-      });
-      toast.success("AI content applied successfully");
-    }
-  }, [currentProjectIndex]);
+  const applyAiContent = useCallback(
+    (selectedSuggestion) => {
+      if (selectedSuggestion && currentProjectIndex !== null) {
+        setProjectsList((prev) => {
+          const newProjects = [...prev];
+          newProjects[currentProjectIndex] = {
+            ...newProjects[currentProjectIndex],
+            description: selectedSuggestion.description,
+            bullets: selectedSuggestion.highlights,
+          };
+          return newProjects;
+        });
+        toast.success("AI content applied successfully");
+      }
+    },
+    [currentProjectIndex],
+  );
 
   const applyAllAiContent = useCallback(() => {
     if (aiGeneratedContent && currentProjectIndex !== null) {
       // Take the first (usually most comprehensive) suggestion and apply it
       const bestSuggestion = aiGeneratedContent[0];
-      
-      setProjectsList(prev => {
+
+      setProjectsList((prev) => {
         const newProjects = [...prev];
         newProjects[currentProjectIndex] = {
           ...newProjects[currentProjectIndex],
           description: bestSuggestion.description,
-          bullets: bestSuggestion.highlights
+          bullets: bestSuggestion.highlights,
         };
         return newProjects;
       });
@@ -360,27 +407,29 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const handleRegenerateContent = (projectIndex) => {
     if (!canRegenerate[projectIndex]) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining[projectIndex] || 0)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining[projectIndex] || 0)} hours`,
+      );
       return;
     }
-    
-    setHasGenerated(prev => ({ ...prev, [projectIndex]: false }));
+
+    setHasGenerated((prev) => ({ ...prev, [projectIndex]: false }));
     setAiGeneratedContent(null);
     generateContent(projectIndex);
   };
 
   const addNewProject = useCallback(() => {
-    setProjectsList(prev => [...prev, { ...initialProject }]);
+    setProjectsList((prev) => [...prev, { ...initialProject }]);
   }, []);
 
   const removeProject = useCallback(() => {
     if (projectsList.length > 1) {
-      setProjectsList(prev => prev.slice(0, -1));
+      setProjectsList((prev) => prev.slice(0, -1));
     }
   }, [projectsList.length]);
 
   const addBulletPoint = useCallback((projectIndex) => {
-    setProjectsList(prev => {
+    setProjectsList((prev) => {
       const newProjects = [...prev];
       newProjects[projectIndex].bullets.push("");
       return newProjects;
@@ -388,7 +437,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
   }, []);
 
   const removeBulletPoint = useCallback((projectIndex) => {
-    setProjectsList(prev => {
+    setProjectsList((prev) => {
       const newProjects = [...prev];
       if (newProjects[projectIndex].bullets.length > 1) {
         newProjects[projectIndex].bullets.pop();
@@ -410,7 +459,9 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-bold text-lg sm:text-xl">Projects</h2>
-            <p className="text-sm sm:text-base text-gray-600">Add your technical projects</p>
+            <p className="text-sm sm:text-base text-gray-600">
+              Add your technical projects
+            </p>
           </div>
           {isAutoSaving && (
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -424,67 +475,107 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
           <div key={projectIndex} className="border rounded-lg p-3 sm:p-4 mt-3">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               <div className="w-full">
-                <label className="text-xs sm:text-sm font-medium mb-1 block">Project Name</label>
+                <label className="text-xs sm:text-sm font-medium mb-1 block">
+                  Project Name
+                </label>
                 <Input
                   value={project.name}
-                  onChange={(e) => handleChange(projectIndex, "name", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "name", e.target.value)
+                  }
                   className="w-full"
                   placeholder="Enter project name"
                 />
               </div>
-              
+
               <div className="w-full">
-                <label className="text-xs sm:text-sm font-medium mb-1 block">Technologies (comma separated)</label>
+                <label className="text-xs sm:text-sm font-medium mb-1 block">
+                  Technologies (comma separated)
+                </label>
                 <Input
                   value={project.technologies}
-                  onChange={(e) => handleChange(projectIndex, "technologies", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "technologies", e.target.value)
+                  }
                   className="w-full"
                   placeholder="React, Node.js, MongoDB"
                 />
               </div>
 
               <div className="w-full">
-                <label className="text-xs sm:text-sm font-medium mb-1 block">Start Date <span className="text-xs text-gray-500">(optional)</span></label>
+                <label className="text-xs sm:text-sm font-medium mb-1 block">
+                  Start Date{" "}
+                  <span className="text-xs text-gray-500">(optional)</span>
+                </label>
                 <Input
                   type="date"
                   value={project.startDate}
-                  onChange={(e) => handleChange(projectIndex, "startDate", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "startDate", e.target.value)
+                  }
                   className="w-full"
                 />
               </div>
 
               <div className="w-full">
-                <label className="text-xs sm:text-sm font-medium mb-1 block">End Date <span className="text-xs text-gray-500">(optional)</span></label>
+                <label className="text-xs sm:text-sm font-medium mb-1 block">
+                  End Date{" "}
+                  <span className="text-xs text-gray-500">(optional)</span>
+                </label>
                 <Input
                   type="date"
                   value={project.endDate}
-                  onChange={(e) => handleChange(projectIndex, "endDate", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "endDate", e.target.value)
+                  }
                   className="w-full"
                 />
               </div>
 
               <div className="col-span-1 lg:col-span-2">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
-                  <label className="text-xs sm:text-sm font-medium">Brief Description</label>
+                  <label className="text-xs sm:text-sm font-medium">
+                    Brief Description
+                  </label>
                   <AIButton
-                    onClick={() => hasGenerated[projectIndex] ? handleRegenerateContent(projectIndex) : generateContent(projectIndex)}
+                    onClick={() =>
+                      hasGenerated[projectIndex]
+                        ? handleRegenerateContent(projectIndex)
+                        : generateContent(projectIndex)
+                    }
                     loading={aiLoading && currentProjectIndex === projectIndex}
                     loadingText="Creating content..."
-                    disabled={(aiLoading && currentProjectIndex === projectIndex) || (!canRegenerate[projectIndex] && hasGenerated[projectIndex])}
-                    className={`w-full sm:w-auto text-xs sm:text-sm ${!canRegenerate[projectIndex] && hasGenerated[projectIndex] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={
+                      (aiLoading && currentProjectIndex === projectIndex) ||
+                      (!canRegenerate[projectIndex] &&
+                        hasGenerated[projectIndex])
+                    }
+                    className={`w-full sm:w-auto text-xs sm:text-sm ${!canRegenerate[projectIndex] && hasGenerated[projectIndex] ? "opacity-50 cursor-not-allowed" : ""}`}
                     style={{
-                      opacity: !canRegenerate[projectIndex] && hasGenerated[projectIndex] ? '0.5' : '1',
-                      cursor: !canRegenerate[projectIndex] && hasGenerated[projectIndex] ? 'not-allowed' : 'pointer'
+                      opacity:
+                        !canRegenerate[projectIndex] &&
+                        hasGenerated[projectIndex]
+                          ? "0.5"
+                          : "1",
+                      cursor:
+                        !canRegenerate[projectIndex] &&
+                        hasGenerated[projectIndex]
+                          ? "not-allowed"
+                          : "pointer",
                     }}
                   >
-                    {hasGenerated[projectIndex] && !canRegenerate[projectIndex] ? 
-                      `Available in ${formatCooldownTime(cooldownTimeRemaining[projectIndex] || 0)}` : 
-                      hasGenerated[projectIndex] ? "Regenerate Content" : "Generate Content"}
+                    {hasGenerated[projectIndex] && !canRegenerate[projectIndex]
+                      ? `Available in ${formatCooldownTime(cooldownTimeRemaining[projectIndex] || 0)}`
+                      : hasGenerated[projectIndex]
+                        ? "Regenerate Content"
+                        : "Generate Content"}
                   </AIButton>
                 </div>
                 <Textarea
                   value={project.description}
-                  onChange={(e) => handleChange(projectIndex, "description", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "description", e.target.value)
+                  }
                   className="w-full min-h-[80px]"
                   placeholder="Describe your project and its key features..."
                 />
@@ -494,11 +585,15 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 <label className="text-xs sm:text-sm font-medium mb-1 block flex items-center gap-1">
                   <ExternalLink size={14} className="text-blue-600" />
                   Live Demo URL
-                  <span className="text-xs text-gray-500">(will show as "Live" link)</span>
+                  <span className="text-xs text-gray-500">
+                    (will show as "Live" link)
+                  </span>
                 </label>
                 <Input
                   value={project.liveDemo}
-                  onChange={(e) => handleChange(projectIndex, "liveDemo", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "liveDemo", e.target.value)
+                  }
                   className="w-full"
                   placeholder="https://your-project-demo.com"
                 />
@@ -508,23 +603,35 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 <label className="text-xs sm:text-sm font-medium mb-1 block flex items-center gap-1">
                   <Github size={14} className="text-gray-700" />
                   GitHub Repository
-                  <span className="text-xs text-gray-500">(will show as "Code" link)</span>
+                  <span className="text-xs text-gray-500">
+                    (will show as "Code" link)
+                  </span>
                 </label>
                 <Input
                   value={project.githubRepo}
-                  onChange={(e) => handleChange(projectIndex, "githubRepo", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(projectIndex, "githubRepo", e.target.value)
+                  }
                   className="w-full"
                   placeholder="https://github.com/username/repository"
                 />
               </div>
 
               <div className="col-span-1 lg:col-span-2 space-y-2">
-                <label className="text-xs sm:text-sm font-medium block">Project Highlights</label>
+                <label className="text-xs sm:text-sm font-medium block">
+                  Project Highlights
+                </label>
                 {project.bullets.map((bullet, bulletIndex) => (
                   <Input
                     key={bulletIndex}
                     value={bullet}
-                    onChange={(e) => handleBulletChange(projectIndex, bulletIndex, e.target.value)}
+                    onChange={(e) =>
+                      handleBulletChange(
+                        projectIndex,
+                        bulletIndex,
+                        e.target.value,
+                      )
+                    }
                     className="w-full"
                     placeholder={`Highlight ${bulletIndex + 1}: e.g., Improved performance by 40%`}
                   />
@@ -577,7 +684,9 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center">
                   <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <h3 className="font-bold text-base sm:text-lg text-gray-900">AI Project Suggestions</h3>
+                <h3 className="font-bold text-base sm:text-lg text-gray-900">
+                  AI Project Suggestions
+                </h3>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button
@@ -609,20 +718,33 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                       {suggestion.experience_level}
                     </span>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="text-xs text-violet-600 font-medium">Click to apply</div>
+                      <div className="text-xs text-violet-600 font-medium">
+                        Click to apply
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">Description:</h4>
-                      <p className="text-sm text-gray-700 leading-relaxed break-words">{suggestion.description}</p>
+                      <h4 className="font-semibold text-sm mb-2">
+                        Description:
+                      </h4>
+                      <p className="text-sm text-gray-700 leading-relaxed break-words">
+                        {suggestion.description}
+                      </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm mb-2">Highlights:</h4>
+                      <h4 className="font-semibold text-sm mb-2">
+                        Highlights:
+                      </h4>
                       <ul className="space-y-1.5">
                         {suggestion.highlights.map((highlight, hIndex) => (
-                          <li key={hIndex} className="text-sm text-gray-700 leading-relaxed break-words flex items-start">
-                            <span className="text-violet-500 mr-2 mt-1.5 flex-shrink-0">•</span>
+                          <li
+                            key={hIndex}
+                            className="text-sm text-gray-700 leading-relaxed break-words flex items-start"
+                          >
+                            <span className="text-violet-500 mr-2 mt-1.5 flex-shrink-0">
+                              •
+                            </span>
                             <span className="flex-1">{highlight}</span>
                           </li>
                         ))}

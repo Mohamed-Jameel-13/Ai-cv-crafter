@@ -1,12 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useContext, useEffect, useState, useCallback, useRef, memo } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  memo,
+} from "react";
 import RichTextEditor from "../RichTextEditor";
 import { ResumeContext } from "@/context/ResumeContext";
 import { toast } from "sonner";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { UserContext } from "@/context/UserContext";
-import { getCurrentUserEmail, isUserAuthenticated, handleFirebaseError, debugAuthState } from "@/utils/firebase_helpers";
+import {
+  getCurrentUserEmail,
+  isUserAuthenticated,
+  handleFirebaseError,
+  debugAuthState,
+} from "@/utils/firebase_helpers";
 
 const formField = {
   title: "",
@@ -24,7 +36,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const userContext = useContext(UserContext);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  
+
   // Use stable initialization - only initialize once when component mounts
   const [experienceList, setExperienceList] = useState(() => {
     if (resumeInfo?.experience?.length > 0) {
@@ -32,7 +44,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
     }
     return [formField];
   });
-  
+
   // Use refs to track initialization and prevent circular updates
   const autoSaveTimeoutRef = useRef(null);
   const previousDataRef = useRef(null);
@@ -43,7 +55,10 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   // Initialize ONLY ONCE when component first mounts or when resumeInfo first becomes available
   useEffect(() => {
     if (!hasInitialized.current && resumeInfo?.experience?.length > 0) {
-      console.log("🔄 One-time initialization with context data:", resumeInfo.experience);
+      console.log(
+        "🔄 One-time initialization with context data:",
+        resumeInfo.experience,
+      );
       setExperienceList(resumeInfo.experience);
       previousDataRef.current = JSON.stringify(resumeInfo.experience);
       hasInitialized.current = true;
@@ -55,39 +70,54 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   }, [resumeInfo?.experience]); // This will only run when resumeInfo.experience first becomes available
 
   // Auto-save function with optimizations
-  const autoSave = useCallback(async (experienceData) => {
-    // Skip auto-save if in template mode or no resumeId
-    if (isTemplateMode || !resumeId || !experienceData || experienceData.length === 0) {
-      enableNext(true);
-      return;
-    }
+  const autoSave = useCallback(
+    async (experienceData) => {
+      // Skip auto-save if in template mode or no resumeId
+      if (
+        isTemplateMode ||
+        !resumeId ||
+        !experienceData ||
+        experienceData.length === 0
+      ) {
+        enableNext(true);
+        return;
+      }
 
-    // Skip if data hasn't actually changed
-    const dataString = JSON.stringify(experienceData);
-    if (lastSavedData.current === dataString) {
-      return;
-    }
+      // Skip if data hasn't actually changed
+      const dataString = JSON.stringify(experienceData);
+      if (lastSavedData.current === dataString) {
+        return;
+      }
 
-    setIsAutoSaving(true);
-    setSaveError('');
-    
-    try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'experience', experienceData);
-      lastSavedData.current = dataString;
-      enableNext(true);
-    } catch (error) {
-      console.error("Error auto-saving encrypted experience:", error);
-      setSaveError("Auto-save failed. Please check your connection and try again.");
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [email, resumeId, enableNext, isTemplateMode]);
+      setIsAutoSaving(true);
+      setSaveError("");
+
+      try {
+        await EncryptedFirebaseService.updateResumeField(
+          email,
+          resumeId,
+          "experience",
+          experienceData,
+        );
+        lastSavedData.current = dataString;
+        enableNext(true);
+      } catch (error) {
+        console.error("Error auto-saving encrypted experience:", error);
+        setSaveError(
+          "Auto-save failed. Please check your connection and try again.",
+        );
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [email, resumeId, enableNext, isTemplateMode],
+  );
 
   // Function to check if data has actually changed
   const hasDataChanged = useCallback((newData) => {
     const currentDataString = JSON.stringify(newData);
     const previousDataString = previousDataRef.current;
-    
+
     return currentDataString !== previousDataString;
   }, []);
 
@@ -110,10 +140,13 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
     autoSaveTimeoutRef.current = setTimeout(() => {
       if (experienceList.length > 0) {
         // Check if there's meaningful data to save
-        const hasData = experienceList.some(exp => 
-          exp.title?.trim() || exp.companyName?.trim() || exp.workSummery?.trim()
+        const hasData = experienceList.some(
+          (exp) =>
+            exp.title?.trim() ||
+            exp.companyName?.trim() ||
+            exp.workSummery?.trim(),
         );
-        
+
         if (hasData && hasDataChanged(experienceList)) {
           autoSave(experienceList);
         } else {
@@ -124,7 +157,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
             experience: experienceList,
           }));
           previousDataRef.current = JSON.stringify(experienceList);
-          
+
           setTimeout(() => {
             isContextUpdating.current = false;
           }, 100);
@@ -160,10 +193,13 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   // Manual save function for critical operations
   const manualSave = useCallback(async () => {
     if (experienceList.length > 0) {
-      const hasData = experienceList.some(exp => 
-        exp.title?.trim() || exp.companyName?.trim() || exp.workSummery?.trim()
+      const hasData = experienceList.some(
+        (exp) =>
+          exp.title?.trim() ||
+          exp.companyName?.trim() ||
+          exp.workSummery?.trim(),
       );
-      
+
       if (hasData) {
         await autoSave(experienceList);
       }
@@ -177,14 +213,14 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
       const newList = [...prevList];
       newList[index] = {
         ...newList[index],
-        [name]: type === 'checkbox' ? checked : value,
+        [name]: type === "checkbox" ? checked : value,
       };
-      
+
       // If currently working is checked, clear the end date
-      if (name === 'currentlyWorking' && checked) {
-        newList[index].endDate = '';
+      if (name === "currentlyWorking" && checked) {
+        newList[index].endDate = "";
       }
-      
+
       return newList;
     });
   }, []);
@@ -208,10 +244,10 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const removeExperience = async () => {
     if (experienceList.length > 1) {
       setExperienceList((prevList) => prevList.slice(0, -1));
-              // Trigger manual save after removal
-        setTimeout(() => {
-          manualSave();
-        }, 100);
+      // Trigger manual save after removal
+      setTimeout(() => {
+        manualSave();
+      }, 100);
     }
   };
 
@@ -220,8 +256,12 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
       <div className="p-3 sm:p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10 w-full">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="font-bold text-lg sm:text-xl">Professional Experience</h2>
-            <p className="text-sm sm:text-base text-gray-600">Add your previous job experience</p>
+            <h2 className="font-bold text-lg sm:text-xl">
+              Professional Experience
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600">
+              Add your previous job experience
+            </p>
           </div>
           <div className="flex flex-col items-end gap-1">
             {isAutoSaving && (
@@ -242,7 +282,9 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
             <div key={`experience-${index}`}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 border p-3 sm:p-4 my-5 rounded-lg">
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">Position Title</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    Position Title
+                  </label>
                   <Input
                     name="title"
                     value={item?.title || ""}
@@ -252,7 +294,9 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">Company Name</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    Company Name
+                  </label>
                   <Input
                     name="companyName"
                     value={item?.companyName || ""}
@@ -262,7 +306,9 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">City</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    City
+                  </label>
                   <Input
                     name="city"
                     value={item?.city || ""}
@@ -272,7 +318,9 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">State</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    State
+                  </label>
                   <Input
                     name="state"
                     value={item?.state || ""}
@@ -282,7 +330,9 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">Start Date</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    Start Date
+                  </label>
                   <Input
                     type="date"
                     name="startDate"
@@ -292,7 +342,9 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   />
                 </div>
                 <div className="w-full">
-                  <label className="text-xs sm:text-sm font-medium mb-1 block">End Date</label>
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    End Date
+                  </label>
                   <Input
                     type="date"
                     name="endDate"
@@ -317,8 +369,8 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 <div className="col-span-1 lg:col-span-2">
                   <RichTextEditor
                     index={index}
-                    defaultValue={item?.workSummery || ''}
-                    jobTitle={item?.title || ''}
+                    defaultValue={item?.workSummery || ""}
+                    jobTitle={item?.title || ""}
                     resumeId={resumeId}
                     email={email}
                     onRichTextEditorChange={(event) =>
@@ -350,7 +402,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
             <Button
               variant="outline"
               onClick={manualSave}
-                                className="text-blue-600 hover:bg-blue-50 hover:border-[rgb(63,39,34)] border-blue-300 transition-colors text-sm w-full sm:w-auto"
+              className="text-blue-600 hover:bg-blue-50 hover:border-[rgb(63,39,34)] border-blue-300 transition-colors text-sm w-full sm:w-auto"
             >
               💾 Retry Save
             </Button>

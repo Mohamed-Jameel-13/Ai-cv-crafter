@@ -16,16 +16,18 @@ const ViewResume = () => {
   useEffect(() => {
     const fetchResumeData = async () => {
       try {
-        const decryptedData = await EncryptedFirebaseService.getResumeData(email, resumeId);
-        
-        console.log('📄 Encrypted resume data loaded and decrypted:', { 
-          templateName: decryptedData.templateName, 
+        const decryptedData = await EncryptedFirebaseService.getResumeData(
+          email,
+          resumeId,
+        );
+
+        console.log("📄 Encrypted resume data loaded and decrypted:", {
+          templateName: decryptedData.templateName,
           aiTemplateName: decryptedData.aiTemplateName,
           hasPdfBase64: !!decryptedData.pdfBase64,
-          pdfSize: decryptedData.pdfBase64 ? decryptedData.pdfBase64.length : 0
+          pdfSize: decryptedData.pdfBase64 ? decryptedData.pdfBase64.length : 0,
         });
         setResumeInfo(decryptedData);
-        
       } catch (error) {
         console.error("Error fetching encrypted resume:", error);
       } finally {
@@ -41,14 +43,19 @@ const ViewResume = () => {
   const handleDownload = () => {
     // If this is a template-generated resume with PDF, download the PDF directly
     if (resumeInfo?.pdfBase64) {
-      downloadPdfFromBase64(resumeInfo.pdfBase64, `${resumeInfo.title || 'Resume'}.pdf`);
+      downloadPdfFromBase64(
+        resumeInfo.pdfBase64,
+        `${resumeInfo.title || "Resume"}.pdf`,
+      );
       return;
     }
 
     // For default resumes, use the print-to-PDF approach
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                     window.innerWidth <= 768;
-    
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+      ) || window.innerWidth <= 768;
+
     if (isMobile) {
       handleMobilePrint();
     } else {
@@ -65,29 +72,29 @@ const ViewResume = () => {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+
       // Create download link
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Clean up
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch (error) {
-      console.error('Error downloading PDF:', error);
-      alert('Error downloading PDF. Please try again.');
+      console.error("Error downloading PDF:", error);
+      alert("Error downloading PDF. Please try again.");
     }
   };
 
   const handleMobilePrint = () => {
     // Add mobile-specific print styles
-    const printStyles = document.createElement('style');
-    printStyles.id = 'mobile-print-styles';
+    const printStyles = document.createElement("style");
+    printStyles.id = "mobile-print-styles";
     printStyles.innerHTML = `
       @media print {
         /* Hide everything except the resume */
@@ -138,16 +145,16 @@ const ViewResume = () => {
         }
       }
     `;
-    
+
     document.head.appendChild(printStyles);
-    
+
     // Trigger print dialog
     setTimeout(() => {
       window.print();
-      
+
       // Clean up after print dialog closes
       setTimeout(() => {
-        const styleElement = document.getElementById('mobile-print-styles');
+        const styleElement = document.getElementById("mobile-print-styles");
         if (styleElement) {
           styleElement.remove();
         }
@@ -156,20 +163,28 @@ const ViewResume = () => {
   };
 
   const handleDesktopPrint = () => {
-    const printContent = document.getElementById('print-area').innerHTML;
-    const fullName = `${resumeInfo?.personalInfo?.firstName || 'Resume'}_${resumeInfo?.personalInfo?.lastName || 'Document'}`;
-    
+    const printContent = document.getElementById("print-area").innerHTML;
+    const fullName = `${resumeInfo?.personalInfo?.firstName || "Resume"}_${resumeInfo?.personalInfo?.lastName || "Document"}`;
+
     // Try to open popup window
-    const printWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-    
+    const printWindow = window.open(
+      "",
+      "_blank",
+      "width=1200,height=800,scrollbars=yes,resizable=yes",
+    );
+
     // Check if popup was blocked
-    if (!printWindow || printWindow.closed || typeof printWindow.closed == 'undefined') {
+    if (
+      !printWindow ||
+      printWindow.closed ||
+      typeof printWindow.closed == "undefined"
+    ) {
       // Fallback to mobile print method if popup is blocked
-      alert('Popup blocked. Using alternative print method...');
+      alert("Popup blocked. Using alternative print method...");
       handleMobilePrint();
       return;
     }
-    
+
     const cleanPrintDocument = `
     <!DOCTYPE html>
     <html lang="en">
@@ -283,7 +298,7 @@ const ViewResume = () => {
       </script>
     </body>
     </html>`;
-    
+
     printWindow.document.write(cleanPrintDocument);
     printWindow.document.close();
   };
@@ -304,7 +319,7 @@ const ViewResume = () => {
     );
   }
 
-  const fullName = `${resumeInfo?.personalInfo?.firstName || ''} ${resumeInfo?.personalInfo?.lastName || ''}`;
+  const fullName = `${resumeInfo?.personalInfo?.firstName || ""} ${resumeInfo?.personalInfo?.lastName || ""}`;
   const shareUrl = `${window.location.origin}/my-resume/${email}/${resumeId}/view`;
 
   return (
@@ -320,7 +335,7 @@ const ViewResume = () => {
             unique resume to recruiters
           </p>
           <div className="w-auto m-auto flex flex-col sm:flex-row justify-center mt-3 items-center gap-2 sm:gap-4 px-4">
-            <Button 
+            <Button
               onClick={handleDownload}
               className="bg-primary hover:bg-primary/90 rounded-full px-4 sm:px-6 py-2 w-full sm:w-auto text-sm sm:text-base"
             >
@@ -344,12 +359,12 @@ const ViewResume = () => {
       {/* Responsive container that maintains resume proportions */}
       <div className="my-2 sm:my-8 mx-auto px-1 sm:px-4 print:p-0 print:max-w-none print:mx-0">
         <div className="w-full max-w-4xl mx-auto">
-          <div 
-            id="print-area" 
+          <div
+            id="print-area"
             className="bg-white shadow-xl mx-auto print:shadow-none w-full max-w-full overflow-hidden resume-container"
-            style={{ 
-              minHeight: '29.7cm',
-              boxSizing: 'border-box'
+            style={{
+              minHeight: "29.7cm",
+              boxSizing: "border-box",
             }}
           >
             {resumeInfo?.pdfBase64 ? (
@@ -363,9 +378,9 @@ const ViewResume = () => {
                     width="100%"
                     height="800px"
                     className="border-0 rounded-lg hidden lg:block"
-                    style={{ minHeight: '29.7cm' }}
+                    style={{ minHeight: "29.7cm" }}
                   />
-                  
+
                   {/* Mobile PDF Display - Improved with better fallback */}
                   <div className="block lg:hidden">
                     {/* Try iframe first with error handling */}
@@ -374,29 +389,48 @@ const ViewResume = () => {
                       width="100%"
                       height="600px"
                       className="border-0 rounded-lg mobile-pdf-iframe"
-                      style={{ 
-                        minHeight: 'min(75vh, 600px)',
-                        height: 'min(75vh, 600px)',
-                        backgroundColor: '#f8f9fa'
+                      style={{
+                        minHeight: "min(75vh, 600px)",
+                        height: "min(75vh, 600px)",
+                        backgroundColor: "#f8f9fa",
                       }}
                       title="Resume PDF"
                       onError={() => {
-                        console.warn('PDF iframe failed to load, showing fallback');
-                        document.querySelector('.mobile-pdf-iframe').style.display = 'none';
-                        document.querySelector('.mobile-pdf-fallback').style.display = 'block';
+                        console.warn(
+                          "PDF iframe failed to load, showing fallback",
+                        );
+                        document.querySelector(
+                          ".mobile-pdf-iframe",
+                        ).style.display = "none";
+                        document.querySelector(
+                          ".mobile-pdf-fallback",
+                        ).style.display = "block";
                       }}
                     />
-                    
+
                     {/* Compact fallback for mobile browsers that can't display PDF in iframe */}
-                    <div className="mobile-pdf-fallback flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" style={{ display: 'none', height: '200px' }}>
+                    <div
+                      className="mobile-pdf-fallback flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
+                      style={{ display: "none", height: "200px" }}
+                    >
                       <a
                         href={`data:application/pdf;base64,${resumeInfo.pdfBase64}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex flex-col items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 min-w-[160px]"
                       >
-                        <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <svg
+                          className="w-8 h-8 mb-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
                         </svg>
                         <span className="text-sm font-medium">Open Resume</span>
                       </a>

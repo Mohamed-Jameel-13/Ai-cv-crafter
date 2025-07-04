@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const Loader = () => {
   // Define the CSS as a string to inject into a style tag
@@ -94,19 +94,19 @@ const Loader = () => {
     <div className="flex items-center justify-center w-full py-20">
       <style dangerouslySetInnerHTML={{ __html: spinnerCSS }} />
       <div className="custom-spinner">
-        <div />   
-        <div />    
-        <div />    
-        <div />    
-        <div />    
-        <div />    
-        <div />    
-        <div />    
-        <div />    
-        <div />    
+        <div />
+        <div />
+        <div />
+        <div />
+        <div />
+        <div />
+        <div />
+        <div />
+        <div />
+        <div />
       </div>
     </div>
   );
 };
 
-export default Loader; 
+export default Loader;

@@ -6,12 +6,13 @@ import ExperiencePreview from "./preview/ExperiencePreview";
 import EducationalPreview from "./preview/EducationalPreview";
 import SkillsPreview from "./preview/SkillsPreview";
 import ProjectsPreview from "./preview/ProjectsPreview";
+import CertificationPreview from "./preview/CertificationPreview";
 
 const ResumePreview = () => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
 
   // Debug: Log theme color
-  console.log('🎨 ResumePreview - Theme color:', resumeInfo?.themeColor);
+  console.log("🎨 ResumePreview - Theme color:", resumeInfo?.themeColor);
 
   if (!resumeInfo) {
     return (
@@ -21,18 +22,18 @@ const ResumePreview = () => {
     );
   }
 
-  const themeColor = resumeInfo?.themeColor || '#4B5563';
+  const themeColor = resumeInfo?.themeColor || "#4B5563";
 
   return (
     <div
       className="shadow-lg h-full p-3 sm:p-6 lg:p-8 border-t-20 bg-white print:shadow-none print:p-8 min-h-full"
       style={{
         borderTopColor: themeColor,
-        borderTopWidth: '20px',
-        borderTopStyle: 'solid',
-        WebkitPrintColorAdjust: 'exact',
-        printColorAdjust: 'exact',
-        colorAdjust: 'exact'
+        borderTopWidth: "20px",
+        borderTopStyle: "solid",
+        WebkitPrintColorAdjust: "exact",
+        printColorAdjust: "exact",
+        colorAdjust: "exact",
       }}
     >
       {resumeInfo && (
@@ -42,6 +43,7 @@ const ResumePreview = () => {
           <ExperiencePreview resumeInfo={resumeInfo} />
           <SkillsPreview resumeInfo={resumeInfo} />
           <ProjectsPreview resumeInfo={resumeInfo} />
+          <CertificationPreview resumeInfo={resumeInfo} />
           <EducationalPreview resumeInfo={resumeInfo} />
         </div>
       )}

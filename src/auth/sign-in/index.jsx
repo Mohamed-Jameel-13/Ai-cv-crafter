@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  GoogleAuthProvider, 
-  signInWithPopup 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../../utils/firebase_config";
 import { useUser } from "../../context/UserContext";
@@ -29,7 +29,7 @@ const SignInPage = () => {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
@@ -51,7 +51,7 @@ const SignInPage = () => {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
@@ -81,10 +81,10 @@ const SignInPage = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
-          <img 
-            src={logo} 
+          <img
+            src={logo}
             alt="Logo"
-            className="mx-auto h-20 w-auto object-contain mb-6" 
+            className="mx-auto h-20 w-auto object-contain mb-6"
           />
           <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
             {isLogin ? "Welcome Back!" : "Create Account"}
@@ -93,12 +93,18 @@ const SignInPage = () => {
             {isLogin ? "Please sign in to continue" : "Sign up to get started"}
           </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={isLogin ? handleLogin : handleSignup}>
+
+        <form
+          className="mt-8 space-y-6"
+          onSubmit={isLogin ? handleLogin : handleSignup}
+        >
           <div className="rounded-md shadow-sm space-y-4">
             {!isLogin && (
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <User
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   ref={nameRef}
@@ -108,9 +114,12 @@ const SignInPage = () => {
                 />
               </div>
             )}
-            
+
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Mail
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="email"
                 ref={emailRef}
@@ -119,9 +128,12 @@ const SignInPage = () => {
                 required
               />
             </div>
-            
+
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Lock
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="password"
                 ref={passwordRef}
@@ -149,7 +161,9 @@ const SignInPage = () => {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -186,7 +200,9 @@ const SignInPage = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-blue-600 hover:text-blue-500"
           >
-            {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+            {isLogin
+              ? "Need an account? Sign up"
+              : "Already have an account? Sign in"}
           </button>
         </div>
       </div>

@@ -5,9 +5,9 @@ const ExperiencePreview = ({ resumeInfo }) => {
     if (!dateString) return null;
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
       });
     } catch (error) {
       return null;
@@ -27,9 +27,9 @@ const ExperiencePreview = ({ resumeInfo }) => {
       <h2 className="text-center font-bold text-sm mb-2">
         Professional Experience
       </h2>
-      <hr 
-        className="border-[1.5px] my-2" 
-        style={{borderColor: resumeInfo?.themeColor || "rgb(107 114 128)"}}  
+      <hr
+        className="border-[1.5px] my-2"
+        style={{ borderColor: resumeInfo?.themeColor || "rgb(107 114 128)" }}
       />
       {experience.map((exp, index) => (
         <div key={index} className="my-2">
@@ -39,12 +39,19 @@ const ExperiencePreview = ({ resumeInfo }) => {
           <h2 className="text-xs flex justify-between">
             <span>
               {exp?.companyName || ""}
-              {exp?.city && exp?.state ? `, ${exp?.city}, ${exp?.state}` : 
-               exp?.city ? `, ${exp?.city}` : 
-               exp?.state ? `, ${exp?.state}` : ""}
+              {exp?.city && exp?.state
+                ? `, ${exp?.city}, ${exp?.state}`
+                : exp?.city
+                  ? `, ${exp?.city}`
+                  : exp?.state
+                    ? `, ${exp?.state}`
+                    : ""}
             </span>
             <span>
-              {formatDate(exp?.startDate)} - {exp?.currentlyWorking ? "Present" : (formatDate(exp?.endDate) || "Present")}
+              {formatDate(exp?.startDate)} -{" "}
+              {exp?.currentlyWorking
+                ? "Present"
+                : formatDate(exp?.endDate) || "Present"}
             </span>
           </h2>
           <div

@@ -9,9 +9,9 @@ const ProjectsPreview = ({ resumeInfo }) => {
     if (!dateString) return null;
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
       });
     } catch (error) {
       return null;
@@ -22,7 +22,7 @@ const ProjectsPreview = ({ resumeInfo }) => {
   const formatDateRange = (startDate, endDate) => {
     const formattedStart = formatDate(startDate);
     const formattedEnd = formatDate(endDate);
-    
+
     if (formattedStart && formattedEnd) {
       return `${formattedStart} - ${formattedEnd}`;
     } else if (formattedStart) {
@@ -37,7 +37,7 @@ const ProjectsPreview = ({ resumeInfo }) => {
   useEffect(() => {
     console.log("🕵️ [ProjectsPreview] Complete resumeInfo:", resumeInfo);
     console.log("🕵️ [ProjectsPreview] Projects array:", projects);
-    
+
     if (projects && Array.isArray(projects)) {
       console.log(`🕵️ [ProjectsPreview] Found ${projects.length} projects`);
       projects.forEach((project, index) => {
@@ -49,21 +49,25 @@ const ProjectsPreview = ({ resumeInfo }) => {
           bulletsLength: project?.bullets?.length,
           bulletsType: typeof project?.bullets,
           isArray: Array.isArray(project?.bullets),
-          validBullets: project?.bullets?.filter(b => b && b.trim()),
+          validBullets: project?.bullets?.filter((b) => b && b.trim()),
           technologies: project?.technologies,
           liveDemo: project?.liveDemo,
-          githubRepo: project?.githubRepo
+          githubRepo: project?.githubRepo,
         });
-        
+
         // Log each bullet individually
         if (project?.bullets && Array.isArray(project.bullets)) {
           project.bullets.forEach((bullet, bIndex) => {
-            console.log(`  📌 Bullet ${bIndex + 1}: "${bullet}" (length: ${bullet?.length}, trimmed: "${bullet?.trim()}")`);
+            console.log(
+              `  📌 Bullet ${bIndex + 1}: "${bullet}" (length: ${bullet?.length}, trimmed: "${bullet?.trim()}")`,
+            );
           });
         }
       });
     } else {
-      console.log("🕵️ [ProjectsPreview] No projects found or projects is not an array");
+      console.log(
+        "🕵️ [ProjectsPreview] No projects found or projects is not an array",
+      );
     }
   }, [resumeInfo, projects]);
   // ------------ END: ENHANCED DIAGNOSTIC LOG ------------
@@ -79,15 +83,20 @@ const ProjectsPreview = ({ resumeInfo }) => {
   return (
     <div className="my-1">
       <h2 className="text-center font-bold text-sm mb-2">PROJECTS</h2>
-      <hr className="border-[1.5px] my-2" style={{borderColor: resumeInfo?.themeColor || "rgb(107 114 128)"}} />
-      
+      <hr
+        className="border-[1.5px] my-2"
+        style={{ borderColor: resumeInfo?.themeColor || "rgb(107 114 128)" }}
+      />
+
       <div className="space-y-4">
         {projects.map((project, index) => (
           <div key={index} className="mb-4">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1 gap-1 sm:gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 flex-wrap">
-                <h3 className="font-semibold text-sm">{project.name || project.title}</h3>
-                
+                <h3 className="font-semibold text-sm">
+                  {project.name || project.title}
+                </h3>
+
                 {/* Project Links - responsive layout */}
                 <div className="flex justify-start sm:justify-center items-center gap-2 text-xs">
                   {project.liveDemo && (
@@ -117,7 +126,7 @@ const ProjectsPreview = ({ resumeInfo }) => {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 {formatDateRange(project.startDate, project.endDate) && (
                   <span className="text-xs text-gray-600 order-2 sm:order-1">
@@ -129,20 +138,31 @@ const ProjectsPreview = ({ resumeInfo }) => {
                 </span>
               </div>
             </div>
-            
+
             {project.description && project.description.trim() && (
-              <p className="text-xs text-gray-700 mb-2 leading-relaxed">{project.description}</p>
+              <p className="text-xs text-gray-700 mb-2 leading-relaxed">
+                {project.description}
+              </p>
             )}
-            
+
             {/* Fixed bullet points logic - simplified and more reliable */}
-            {project.bullets && Array.isArray(project.bullets) && (
+            {project.bullets &&
+              Array.isArray(project.bullets) &&
               (() => {
-                const validBullets = project.bullets.filter(bullet => bullet && bullet.trim());
-                console.log(`🔍 [ProjectsPreview] Project "${project.name || project.title}" - Valid bullets:`, validBullets);
+                const validBullets = project.bullets.filter(
+                  (bullet) => bullet && bullet.trim(),
+                );
+                console.log(
+                  `🔍 [ProjectsPreview] Project "${project.name || project.title}" - Valid bullets:`,
+                  validBullets,
+                );
                 return validBullets.length > 0 ? (
                   <ul className="list-disc pl-4 space-y-1">
                     {validBullets.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} className="text-xs text-gray-700 leading-relaxed">
+                      <li
+                        key={bulletIndex}
+                        className="text-xs text-gray-700 leading-relaxed"
+                      >
                         {bullet}
                       </li>
                     ))}
@@ -152,8 +172,7 @@ const ProjectsPreview = ({ resumeInfo }) => {
                     (No valid bullet points found)
                   </div>
                 );
-              })()
-            )}
+              })()}
           </div>
         ))}
       </div>

@@ -1,16 +1,26 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Search, Star, CheckCircle, Eye, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/custom/Header';
-import { TEMPLATES, TEMPLATE_CATEGORIES, getFeaturedTemplates } from '@/data/templates';
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ArrowLeft, Search, Star, CheckCircle, Eye, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import Header from "@/components/custom/Header";
+import {
+  TEMPLATES,
+  TEMPLATE_CATEGORIES,
+  getFeaturedTemplates,
+} from "@/data/templates";
 
 const TemplateGallery = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [flippedCards, setFlippedCards] = useState(new Set());
   const navigate = useNavigate();
 
@@ -19,16 +29,21 @@ const TemplateGallery = () => {
     let templates = TEMPLATES;
 
     // Filter by category
-    if (selectedCategory !== 'all') {
-      templates = templates.filter(template => template.category === selectedCategory);
+    if (selectedCategory !== "all") {
+      templates = templates.filter(
+        (template) => template.category === selectedCategory,
+      );
     }
 
     // Filter by search term
     if (searchTerm) {
-      templates = templates.filter(template => 
-        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.category.toLowerCase().includes(searchTerm.toLowerCase())
+      templates = templates.filter(
+        (template) =>
+          template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          template.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          template.category.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -39,8 +54,8 @@ const TemplateGallery = () => {
 
   const categoryStats = useMemo(() => {
     const stats = { all: TEMPLATES.length };
-    Object.values(TEMPLATE_CATEGORIES).forEach(category => {
-      stats[category] = TEMPLATES.filter(t => t.category === category).length;
+    Object.values(TEMPLATE_CATEGORIES).forEach((category) => {
+      stats[category] = TEMPLATES.filter((t) => t.category === category).length;
     });
     return stats;
   }, []);
@@ -50,7 +65,7 @@ const TemplateGallery = () => {
   };
 
   const handleCardFlip = (templateId) => {
-    setFlippedCards(prev => {
+    setFlippedCards((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(templateId)) {
         newSet.delete(templateId);
@@ -62,17 +77,21 @@ const TemplateGallery = () => {
   };
 
   const categories = [
-    { key: 'all', label: 'All Templates', icon: '📄' },
-    { key: TEMPLATE_CATEGORIES.PROFESSIONAL, label: 'Professional', icon: '💼' }
+    { key: "all", label: "All Templates", icon: "📄" },
+    {
+      key: TEMPLATE_CATEGORIES.PROFESSIONAL,
+      label: "Professional",
+      icon: "💼",
+    },
   ];
 
   const TemplateCard = ({ template, featured = false }) => {
     const getCategoryColors = (category) => {
       // Since we only have professional templates, use consistent blue theme
       return {
-        bg: 'bg-blue-50 border-blue-200',
-        text: 'text-blue-800',
-        badge: 'bg-blue-100 text-blue-800'
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-blue-800",
+        badge: "bg-blue-100 text-blue-800",
       };
     };
 
@@ -82,10 +101,11 @@ const TemplateGallery = () => {
     return (
       <div className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl relative h-full perspective-1000">
         {/* Card Container with Flip */}
-        <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-          
+        <div
+          className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? "rotate-y-180" : ""}`}
+        >
           {/* Front Side */}
-                        <Card className="absolute inset-0 backface-hidden border-2 hover:border-[rgb(63,39,34)] bg-white shadow-lg overflow-hidden">
+          <Card className="absolute inset-0 backface-hidden border-2 hover:border-[rgb(63,39,34)] bg-white shadow-lg overflow-hidden">
             {/* Featured Badge */}
             {featured && (
               <div className="absolute top-3 right-3 z-10">
@@ -97,11 +117,13 @@ const TemplateGallery = () => {
             )}
 
             {/* Template Preview */}
-            <div className={`relative h-48 ${colors.bg} overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:opacity-90`}>
+            <div
+              className={`relative h-48 ${colors.bg} overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:opacity-90`}
+            >
               {template.previewImage ? (
                 <div className="w-full h-full p-4 flex items-center justify-center">
-                  <img 
-                    src={template.previewImage} 
+                  <img
+                    src={template.previewImage}
                     alt={`${template.name} preview`}
                     className="max-w-full max-h-full object-contain rounded shadow-lg border border-slate-200 bg-white"
                   />
@@ -111,7 +133,9 @@ const TemplateGallery = () => {
                   <div className="w-16 h-20 bg-white rounded shadow-lg mb-3 mx-auto flex items-center justify-center border border-slate-200">
                     <div className="text-2xl">📄</div>
                   </div>
-                  <p className={`text-sm font-medium ${colors.text}`}>{template.name}</p>
+                  <p className={`text-sm font-medium ${colors.text}`}>
+                    {template.name}
+                  </p>
                 </div>
               )}
 
@@ -123,20 +147,20 @@ const TemplateGallery = () => {
                     handleTemplateSelect(template.id);
                   }}
                   className="text-white shadow-lg transform scale-95 group-hover:scale-100 transition-transform duration-300"
-                  style={{ 
-                    backgroundColor: 'rgb(63,39,34)'
+                  style={{
+                    backgroundColor: "rgb(63,39,34)",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgb(53,29,24)';
+                    e.target.style.backgroundColor = "rgb(53,29,24)";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'rgb(63,39,34)';
+                    e.target.style.backgroundColor = "rgb(63,39,34)";
                   }}
                 >
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Select Template
                 </Button>
-                
+
                 {template.previewImage && (
                   <Button
                     onClick={(e) => {
@@ -156,8 +180,12 @@ const TemplateGallery = () => {
             {/* Template Info */}
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-slate-900">{template.name}</CardTitle>
-                <div className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}>
+                <CardTitle className="text-lg font-semibold text-slate-900">
+                  {template.name}
+                </CardTitle>
+                <div
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${colors.badge}`}
+                >
                   {template.category}
                 </div>
               </div>
@@ -167,8 +195,12 @@ const TemplateGallery = () => {
                 {template.description}
               </CardDescription>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">ATS-Friendly</span>
-                <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full">AI-Powered</span>
+                <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">
+                  ATS-Friendly
+                </span>
+                <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full">
+                  AI-Powered
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -192,13 +224,13 @@ const TemplateGallery = () => {
             {template.previewImage ? (
               <div className="w-full h-full p-2 flex flex-col">
                 <div className="flex-1 flex items-center justify-center bg-slate-50 rounded overflow-hidden">
-                  <img 
-                    src={template.previewImage} 
+                  <img
+                    src={template.previewImage}
                     alt={`${template.name} full preview`}
                     className="max-w-full max-h-full object-contain"
                   />
                 </div>
-                
+
                 {/* Action Buttons at Bottom */}
                 <div className="mt-2 flex gap-2">
                   <Button
@@ -207,14 +239,14 @@ const TemplateGallery = () => {
                       handleTemplateSelect(template.id);
                     }}
                     className="flex-1 text-white text-sm py-2"
-                    style={{ 
-                      backgroundColor: 'rgb(63,39,34)'
+                    style={{
+                      backgroundColor: "rgb(63,39,34)",
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = 'rgb(53,29,24)';
+                      e.target.style.backgroundColor = "rgb(53,29,24)";
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'rgb(63,39,34)';
+                      e.target.style.backgroundColor = "rgb(63,39,34)";
                     }}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
@@ -250,13 +282,17 @@ const TemplateGallery = () => {
         }
       `}</style>
       <Header />
-      
+
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Link to="/create">
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-white hover:text-slate-900 shadow-md">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/80 backdrop-blur-sm border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-white hover:text-slate-900 shadow-md"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
@@ -266,7 +302,8 @@ const TemplateGallery = () => {
                 Choose Your Resume Template
               </h1>
               <p className="text-slate-600 text-sm sm:text-base">
-                The iconic Jake's Resume template - experience-first, clean, and ATS-optimized
+                The iconic Jake's Resume template - experience-first, clean, and
+                ATS-optimized
               </p>
             </div>
           </div>
@@ -283,12 +320,12 @@ const TemplateGallery = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-white/80 backdrop-blur-sm border-slate-300 text-slate-900"
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgb(63,39,34)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(63,39,34,0.1)';
+                e.target.style.borderColor = "rgb(63,39,34)";
+                e.target.style.boxShadow = "0 0 0 3px rgba(63,39,34,0.1)";
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '';
-                e.target.style.boxShadow = '';
+                e.target.style.borderColor = "";
+                e.target.style.boxShadow = "";
               }}
             />
           </div>
@@ -298,35 +335,43 @@ const TemplateGallery = () => {
             {categories.map((category) => (
               <Button
                 key={category.key}
-                variant={selectedCategory === category.key ? "default" : "outline"}
+                variant={
+                  selectedCategory === category.key ? "default" : "outline"
+                }
                 size="sm"
                 onClick={() => setSelectedCategory(category.key)}
                 className={`flex items-center space-x-2 ${
-                  selectedCategory === category.key 
+                  selectedCategory === category.key
                     ? "text-white shadow-md"
                     : "bg-white/80 backdrop-blur-sm border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-white hover:text-slate-900"
                 }`}
-                style={selectedCategory === category.key ? { 
-                  backgroundColor: 'rgb(63,39,34)' 
-                } : {}}
+                style={
+                  selectedCategory === category.key
+                    ? {
+                        backgroundColor: "rgb(63,39,34)",
+                      }
+                    : {}
+                }
                 onMouseEnter={(e) => {
                   if (selectedCategory === category.key) {
-                    e.target.style.backgroundColor = 'rgb(53,29,24)';
+                    e.target.style.backgroundColor = "rgb(53,29,24)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedCategory === category.key) {
-                    e.target.style.backgroundColor = 'rgb(63,39,34)';
+                    e.target.style.backgroundColor = "rgb(63,39,34)";
                   }
                 }}
               >
                 <span>{category.icon}</span>
                 <span>{category.label}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded ${
-                  selectedCategory === category.key 
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-200 text-slate-600"
-                }`}>
+                <span
+                  className={`text-xs px-1.5 py-0.5 rounded ${
+                    selectedCategory === category.key
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-200 text-slate-600"
+                  }`}
+                >
                   {categoryStats[category.key]}
                 </span>
               </Button>
@@ -335,7 +380,7 @@ const TemplateGallery = () => {
         </div>
 
         {/* Featured Templates Section */}
-        {selectedCategory === 'all' && !searchTerm && (
+        {selectedCategory === "all" && !searchTerm && (
           <div className="mb-10 sm:mb-12">
             <div className="flex items-center space-x-2 mb-4 sm:mb-6">
               <Star className="w-5 h-5 text-yellow-500" />
@@ -347,10 +392,7 @@ const TemplateGallery = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {featuredTemplates.slice(0, 6).map((template) => (
                 <div key={template.id} className="h-96">
-                  <TemplateCard
-                    template={template}
-                    featured={true}
-                  />
+                  <TemplateCard template={template} featured={true} />
                 </div>
               ))}
             </div>
@@ -361,11 +403,14 @@ const TemplateGallery = () => {
         <div>
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
-              {selectedCategory === 'all' ? 'All Templates' : 
-               categories.find(c => c.key === selectedCategory)?.label + ' Templates'}
+              {selectedCategory === "all"
+                ? "All Templates"
+                : categories.find((c) => c.key === selectedCategory)?.label +
+                  " Templates"}
             </h2>
             <span className="text-sm text-slate-500">
-              {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} found
+              {filteredTemplates.length} template
+              {filteredTemplates.length !== 1 ? "s" : ""} found
             </span>
           </div>
 
@@ -380,17 +425,20 @@ const TemplateGallery = () => {
               <p className="text-slate-500 mb-4">
                 Try adjusting your search criteria or category filter
               </p>
-              <Button 
-                onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}
+              <Button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                }}
                 className="text-white"
-                style={{ 
-                  backgroundColor: 'rgb(63,39,34)'
+                style={{
+                  backgroundColor: "rgb(63,39,34)",
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'rgb(53,29,24)';
+                  e.target.style.backgroundColor = "rgb(53,29,24)";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'rgb(63,39,34)';
+                  e.target.style.backgroundColor = "rgb(63,39,34)";
                 }}
               >
                 Clear Filters
@@ -402,7 +450,9 @@ const TemplateGallery = () => {
                 <div key={template.id} className="h-96">
                   <TemplateCard
                     template={template}
-                    featured={featuredTemplates.some(f => f.id === template.id)}
+                    featured={featuredTemplates.some(
+                      (f) => f.id === template.id,
+                    )}
                   />
                 </div>
               ))}
@@ -417,10 +467,14 @@ const TemplateGallery = () => {
               Want More Control?
             </h3>
             <p className="text-slate-600 mb-6">
-              Use our default resume builder for complete customization and step-by-step guidance
+              Use our default resume builder for complete customization and
+              step-by-step guidance
             </p>
             <Link to="/create">
-              <Button variant="outline" className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-md">
+              <Button
+                variant="outline"
+                className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-md"
+              >
                 Use Default Builder
               </Button>
             </Link>
@@ -431,4 +485,4 @@ const TemplateGallery = () => {
   );
 };
 
-export default TemplateGallery; 
+export default TemplateGallery;

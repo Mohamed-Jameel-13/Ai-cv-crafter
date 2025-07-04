@@ -8,7 +8,12 @@ import { FaLinkedin, FaGithub, FaPhone, FaEnvelope } from "react-icons/fa";
 import { IoLocationSharp } from "react-icons/io5";
 import { BiWorld } from "react-icons/bi";
 
-const PersonalDetailForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
+const PersonalDetailForm = ({
+  resumeId,
+  email,
+  enableNext,
+  isTemplateMode,
+}) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
 
@@ -22,49 +27,55 @@ const PersonalDetailForm = ({ resumeId, email, enableNext, isTemplateMode }) => 
       email: resumeInfo?.personalDetail?.email || "",
       linkedin: resumeInfo?.personalDetail?.linkedin || "",
       github: resumeInfo?.personalDetail?.github || "",
-      portfolio: resumeInfo?.personalDetail?.portfolio || ""
-    }
+      portfolio: resumeInfo?.personalDetail?.portfolio || "",
+    },
   });
 
   useEffect(() => {
     if (resumeInfo?.personalDetail) {
       setFormData({
         personalDetail: {
-          ...resumeInfo.personalDetail
-        }
+          ...resumeInfo.personalDetail,
+        },
       });
     }
   }, [resumeInfo]);
 
   // Auto-save function with encryption
-  const autoSave = useCallback(async (data) => {
-    // Skip auto-save if in template mode or no resumeId
-    if (isTemplateMode || !resumeId) {
-      enableNext(true);
-      return;
-    }
-    
-    setIsAutoSaving(true);
-    try {
-      await EncryptedFirebaseService.updateResumeField(
-        email, 
-        resumeId, 
-        'personalDetail', 
-        data.personalDetail
-      );
-      enableNext(true);
-    } catch (error) {
-      console.error("Error auto-saving encrypted data:", error);
-      toast.error("Auto-save failed. Please check your connection.");
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [email, resumeId, enableNext, isTemplateMode]);
+  const autoSave = useCallback(
+    async (data) => {
+      // Skip auto-save if in template mode or no resumeId
+      if (isTemplateMode || !resumeId) {
+        enableNext(true);
+        return;
+      }
+
+      setIsAutoSaving(true);
+      try {
+        await EncryptedFirebaseService.updateResumeField(
+          email,
+          resumeId,
+          "personalDetail",
+          data.personalDetail,
+        );
+        enableNext(true);
+      } catch (error) {
+        console.error("Error auto-saving encrypted data:", error);
+        toast.error("Auto-save failed. Please check your connection.");
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [email, resumeId, enableNext, isTemplateMode],
+  );
 
   // Debounced auto-save
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (formData.personalDetail.firstName || formData.personalDetail.lastName) {
+      if (
+        formData.personalDetail.firstName ||
+        formData.personalDetail.lastName
+      ) {
         autoSave(formData);
       }
     }, 1000); // Auto-save after 1 second of inactivity
@@ -74,20 +85,20 @@ const PersonalDetailForm = ({ resumeId, email, enableNext, isTemplateMode }) => 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     const updatedPersonalDetail = {
       ...formData.personalDetail,
-      [name]: value
+      [name]: value,
     };
 
     setFormData({
       ...formData,
-      personalDetail: updatedPersonalDetail
+      personalDetail: updatedPersonalDetail,
     });
 
-    setResumeInfo(prev => ({
+    setResumeInfo((prev) => ({
       ...prev,
-      personalDetail: updatedPersonalDetail
+      personalDetail: updatedPersonalDetail,
     }));
   };
 
@@ -97,7 +108,9 @@ const PersonalDetailForm = ({ resumeId, email, enableNext, isTemplateMode }) => 
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-bold text-lg sm:text-xl">Personal Detail</h2>
-            <p className="text-sm sm:text-base text-gray-600">Get Started with the basic information</p>
+            <p className="text-sm sm:text-base text-gray-600">
+              Get Started with the basic information
+            </p>
           </div>
           {isAutoSaving && (
             <div className="flex items-center gap-2 text-sm text-gray-500">

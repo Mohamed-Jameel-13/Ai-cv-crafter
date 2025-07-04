@@ -3,7 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Brain, Loader2 } from "lucide-react";
-import { BtnBold, BtnBulletList, BtnItalic, BtnNumberedList, BtnUnderline, BtnLink, BtnStrikeThrough, Editor, EditorProvider, Separator, Toolbar } from "react-simple-wysiwyg";
+import {
+  BtnBold,
+  BtnBulletList,
+  BtnItalic,
+  BtnNumberedList,
+  BtnUnderline,
+  BtnLink,
+  BtnStrikeThrough,
+  Editor,
+  EditorProvider,
+  Separator,
+  Toolbar,
+} from "react-simple-wysiwyg";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { AIButton } from "@/components/ui/ai-button";
@@ -36,7 +48,14 @@ Example format:
   ]
 }`;
 
-function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle, resumeId, email }) {
+function RichTextEditor({
+  onRichTextEditorChange,
+  index,
+  defaultValue,
+  jobTitle,
+  resumeId,
+  email,
+}) {
   const [value, setValue] = useState(defaultValue);
   const [loading, setLoading] = useState(false);
   const [aiGeneratedSuggestions, setAiGeneratedSuggestions] = useState(null);
@@ -58,8 +77,8 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
     // Update cooldown timer every minute if in cooldown
     if (!canRegenerate && cooldownTimeRemaining > 0) {
       intervalRef.current = setInterval(() => {
-        setCooldownTimeRemaining(prev => {
-          const newTime = prev - (1/60); // Subtract 1 minute in hours
+        setCooldownTimeRemaining((prev) => {
+          const newTime = prev - 1 / 60; // Subtract 1 minute in hours
           if (newTime <= 0) {
             setCanRegenerate(true);
             clearInterval(intervalRef.current);
@@ -79,41 +98,56 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
 
   const checkAiGenerationCooldown = async () => {
     if (!resumeId || !email) return;
-    
+
     try {
-      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
-      const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'experience');
-      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'experience');
-      
+      const resumeData = await EncryptedFirebaseService.getResumeData(
+        email,
+        resumeId,
+      );
+      const canRegen = EncryptedFirebaseService.canRegenerateAI(
+        resumeData.aiGenerationTimestamps,
+        "experience",
+      );
+      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(
+        resumeData.aiGenerationTimestamps,
+        "experience",
+      );
+
       setCanRegenerate(canRegen);
       setCooldownTimeRemaining(timeRemaining);
-      
+
       if (resumeData.aiGenerationTimestamps?.experience) {
         setHasGenerated(true);
       }
     } catch (error) {
-      Logger.error('Error checking AI cooldown:', error);
+      Logger.error("Error checking AI cooldown:", error);
     }
   };
 
   const GenerateSummaryFromaI = async () => {
     if (!canRegenerate) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`,
+      );
       return;
     }
 
     setLoading(true);
-    const prompt = PROMPT.replace("{positionTitle}", jobTitle || "Professional");
+    const prompt = PROMPT.replace(
+      "{positionTitle}",
+      jobTitle || "Professional",
+    );
 
     try {
       const result = await AIchatSession.sendMessage(prompt);
       let parsedResult;
-      
+
       try {
-        const responseText = typeof result === 'object' && result.response && result.response.text 
-          ? result.response.text() 
-          : result.toString();
-        
+        const responseText =
+          typeof result === "object" && result.response && result.response.text
+            ? result.response.text()
+            : result.toString();
+
         parsedResult = JSON.parse(responseText);
       } catch (parseError) {
         Logger.error("Error parsing AI response:", parseError);
@@ -121,17 +155,25 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
         return;
       }
 
-      if (parsedResult && parsedResult.bullets && Array.isArray(parsedResult.bullets)) {
+      if (
+        parsedResult &&
+        parsedResult.bullets &&
+        Array.isArray(parsedResult.bullets)
+      ) {
         setAiGeneratedSuggestions(parsedResult);
         setHasGenerated(true);
         setCanRegenerate(false);
-        
+
         // Update AI generation timestamp
         if (resumeId && email) {
-          await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'experience');
+          await EncryptedFirebaseService.updateAiGenerationTimestamp(
+            email,
+            resumeId,
+            "experience",
+          );
           setCooldownTimeRemaining(24); // Set 24-hour cooldown
         }
-        
+
         toast.success("AI suggestions generated successfully!");
       } else {
         toast.error("Invalid response format from AI. Please try again.");
@@ -150,8 +192,8 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
     // Create a mock event object that matches what the parent component expects
     const mockEvent = {
       target: {
-        value: newValue
-      }
+        value: newValue,
+      },
     };
     // Trigger the parent component's change handler
     if (onRichTextEditorChange) {
@@ -164,16 +206,16 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
     if (aiGeneratedSuggestions && aiGeneratedSuggestions.bullets) {
       // Combine all bullet points into a single HTML list
       const allBullets = aiGeneratedSuggestions.bullets
-        .map(bullet => `<li>${bullet}</li>`)
-        .join('');
+        .map((bullet) => `<li>${bullet}</li>`)
+        .join("");
       const combinedContent = `<ul>${allBullets}</ul>`;
-      
+
       setValue(combinedContent);
       // Create a mock event object that matches what the parent component expects
       const mockEvent = {
         target: {
-          value: combinedContent
-        }
+          value: combinedContent,
+        },
       };
       // Trigger the parent component's change handler
       if (onRichTextEditorChange) {
@@ -185,10 +227,12 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
 
   const handleRegenerateContent = () => {
     if (!canRegenerate) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`,
+      );
       return;
     }
-    
+
     setHasGenerated(false);
     setAiGeneratedSuggestions(null);
     GenerateSummaryFromaI();
@@ -216,28 +260,31 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
         <label className="text-xs font-medium">Summary</label>
         <div className="flex gap-2">
           <AIButton
-            onClick={hasGenerated ? handleRegenerateContent : GenerateSummaryFromaI}
+            onClick={
+              hasGenerated ? handleRegenerateContent : GenerateSummaryFromaI
+            }
             loading={loading}
             loadingText="Creating content..."
             disabled={loading || (!canRegenerate && hasGenerated)}
             size="sm"
-            className={`text-xs h-8 ${!canRegenerate && hasGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`text-xs h-8 ${!canRegenerate && hasGenerated ? "opacity-50 cursor-not-allowed" : ""}`}
             style={{
-              opacity: !canRegenerate && hasGenerated ? '0.5' : '1',
-              cursor: !canRegenerate && hasGenerated ? 'not-allowed' : 'pointer'
+              opacity: !canRegenerate && hasGenerated ? "0.5" : "1",
+              cursor:
+                !canRegenerate && hasGenerated ? "not-allowed" : "pointer",
             }}
           >
-            {hasGenerated && !canRegenerate ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}` : 
-             hasGenerated ? "Regenerate Content" : "Generate Content"}
+            {hasGenerated && !canRegenerate
+              ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}`
+              : hasGenerated
+                ? "Regenerate Content"
+                : "Generate Content"}
           </AIButton>
         </div>
       </div>
 
       <EditorProvider>
-        <Editor
-          value={value}
-          onChange={handleEditorChange}
-        >
+        <Editor value={value} onChange={handleEditorChange}>
           <Toolbar>
             <BtnBold />
             <BtnItalic />
@@ -261,7 +308,9 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
                 <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-center">
                   <Brain className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
                 </div>
-                <h4 className="font-bold text-sm sm:text-base text-gray-900">AI Suggestions</h4>
+                <h4 className="font-bold text-sm sm:text-base text-gray-900">
+                  AI Suggestions
+                </h4>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button
@@ -276,9 +325,11 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
                   variant="outline"
                   size="sm"
                   disabled={!canRegenerate}
-                  className={`border-violet-300 hover:border-[rgb(63,39,34)] text-violet-700 hover:bg-violet-50 text-sm sm:text-xs h-8 w-full sm:w-auto ${!canRegenerate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`border-violet-300 hover:border-[rgb(63,39,34)] text-violet-700 hover:bg-violet-50 text-sm sm:text-xs h-8 w-full sm:w-auto ${!canRegenerate ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
-                  {canRegenerate ? 'Regenerate' : `Available in ${formatCooldownTime(cooldownTimeRemaining)}`}
+                  {canRegenerate
+                    ? "Regenerate"
+                    : `Available in ${formatCooldownTime(cooldownTimeRemaining)}`}
                 </Button>
               </div>
             </div>
@@ -286,7 +337,10 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue, jobTitle,
             {/* Rest of the suggestions display */}
             <div className="space-y-3">
               {aiGeneratedSuggestions.bullets.map((bullet, bulletIndex) => (
-                <div key={bulletIndex} className="p-2 sm:p-3 bg-white rounded border hover:border-violet-300 transition-colors">
+                <div
+                  key={bulletIndex}
+                  className="p-2 sm:p-3 bg-white rounded border hover:border-violet-300 transition-colors"
+                >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <p className="text-sm text-gray-700 flex-1">{bullet}</p>
                     <Button

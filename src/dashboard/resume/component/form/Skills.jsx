@@ -1,5 +1,12 @@
 import { Input } from "@/components/ui/input";
-import { useContext, useEffect, useState, useCallback, useRef, memo } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  memo,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, Brain } from "lucide-react";
 import { AIButton } from "@/components/ui/ai-button";
@@ -18,7 +25,7 @@ const prompt = `Given the job title "{jobTitle}", provide skill suggestions orga
 const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
   const [skillsList, setSkillsList] = useState(() =>
-    resumeInfo?.skills?.length > 0 ? resumeInfo.skills : [formField]
+    resumeInfo?.skills?.length > 0 ? resumeInfo.skills : [formField],
   );
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -27,7 +34,7 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const [canRegenerate, setCanRegenerate] = useState(true);
   const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState(0);
   const intervalRef = useRef(null);
-  
+
   // Track previous data to prevent unnecessary context updates
   const previousDataRef = useRef(null);
   const hasInitialized = useRef(false);
@@ -48,18 +55,24 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
   // Optimized context update - only when data actually changes
   useEffect(() => {
     if (!hasInitialized.current || isContextUpdating.current) return;
-    
+
     const currentDataString = JSON.stringify(skillsList);
     if (currentDataString !== previousDataRef.current) {
       // Only update if skills data has meaningful content
-      if (skillsList && skillsList.length > 0 && skillsList.some(skill => skill.category?.trim() || skill.skills?.trim())) {
+      if (
+        skillsList &&
+        skillsList.length > 0 &&
+        skillsList.some(
+          (skill) => skill.category?.trim() || skill.skills?.trim(),
+        )
+      ) {
         isContextUpdating.current = true;
         setResumeInfo((prev) => ({
           ...prev,
           skills: skillsList,
         }));
         previousDataRef.current = currentDataString;
-        
+
         setTimeout(() => {
           isContextUpdating.current = false;
         }, 100);
@@ -68,31 +81,42 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
   }, [skillsList, setResumeInfo]);
 
   // Auto-save function
-  const autoSave = useCallback(async (skillsData) => {
-    // Skip auto-save if in template mode or no resumeId
-    if (isTemplateMode || !resumeId) {
-      enableNext(true);
-      return;
-    }
-    
-    setIsAutoSaving(true);
-    try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'skills', skillsData);
-      enableNext(true);
-    } catch (error) {
-      console.error("Error auto-saving encrypted skills:", error);
-      toast.error("Auto-save failed. Please check your connection.");
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [email, resumeId, enableNext, isTemplateMode]);
+  const autoSave = useCallback(
+    async (skillsData) => {
+      // Skip auto-save if in template mode or no resumeId
+      if (isTemplateMode || !resumeId) {
+        enableNext(true);
+        return;
+      }
+
+      setIsAutoSaving(true);
+      try {
+        await EncryptedFirebaseService.updateResumeField(
+          email,
+          resumeId,
+          "skills",
+          skillsData,
+        );
+        enableNext(true);
+      } catch (error) {
+        console.error("Error auto-saving encrypted skills:", error);
+        toast.error("Auto-save failed. Please check your connection.");
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [email, resumeId, enableNext, isTemplateMode],
+  );
 
   // Debounced auto-save
   useEffect(() => {
     if (!hasInitialized.current) return;
-    
+
     const timeoutId = setTimeout(() => {
-      if (skillsList.length > 0 && skillsList.some(skill => skill.category?.trim())) {
+      if (
+        skillsList.length > 0 &&
+        skillsList.some((skill) => skill.category?.trim())
+      ) {
         const skillsData = skillsList.map((skill) => ({
           category: skill.category || "",
           skills: skill.skills || "",
@@ -121,8 +145,8 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
     // Update cooldown timer every minute if in cooldown
     if (!canRegenerate && cooldownTimeRemaining > 0) {
       intervalRef.current = setInterval(() => {
-        setCooldownTimeRemaining(prev => {
-          const newTime = prev - (1/60); // Subtract 1 minute in hours
+        setCooldownTimeRemaining((prev) => {
+          const newTime = prev - 1 / 60; // Subtract 1 minute in hours
           if (newTime <= 0) {
             setCanRegenerate(true);
             clearInterval(intervalRef.current);
@@ -142,32 +166,45 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const checkAiGenerationCooldown = async () => {
     if (!resumeId || !email || isTemplateMode) return;
-    
+
     try {
-      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
-      const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'skills');
-      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'skills');
-      
+      const resumeData = await EncryptedFirebaseService.getResumeData(
+        email,
+        resumeId,
+      );
+      const canRegen = EncryptedFirebaseService.canRegenerateAI(
+        resumeData.aiGenerationTimestamps,
+        "skills",
+      );
+      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(
+        resumeData.aiGenerationTimestamps,
+        "skills",
+      );
+
       setCanRegenerate(canRegen);
       setCooldownTimeRemaining(timeRemaining);
-      
+
       if (resumeData.aiGenerationTimestamps?.skills) {
         setHasGenerated(true);
       }
     } catch (error) {
-      console.error('Error checking AI cooldown:', error);
+      console.error("Error checking AI cooldown:", error);
     }
   };
 
   const generateSkillSuggestions = async () => {
     if (!canRegenerate) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`,
+      );
       return;
     }
 
     const jobTitle = resumeInfo?.personalDetail?.jobTitle;
     if (!jobTitle) {
-      toast.error("Please add your job title first in Personal Details section");
+      toast.error(
+        "Please add your job title first in Personal Details section",
+      );
       return;
     }
 
@@ -175,14 +212,18 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
     try {
       const PROMPT = prompt.replace("{jobTitle}", jobTitle);
       const aiResponse = await AIchatSession.sendMessage(PROMPT);
-      
+
       let responseText = aiResponse;
-      if (typeof aiResponse === 'object' && aiResponse.response && aiResponse.response.text) {
+      if (
+        typeof aiResponse === "object" &&
+        aiResponse.response &&
+        aiResponse.response.text
+      ) {
         responseText = aiResponse.response.text();
-      } else if (typeof aiResponse === 'object' && aiResponse.response) {
+      } else if (typeof aiResponse === "object" && aiResponse.response) {
         responseText = aiResponse.response;
       }
-      
+
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseText);
@@ -191,24 +232,28 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
         } else {
-          throw new Error('Failed to parse AI response as JSON');
+          throw new Error("Failed to parse AI response as JSON");
         }
       }
 
       if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
-        throw new Error('Invalid response format from AI');
+        throw new Error("Invalid response format from AI");
       }
 
       setAiGeneratedSkills(parsedResponse);
       setHasGenerated(true);
       setCanRegenerate(false);
-      
+
       // Update AI generation timestamp
       if (resumeId && email) {
-        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'skills');
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(
+          email,
+          resumeId,
+          "skills",
+        );
         setCooldownTimeRemaining(24); // Set 24-hour cooldown
       }
-      
+
       toast.success("AI skills generated successfully!");
     } catch (error) {
       console.error("Error generating skills:", error);
@@ -250,7 +295,9 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full">
             <div>
               <h2 className="font-bold text-lg sm:text-xl">Skills</h2>
-              <p className="text-sm sm:text-base text-gray-600">Add your technical skills by category</p>
+              <p className="text-sm sm:text-base text-gray-600">
+                Add your technical skills by category
+              </p>
             </div>
             <div className="flex items-center gap-3">
               {isAutoSaving && (
@@ -264,14 +311,18 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 loading={aiLoading}
                 loadingText="Creating skills..."
                 disabled={aiLoading || (!canRegenerate && hasGenerated)}
-                className={`w-full sm:w-auto ${!canRegenerate && hasGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full sm:w-auto ${!canRegenerate && hasGenerated ? "opacity-50 cursor-not-allowed" : ""}`}
                 style={{
-                  opacity: !canRegenerate && hasGenerated ? '0.5' : '1',
-                  cursor: !canRegenerate && hasGenerated ? 'not-allowed' : 'pointer'
+                  opacity: !canRegenerate && hasGenerated ? "0.5" : "1",
+                  cursor:
+                    !canRegenerate && hasGenerated ? "not-allowed" : "pointer",
                 }}
               >
-                {hasGenerated && !canRegenerate ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}` : 
-                 hasGenerated ? "Regenerate Skills" : "Generate Skills"}
+                {hasGenerated && !canRegenerate
+                  ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}`
+                  : hasGenerated
+                    ? "Regenerate Skills"
+                    : "Generate Skills"}
               </AIButton>
             </div>
           </div>
@@ -295,7 +346,9 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 />
               </div>
               <div className="w-full">
-                <label className="text-xs font-medium">Skills (comma-separated)</label>
+                <label className="text-xs font-medium">
+                  Skills (comma-separated)
+                </label>
                 <Input
                   value={item.skills}
                   className="w-full"
@@ -331,7 +384,9 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
       {aiGeneratedSkills && (
         <div className="mt-5 w-full">
           <div className="p-3 sm:p-5 shadow-lg rounded-lg">
-            <h2 className="font-bold text-base sm:text-lg mb-3">AI Skill Suggestions</h2>
+            <h2 className="font-bold text-base sm:text-lg mb-3">
+              AI Skill Suggestions
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               {aiGeneratedSkills.map((skillCategory, index) => (
                 <div
@@ -347,10 +402,7 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 </div>
               ))}
             </div>
-            <Button 
-              onClick={applyAiSkills}
-              className="w-full"
-            >
+            <Button onClick={applyAiSkills} className="w-full">
               Apply These Skills
             </Button>
           </div>

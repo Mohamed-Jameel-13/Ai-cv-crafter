@@ -1,4 +1,4 @@
-const SummaryDetails = ({resumeInfo}) => {
+const SummaryDetails = ({ resumeInfo }) => {
   if (!resumeInfo || !resumeInfo.personalDetail) {
     return (
       <div className="text-center text-gray-500 text-sm font-medium py-4">
@@ -6,9 +6,7 @@ const SummaryDetails = ({resumeInfo}) => {
       </div>
     );
   }
-  return (
-   <p className="text-xs text-justify ">{resumeInfo?.summary}</p>
-  )
-}
+  return <p className="text-xs text-justify ">{resumeInfo?.summary}</p>;
+};
 
-export default SummaryDetails
+export default SummaryDetails;

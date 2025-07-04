@@ -1,23 +1,23 @@
-import React from 'react';
-import styled from 'styled-components';
-import { Brain, Loader2, Sparkles } from 'lucide-react';
+import React from "react";
+import styled from "styled-components";
+import { Brain, Loader2, Sparkles } from "lucide-react";
 
-const AIButton = ({ 
-  onClick, 
-  loading = false, 
-  disabled = false, 
-  size = 'sm',
-  className = '',
+const AIButton = ({
+  onClick,
+  loading = false,
+  disabled = false,
+  size = "sm",
+  className = "",
   children,
-  loadingText = 'Generating...',
-  icon = 'brain' // 'brain', 'sparkles', or custom element
+  loadingText = "Generating...",
+  icon = "brain", // 'brain', 'sparkles', or custom element
 }) => {
-  const IconComponent = icon === 'sparkles' ? Sparkles : Brain;
+  const IconComponent = icon === "sparkles" ? Sparkles : Brain;
 
   const sizeStyles = {
-    sm: { padding: '0.6em 1em', fontSize: '14px' },
-    md: { padding: '0.8em 1.2em', fontSize: '16px' },
-    lg: { padding: '1em 1.5em', fontSize: '18px' }
+    sm: { padding: "0.6em 1em", fontSize: "14px" },
+    md: { padding: "0.8em 1.2em", fontSize: "16px" },
+    lg: { padding: "1em 1.5em", fontSize: "18px" },
   };
 
   return (
@@ -36,9 +36,13 @@ const AIButton = ({
             </>
           ) : (
             <>
-              {React.isValidElement(icon) ? icon : <IconComponent className="icon" />}
+              {React.isValidElement(icon) ? (
+                icon
+              ) : (
+                <IconComponent className="icon" />
+              )}
               <span className="text hidden sm:inline">
-                {children || 'Generate with AI'}
+                {children || "Generate with AI"}
               </span>
               <span className="text-mobile sm:hidden">AI</span>
             </>
@@ -95,7 +99,7 @@ const StyledWrapper = styled.div`
 const StyledButton = styled.button`
   position: relative;
   margin: 0;
-  padding: ${props => props.$sizeStyles.padding};
+  padding: ${(props) => props.$sizeStyles.padding};
   outline: none;
   text-decoration: none;
   display: flex;
@@ -107,7 +111,7 @@ const StyledButton = styled.button`
   border-radius: 10px;
   color: #fff;
   font-weight: 500;
-  font-size: ${props => props.$sizeStyles.fontSize};
+  font-size: ${(props) => props.$sizeStyles.fontSize};
   font-family: inherit;
   z-index: 0;
   overflow: hidden;
@@ -179,7 +183,7 @@ const StyledButton = styled.button`
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     right: 0;
     bottom: 0;
@@ -188,7 +192,9 @@ const StyledButton = styled.button`
     border-radius: 50%;
     background: #fff;
     opacity: 0;
-    transition: transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+    transition:
+      transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1),
+      opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
     z-index: -1;
     transform: translate(100%, -25%) translate3d(0, 0, 0);
   }
@@ -196,7 +202,9 @@ const StyledButton = styled.button`
   &:hover:not(:disabled)::before,
   &:hover:not(:disabled)::after {
     opacity: 0.15;
-    transition: transform 0.2s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.2s cubic-bezier(0.02, 0.01, 0.47, 1);
+    transition:
+      transform 0.2s cubic-bezier(0.02, 0.01, 0.47, 1),
+      opacity 0.2s cubic-bezier(0.02, 0.01, 0.47, 1);
   }
 
   &:hover:not(:disabled)::before {
@@ -208,4 +216,4 @@ const StyledButton = styled.button`
   }
 `;
 
-export { AIButton }; 
+export { AIButton };

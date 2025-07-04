@@ -39,8 +39,8 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
     // Update cooldown timer every minute if in cooldown
     if (!canRegenerate && cooldownTimeRemaining > 0) {
       intervalRef.current = setInterval(() => {
-        setCooldownTimeRemaining(prev => {
-          const newTime = prev - (1/60); // Subtract 1 minute in hours
+        setCooldownTimeRemaining((prev) => {
+          const newTime = prev - 1 / 60; // Subtract 1 minute in hours
           if (newTime <= 0) {
             setCanRegenerate(true);
             clearInterval(intervalRef.current);
@@ -60,42 +60,59 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const checkAiGenerationCooldown = async () => {
     if (!resumeId || !email || isTemplateMode) return;
-    
+
     try {
-      const resumeData = await EncryptedFirebaseService.getResumeData(email, resumeId);
-      const canRegen = EncryptedFirebaseService.canRegenerateAI(resumeData.aiGenerationTimestamps, 'summary');
-      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(resumeData.aiGenerationTimestamps, 'summary');
-      
+      const resumeData = await EncryptedFirebaseService.getResumeData(
+        email,
+        resumeId,
+      );
+      const canRegen = EncryptedFirebaseService.canRegenerateAI(
+        resumeData.aiGenerationTimestamps,
+        "summary",
+      );
+      const timeRemaining = EncryptedFirebaseService.getAiCooldownTimeRemaining(
+        resumeData.aiGenerationTimestamps,
+        "summary",
+      );
+
       setCanRegenerate(canRegen);
       setCooldownTimeRemaining(timeRemaining);
-      
+
       if (resumeData.aiGenerationTimestamps?.summary) {
         setHasGenerated(true);
       }
     } catch (error) {
-      console.error('Error checking AI cooldown:', error);
+      console.error("Error checking AI cooldown:", error);
     }
   };
 
   // Auto-save function
-  const autoSave = useCallback(async (summaryData) => {
-    // Skip auto-save if in template mode or no resumeId
-    if (isTemplateMode || !resumeId) {
-      enableNext(true);
-      return;
-    }
-    
-    setIsAutoSaving(true);
-    try {
-      await EncryptedFirebaseService.updateResumeField(email, resumeId, 'summary', summaryData);
-      enableNext(true);
-    } catch (error) {
-      console.error("Error auto-saving encrypted summary:", error);
-      toast.error("Auto-save failed. Please check your connection.");
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [email, resumeId, enableNext, isTemplateMode]);
+  const autoSave = useCallback(
+    async (summaryData) => {
+      // Skip auto-save if in template mode or no resumeId
+      if (isTemplateMode || !resumeId) {
+        enableNext(true);
+        return;
+      }
+
+      setIsAutoSaving(true);
+      try {
+        await EncryptedFirebaseService.updateResumeField(
+          email,
+          resumeId,
+          "summary",
+          summaryData,
+        );
+        enableNext(true);
+      } catch (error) {
+        console.error("Error auto-saving encrypted summary:", error);
+        toast.error("Auto-save failed. Please check your connection.");
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [email, resumeId, enableNext, isTemplateMode],
+  );
 
   // Debounced auto-save
   useEffect(() => {
@@ -108,13 +125,17 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const generateSummary = async () => {
     if (!canRegenerate) {
-      toast.error(`AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`);
+      toast.error(
+        `AI regeneration available in ${Math.ceil(cooldownTimeRemaining)} hours`,
+      );
       return;
     }
 
     const jobTitle = resumeInfo?.personalDetail?.jobTitle;
     if (!jobTitle) {
-      toast.error("Please add your job title first in Personal Details section");
+      toast.error(
+        "Please add your job title first in Personal Details section",
+      );
       return;
     }
 
@@ -122,12 +143,16 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
     try {
       const finalPrompt = prompt.replace("{jobTitle}", jobTitle);
       const result = await AIchatSession.sendMessage(finalPrompt);
-      
+
       // Handle response text extraction
       let responseText = result;
-      if (typeof result === 'object' && result.response && result.response.text) {
+      if (
+        typeof result === "object" &&
+        result.response &&
+        result.response.text
+      ) {
         responseText = result.response.text();
-      } else if (typeof result === 'object' && result.response) {
+      } else if (typeof result === "object" && result.response) {
         responseText = result.response;
       }
 
@@ -139,29 +164,35 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
         } else {
-          throw new Error('Failed to parse AI response as JSON');
+          throw new Error("Failed to parse AI response as JSON");
         }
       }
 
       if (!Array.isArray(parsedResponse) || parsedResponse.length === 0) {
-        throw new Error('Invalid response format from AI');
+        throw new Error("Invalid response format from AI");
       }
 
       console.log("Parsed Response:", parsedResponse);
       setAiGenerateSummeryList(parsedResponse);
       setHasGenerated(true);
       setCanRegenerate(false);
-      
+
       // Update AI generation timestamp
       if (resumeId && email) {
-        await EncryptedFirebaseService.updateAiGenerationTimestamp(email, resumeId, 'summary');
+        await EncryptedFirebaseService.updateAiGenerationTimestamp(
+          email,
+          resumeId,
+          "summary",
+        );
         setCooldownTimeRemaining(24); // Set 24-hour cooldown
       }
-      
+
       toast.success("AI suggestions generated successfully!");
     } catch (error) {
       console.error("Error generating summaries:", error);
-      toast.error(error.message || "Failed to generate summaries. Please try again.");
+      toast.error(
+        error.message || "Failed to generate summaries. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -185,7 +216,9 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="font-bold text-lg sm:text-xl">Summary Detail</h2>
-            <p className="text-sm sm:text-base text-gray-600">Add Summary for your job title</p>
+            <p className="text-sm sm:text-base text-gray-600">
+              Add Summary for your job title
+            </p>
           </div>
           {isAutoSaving && (
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -202,14 +235,18 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
               loading={loading}
               loadingText="Creating summaries..."
               disabled={loading || (!canRegenerate && hasGenerated)}
-              className={`w-full sm:w-auto ${!canRegenerate && hasGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full sm:w-auto ${!canRegenerate && hasGenerated ? "opacity-50 cursor-not-allowed" : ""}`}
               style={{
-                opacity: !canRegenerate && hasGenerated ? '0.5' : '1',
-                cursor: !canRegenerate && hasGenerated ? 'not-allowed' : 'pointer'
+                opacity: !canRegenerate && hasGenerated ? "0.5" : "1",
+                cursor:
+                  !canRegenerate && hasGenerated ? "not-allowed" : "pointer",
               }}
             >
-              {hasGenerated && !canRegenerate ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}` : 
-               hasGenerated ? "Regenerate Summary" : "Generate Summary"}
+              {hasGenerated && !canRegenerate
+                ? `Available in ${formatCooldownTime(cooldownTimeRemaining)}`
+                : hasGenerated
+                  ? "Regenerate Summary"
+                  : "Generate Summary"}
             </AIButton>
           </div>
           <Textarea
@@ -226,7 +263,9 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
       {aiGeneratedSummeryList && (
         <div className="mt-5 w-full">
           <div className="p-3 sm:p-5 shadow-lg rounded-lg">
-            <h2 className="font-bold text-base sm:text-lg mb-3">AI Generated Summaries</h2>
+            <h2 className="font-bold text-base sm:text-lg mb-3">
+              AI Generated Summaries
+            </h2>
             <div className="space-y-3">
               {aiGeneratedSummeryList.map((item, index) => (
                 <div

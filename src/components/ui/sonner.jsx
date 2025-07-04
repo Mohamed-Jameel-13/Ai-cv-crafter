@@ -1,4 +1,4 @@
-import { Toaster as Sonner } from "sonner"
+import { Toaster as Sonner } from "sonner";
 
 export function Toaster(props) {
   return (
@@ -12,7 +12,7 @@ export function Toaster(props) {
       style={{ zIndex: 9999 }}
       toastOptions={{
         style: {
-          pointerEvents: 'auto',
+          pointerEvents: "auto",
         },
         classNames: {
           toast:
@@ -26,6 +26,5 @@ export function Toaster(props) {
       }}
       {...props}
     />
-  )
+  );
 }
-

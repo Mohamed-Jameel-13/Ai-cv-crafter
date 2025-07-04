@@ -15,7 +15,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2Icon, MoreVertical, CheckSquare, Square, Share2, Edit3, Eye, Download, Trash2 } from "lucide-react";
+import {
+  Loader2Icon,
+  MoreVertical,
+  CheckSquare,
+  Square,
+  Share2,
+  Edit3,
+  Eye,
+  Download,
+  Trash2,
+} from "lucide-react";
 import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,9 +34,16 @@ import { app } from "@/utils/firebase_config";
 import { UserContext } from "@/context/UserContext";
 import Logger from "@/utils/logger";
 
-const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected, onSelect }) => {
+const ResumeItem = ({
+  resume,
+  refreshData,
+  onDelete,
+  isSelectionMode,
+  isSelected,
+  onSelect,
+}) => {
   const navigate = useNavigate();
-  const { user } = useContext(UserContext); 
+  const { user } = useContext(UserContext);
   const [openAlert, setOpenAlert] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -34,35 +51,37 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
   // Utility function to restore focus and clear any stuck states
   const restoreFocusAndInteraction = () => {
     Logger.log("🔄 Restoring focus and clearing stuck states");
-    
+
     // Clear any active element focus
     if (document.activeElement && document.activeElement !== document.body) {
       document.activeElement.blur();
     }
-    
+
     // Remove any stuck aria-hidden attributes
-    const ariaHiddenElements = document.querySelectorAll('[aria-hidden="true"]');
-    ariaHiddenElements.forEach(el => {
+    const ariaHiddenElements = document.querySelectorAll(
+      '[aria-hidden="true"]',
+    );
+    ariaHiddenElements.forEach((el) => {
       if (el.contains(document.activeElement)) {
         Logger.log("🔄 Removing problematic aria-hidden");
-        el.removeAttribute('aria-hidden');
+        el.removeAttribute("aria-hidden");
       }
     });
-    
+
     // Focus on app root
-    const appRoot = document.getElementById('app-root');
+    const appRoot = document.getElementById("app-root");
     if (appRoot) {
       appRoot.focus();
     } else {
       document.body.focus();
     }
-    
+
     // Force re-enable pointer events on body and all children
-    document.body.style.pointerEvents = 'auto';
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach(el => {
-      if (el.style.pointerEvents === 'none') {
-        el.style.pointerEvents = 'auto';
+    document.body.style.pointerEvents = "auto";
+    const allElements = document.querySelectorAll("*");
+    allElements.forEach((el) => {
+      if (el.style.pointerEvents === "none") {
+        el.style.pointerEvents = "auto";
       }
     });
   };
@@ -79,13 +98,13 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       }, 100);
     };
 
-    document.addEventListener('click', handleGlobalClick);
-    return () => document.removeEventListener('click', handleGlobalClick);
+    document.addEventListener("click", handleGlobalClick);
+    return () => document.removeEventListener("click", handleGlobalClick);
   }, []);
 
   const handleDelete = async () => {
     Logger.log("🔄 Starting deletion process...");
-    
+
     if (!user?.email) {
       Logger.log("❌ No user email");
       return;
@@ -107,10 +126,10 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       Logger.log("🔄 Deleting from Firestore...");
       await deleteDoc(resumeRef);
       Logger.log("✅ Firestore deletion successful");
-      
+
       Logger.log("🔄 Closing dialog...");
       setOpenAlert(false);
-      
+
       Logger.log("🔄 Updating UI...");
       // Use onDelete callback to immediately remove from UI without refetching
       if (onDelete) {
@@ -119,18 +138,17 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
         // Fallback to refreshData if onDelete is not provided
         refreshData(true);
       }
-      
+
       Logger.log("✅ Resume deleted successfully!");
-      
+
       // Restore focus to prevent focus trapping
       setTimeout(() => {
         restoreFocusAndInteraction();
       }, 300);
-      
     } catch (error) {
       Logger.error("❌ Error deleting resume:", error);
     }
-    
+
     Logger.log("🔄 Setting isDeleting to false");
     setIsDeleting(false);
     Logger.log("✅ Deletion process complete");
@@ -177,7 +195,11 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
 
     try {
       // Check if Web Share API is supported (mobile devices)
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
         await navigator.share(shareData);
         toast.success("Resume shared successfully!");
       } else {
@@ -189,11 +211,11 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       console.error("Error sharing resume:", error);
       // Final fallback - try to copy to clipboard manually
       try {
-        const textArea = document.createElement('textarea');
+        const textArea = document.createElement("textarea");
         textArea.value = shareUrl;
         document.body.appendChild(textArea);
         textArea.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         document.body.removeChild(textArea);
         toast.success("Resume link copied to clipboard!");
       } catch (fallbackError) {
@@ -201,16 +223,16 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
         toast.error("Unable to share resume. Please try again.");
       }
     }
-    
+
     // Close the dropdown
     setDropdownOpen(false);
   };
 
   return (
-    <div className={`relative ${isSelectionMode ? 'cursor-pointer' : ''}`}>
+    <div className={`relative ${isSelectionMode ? "cursor-pointer" : ""}`}>
       {/* Selection Checkbox */}
       {isSelectionMode && (
-        <div 
+        <div
           className="absolute top-2 left-2 z-10 bg-white rounded-full p-1 shadow-lg border border-gray-200"
           onClick={(e) => {
             e.stopPropagation();
@@ -224,15 +246,15 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
           )}
         </div>
       )}
-      
+
       {/* Resume Card */}
       <div onClick={handleCardClick}>
         {isSelectionMode ? (
           <div
             className={`p-4 sm:p-8 md:p-12 lg:p-14 bg-gradient-to-bl from-slate-200 to-slate-50 h-[200px] sm:h-[240px] md:h-[260px] lg:h-[280px] rounded-t-lg border-t-4 transition-all ${
-              isSelected 
-                ? 'ring-2 ring-blue-500 border-blue-500 bg-gradient-to-bl from-blue-50 to-blue-100' 
-                : 'hover:shadow-md'
+              isSelected
+                ? "ring-2 ring-blue-500 border-blue-500 bg-gradient-to-bl from-blue-50 to-blue-100"
+                : "hover:shadow-md"
             }`}
             style={{
               borderColor: isSelected ? "rgb(59, 130, 246)" : "rgb(62,39,35)",
@@ -243,7 +265,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
                 src="https://cdn-icons-png.flaticon.com/512/5988/5988999.png"
                 alt="Resume icon"
                 className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 transition-all ${
-                  !isSelected ? 'hover:rotate-6 hover:scale-125' : ''
+                  !isSelected ? "hover:rotate-6 hover:scale-125" : ""
                 }`}
               />
             </div>
@@ -269,80 +291,88 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
       </div>
       <div
         className={`border p-2 sm:p-3 flex justify-between items-center text-white rounded-b-lg shadow-lg transition-all ${
-          isSelectionMode && isSelected ? 'ring-2 ring-blue-500' : ''
+          isSelectionMode && isSelected ? "ring-2 ring-blue-500" : ""
         }`}
         style={{
-          background: isSelectionMode && isSelected ? "rgb(59, 130, 246)" : "rgb(62,39,35)",
+          background:
+            isSelectionMode && isSelected
+              ? "rgb(59, 130, 246)"
+              : "rgb(62,39,35)",
         }}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
           {isSelectionMode && isSelected && (
             <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 text-white flex-shrink-0" />
           )}
-          <h2 className="text-xs sm:text-sm truncate font-medium min-w-0">{resume.title}</h2>
+          <h2 className="text-xs sm:text-sm truncate font-medium min-w-0">
+            {resume.title}
+          </h2>
         </div>
 
         {!isSelectionMode && (
           <div className="flex-shrink-0">
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenuTrigger asChild>
-                <button 
+                <button
                   className="p-1 rounded hover:bg-gray-700/20 transition-colors"
                   aria-label="Resume actions"
                 >
                   <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
                 </button>
               </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem
-              onClick={handleEditClick}
-            >
-              <Edit3 className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => navigate(`/dashboard/${user.email}/${resume.resumeId}/view`)}
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              View
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleShare}
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => navigate(`/dashboard/${user.email}/${resume.resumeId}/view`)}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => {
-                console.log("🔄 Delete menu item clicked, isDeleting:", isDeleting);
-                if (!isDeleting) {
-                  console.log("🔄 Opening delete dialog...");
-                  setDropdownOpen(false); // Close dropdown first
-                  setTimeout(() => {
-                    setOpenAlert(true);
-                  }, 100); // Small delay to ensure dropdown closes
-                } else {
-                  console.log("⚠️ Cannot open dialog - currently deleting");
-                }
-              }}
-              disabled={isDeleting}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleEditClick}>
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/dashboard/${user.email}/${resume.resumeId}/view`)
+                  }
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  View
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleShare}>
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(`/dashboard/${user.email}/${resume.resumeId}/view`)
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    console.log(
+                      "🔄 Delete menu item clicked, isDeleting:",
+                      isDeleting,
+                    );
+                    if (!isDeleting) {
+                      console.log("🔄 Opening delete dialog...");
+                      setDropdownOpen(false); // Close dropdown first
+                      setTimeout(() => {
+                        setOpenAlert(true);
+                      }, 100); // Small delay to ensure dropdown closes
+                    } else {
+                      console.log("⚠️ Cannot open dialog - currently deleting");
+                    }
+                  }}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
 
-        <AlertDialog 
-          open={openAlert} 
+        <AlertDialog
+          open={openAlert}
           onOpenChange={(open) => {
             console.log("🔄 AlertDialog onOpenChange:", open);
             if (!open && !isDeleting) {
@@ -370,7 +400,7 @@ const ResumeItem = ({ resume, refreshData, onDelete, isSelectionMode, isSelected
               >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction 
+              <AlertDialogAction
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="bg-red-600 hover:bg-red-700"

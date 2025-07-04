@@ -1,7 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import ResumeItem from "./components/ResumeItem";
 import { UserContext } from "@/context/UserContext";
-import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 import { app } from "../utils/firebase_config";
 import Logger from "@/utils/logger";
 import Header from "@/components/custom/Header";
@@ -46,19 +52,19 @@ const Dashboard = () => {
       }
     };
 
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [user]);
 
   const getResumesList = async (isRefresh = false) => {
     try {
       Logger.log("🔄 getResumesList called, isRefresh:", isRefresh);
-      
+
       // Only show loading spinner on initial load, not on refresh after deletion
       if (!isRefresh) {
         setLoading(true);
       }
-      
+
       const db = getFirestore(app);
       const resumesRef = collection(db, "usersByEmail", user.email, "resumes");
       const querySnapshot = await getDocs(resumesRef);
@@ -68,7 +74,11 @@ const Dashboard = () => {
         ...doc.data(),
       }));
 
-      Logger.log("📊 Resumes fetched from Firestore:", resumes.length, "resumes");
+      Logger.log(
+        "📊 Resumes fetched from Firestore:",
+        resumes.length,
+        "resumes",
+      );
       setResumeList(resumes);
     } catch (error) {
       Logger.error("❌ Error fetching resumes: ", error);
@@ -86,9 +96,9 @@ const Dashboard = () => {
   };
 
   const handleSelectResume = (resumeId) => {
-    setSelectedResumes(prev => {
+    setSelectedResumes((prev) => {
       if (prev.includes(resumeId)) {
-        return prev.filter(id => id !== resumeId);
+        return prev.filter((id) => id !== resumeId);
       } else {
         return [...prev, resumeId];
       }
@@ -99,35 +109,38 @@ const Dashboard = () => {
     if (selectedResumes.length === resumeList.length) {
       setSelectedResumes([]);
     } else {
-      setSelectedResumes(resumeList.map(resume => resume.id));
+      setSelectedResumes(resumeList.map((resume) => resume.id));
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedResumes.length === 0) return;
-    
+
     setIsDeleting(true);
-    
+
     try {
       const db = getFirestore(app);
       const resumesRef = collection(db, "usersByEmail", user.email, "resumes");
-      
+
       // Delete all selected resumes
-      const deletePromises = selectedResumes.map(resumeId => {
+      const deletePromises = selectedResumes.map((resumeId) => {
         const resumeRef = doc(resumesRef, resumeId);
         return deleteDoc(resumeRef);
       });
-      
+
       await Promise.all(deletePromises);
-      
+
       // Update local state
-      setResumeList(prev => prev.filter(resume => !selectedResumes.includes(resume.id)));
+      setResumeList((prev) =>
+        prev.filter((resume) => !selectedResumes.includes(resume.id)),
+      );
       setSelectedResumes([]);
       setIsSelectionMode(false);
       setShowDeleteAlert(false);
-      
-      toast.success(`Successfully deleted ${selectedResumes.length} resume${selectedResumes.length > 1 ? 's' : ''}`);
-      
+
+      toast.success(
+        `Successfully deleted ${selectedResumes.length} resume${selectedResumes.length > 1 ? "s" : ""}`,
+      );
     } catch (error) {
       Logger.error("❌ Error deleting resumes:", error);
       toast.error("Failed to delete resumes. Please try again.");
@@ -138,16 +151,18 @@ const Dashboard = () => {
 
   return (
     <div>
-        <Header />
+      <Header />
       <div className="p-4 sm:p-6 md:p-10 md:px-20 lg:px-32">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
             <h1 className="font-bold text-2xl sm:text-3xl">My Resume</h1>
-            <p className="text-sm sm:text-base">Start Creating AI Resume for your next job role</p>
+            <p className="text-sm sm:text-base">
+              Start Creating AI Resume for your next job role
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {resumeList.length > 0 && (
-              <Button 
+              <Button
                 variant={isSelectionMode ? "default" : "outline"}
                 onClick={toggleSelectionMode}
                 className="w-full sm:w-auto"
@@ -190,7 +205,9 @@ const Dashboard = () => {
                   ) : (
                     <Square className="h-4 w-4" />
                   )}
-                  {selectedResumes.length === resumeList.length ? 'Deselect All' : 'Select All'}
+                  {selectedResumes.length === resumeList.length
+                    ? "Deselect All"
+                    : "Select All"}
                 </Button>
                 <span className="text-sm text-gray-600">
                   {selectedResumes.length} of {resumeList.length} selected
@@ -217,12 +234,17 @@ const Dashboard = () => {
             {resumeList.length > 0 ? (
               resumeList.map((resume) => (
                 <div key={resume.id}>
-                  <ResumeItem 
-                    resume={resume} 
+                  <ResumeItem
+                    resume={resume}
                     refreshData={() => getResumesList(true)}
                     onDelete={(deletedResumeId) => {
-                      Logger.log("🔄 Removing resume from local state:", deletedResumeId);
-                      setResumeList(prev => prev.filter(r => r.id !== deletedResumeId));
+                      Logger.log(
+                        "🔄 Removing resume from local state:",
+                        deletedResumeId,
+                      );
+                      setResumeList((prev) =>
+                        prev.filter((r) => r.id !== deletedResumeId),
+                      );
                     }}
                     isSelectionMode={isSelectionMode}
                     isSelected={selectedResumes.includes(resume.id)}
@@ -235,7 +257,9 @@ const Dashboard = () => {
                 <div>
                   <PlusSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <p className="text-gray-500 text-lg mb-2">No resumes found</p>
-                  <p className="text-gray-400 text-sm mb-4">Get started by creating your first resume</p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Get started by creating your first resume
+                  </p>
                   <Link to="/create">
                     <AnimatedCreateButton>
                       <PlusSquare className="mr-2 h-5 w-5" />
@@ -254,8 +278,11 @@ const Dashboard = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Selected Resumes?</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete {selectedResumes.length} resume{selectedResumes.length > 1 ? 's' : ''}? 
-                This action cannot be undone and will permanently remove {selectedResumes.length > 1 ? 'these resumes' : 'this resume'} from your account.
+                Are you sure you want to delete {selectedResumes.length} resume
+                {selectedResumes.length > 1 ? "s" : ""}? This action cannot be
+                undone and will permanently remove{" "}
+                {selectedResumes.length > 1 ? "these resumes" : "this resume"}{" "}
+                from your account.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -275,7 +302,8 @@ const Dashboard = () => {
                 ) : (
                   <>
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete {selectedResumes.length} Resume{selectedResumes.length > 1 ? 's' : ''}
+                    Delete {selectedResumes.length} Resume
+                    {selectedResumes.length > 1 ? "s" : ""}
                   </>
                 )}
               </AlertDialogAction>

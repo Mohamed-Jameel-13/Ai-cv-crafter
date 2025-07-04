@@ -13,7 +13,7 @@ import ThemeColor from "./ThemeColor";
 const FormSection = () => {
   const [activeIndex, setActiveIndex] = useState(1);
   const [enableNext, setEnableNext] = useState(true);
-  const { resumeId, email } = useParams(); 
+  const { resumeId, email } = useParams();
 
   return (
     <div>
@@ -24,7 +24,7 @@ const FormSection = () => {
               <Home />
             </Button>
           </Link>
-          <ThemeColor/>
+          <ThemeColor />
         </div>
         <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
           {activeIndex > 1 && (
@@ -43,7 +43,7 @@ const FormSection = () => {
               onClick={() => setActiveIndex(activeIndex + 1)}
               disabled={!enableNext}
               className={`gap-2 ${
-                activeIndex === 6 ? 'hidden sm:flex' : 'flex'
+                activeIndex === 6 ? "hidden sm:flex" : "flex"
               }`}
               size="sm"
             >
@@ -54,47 +54,47 @@ const FormSection = () => {
       </div>
 
       {/* Keep all components mounted but hide inactive ones */}
-      <div style={{ display: activeIndex === 1 ? 'block' : 'none' }}>
+      <div style={{ display: activeIndex === 1 ? "block" : "none" }}>
         <PersonalDetailForm
           resumeId={resumeId}
           email={email}
           enableNext={(v) => setEnableNext(v)}
         />
       </div>
-      
-      <div style={{ display: activeIndex === 2 ? 'block' : 'none' }}>
+
+      <div style={{ display: activeIndex === 2 ? "block" : "none" }}>
         <SummaryForm
           resumeId={resumeId}
           email={email}
           enableNext={(v) => setEnableNext(v)}
         />
       </div>
-      
-      <div style={{ display: activeIndex === 3 ? 'block' : 'none' }}>
+
+      <div style={{ display: activeIndex === 3 ? "block" : "none" }}>
         <ExperienceForm
           resumeId={resumeId}
           email={email}
           enableNext={(v) => setEnableNext(v)}
         />
       </div>
-      
-      <div style={{ display: activeIndex === 4 ? 'block' : 'none' }}>
+
+      <div style={{ display: activeIndex === 4 ? "block" : "none" }}>
         <Skills
           resumeId={resumeId}
           email={email}
           enableNext={(v) => setEnableNext(v)}
         />
       </div>
-      
-      <div style={{ display: activeIndex === 5 ? 'block' : 'none' }}>
+
+      <div style={{ display: activeIndex === 5 ? "block" : "none" }}>
         <Projects
           resumeId={resumeId}
           email={email}
           enableNext={(v) => setEnableNext(v)}
         />
       </div>
-      
-      <div style={{ display: activeIndex === 6 ? 'block' : 'none' }}>
+
+      <div style={{ display: activeIndex === 6 ? "block" : "none" }}>
         <Education
           resumeId={resumeId}
           email={email}
