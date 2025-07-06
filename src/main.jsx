@@ -12,6 +12,8 @@ import EditResume from "./dashboard/resume/[resumeId]/edit/index.jsx";
 import CreationModeSelector from "./components/ResumeCreation/CreationModeSelector.jsx";
 import TemplateGallery from "./components/ResumeCreation/TemplateGallery.jsx";
 import TemplateForm from "./components/ResumeCreation/TemplateForm.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import TermsOfService from "./legal/TermsOfService.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -26,6 +28,14 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <LoginSignup />,
+      },
+      {
+        path: "/auth/sign-in",
+        element: <LoginSignup />,
+      },
+      {
+        path: "/terms-of-service",
+        element: <TermsOfService />,
       },
       {
         path: "/my-resume/:email/:resumeId/view",
@@ -69,5 +79,7 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />,
+  <ErrorBoundary>
+    <RouterProvider router={router} />
+  </ErrorBoundary>,
 );

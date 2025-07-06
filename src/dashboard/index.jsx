@@ -149,21 +149,29 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
-      <div className="p-4 sm:p-6 md:p-10 md:px-20 lg:px-32">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-          <div>
-            <h1 className="font-bold text-2xl sm:text-3xl">My Resume</h1>
-            <p className="text-sm sm:text-base">
+    <div className="min-h-screen">
+      <div className="p-4 sm:p-6 md:p-8 lg:p-10 md:px-20 lg:px-32 max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-6">
+          <div className="flex-1">
+            <h1 className="font-bold text-2xl sm:text-3xl lg:text-4xl text-amber-900 mb-2">
+              My Resume
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-amber-700/80">
               Start Creating AI Resume for your next job role
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto lg:flex-shrink-0">
             {resumeList.length > 0 && (
               <Button
                 variant={isSelectionMode ? "default" : "outline"}
                 onClick={toggleSelectionMode}
-                className="w-full sm:w-auto"
+                className={`
+                  w-full sm:w-auto px-4 py-2 rounded-xl transition-all duration-200 font-medium
+                  ${isSelectionMode 
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-lg' 
+                    : 'border-amber-300 text-amber-800 hover:bg-amber-50 hover:border-amber-400'
+                  }
+                `}
               >
                 {isSelectionMode ? (
                   <>
@@ -179,7 +187,7 @@ const Dashboard = () => {
               </Button>
             )}
             <Link to="/create" className="w-full sm:w-auto">
-              <AnimatedCreateButton className="w-full sm:w-auto">
+              <AnimatedCreateButton className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
                 <PlusSquare className="mr-2 h-5 w-5" />
                 <span>Create</span>
               </AnimatedCreateButton>
