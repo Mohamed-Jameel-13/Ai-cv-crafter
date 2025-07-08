@@ -6,7 +6,7 @@ const ProtectedRoute = () => {
   const { user } = useUser();
 
   if (!user) {
-    return <Navigate to="/auth/sign-in" replace />;
+    return <Navigate to="/register" replace />;
   }
 
   return <Outlet />;

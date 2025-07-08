@@ -32,11 +32,9 @@ const EditResume = () => {
 
   return (
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
-      <div className="min-h-screen">
-        <div className="grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-8 lg:p-10 gap-6 lg:gap-10 max-w-7xl mx-auto">
-          <FormSection />
-          <ResumePreview />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
+        <FormSection />
+        <ResumePreview />
       </div>
     </ResumeContext.Provider>
   );

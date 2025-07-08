@@ -265,19 +265,49 @@ const TemplateGallery = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <style>{`
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+        .transform-style-preserve-3d {
+          transform-style: preserve-3d;
+        }
+        .backface-hidden {
+          backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+          transform: rotateY(180deg);
+        }
+      `}</style>
+
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Header Section */}
-        <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-            Choose Your Resume Template
-          </h1>
-          <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto px-4">
-            Browse our professionally designed templates.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <Link to="/create">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/80 backdrop-blur-sm border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-white hover:text-slate-900 shadow-md"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                Choose Your Resume Template
+              </h1>
+              <p className="text-slate-600 text-sm sm:text-base">
+                The iconic Jake's Resume template - experience-first, clean, and
+                ATS-optimized
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Search and Filter Section */}
+        {/* Search and Filters */}
         <div className="mb-6 sm:mb-8 space-y-4">
           {/* Search Bar */}
           <div className="relative max-w-md">

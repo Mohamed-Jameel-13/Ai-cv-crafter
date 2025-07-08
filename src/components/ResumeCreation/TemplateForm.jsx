@@ -20,7 +20,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { TEMPLATES } from "@/data/templates";
 
 // Import form components from default resume workflow
 import PersonalDetailForm from "@/dashboard/resume/component/form/PersonalDetailForm";
@@ -397,21 +396,14 @@ const TemplateForm = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-        {/* Back to Gallery Link */}
-        <div className="mb-8">
-          <Link
-            to="/create/templates"
-            className="text-sm text-slate-500 hover:text-slate-700"
-          >
-            Back to Gallery
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-          {/* Form Section */}
-          <div className="lg:col-span-3 order-2 lg:order-1">
+    <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
+      <div className="min-h-screen bg-gray-50">
+        {/* Subtle header shadow enhancer */}
+        <div className="h-2 bg-gradient-to-b from-gray-200/20 to-transparent"></div>
+        
+        <div className="container mx-auto px-4 py-2 sm:py-3 md:py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 p-1 sm:p-2 lg:p-3 gap-3 lg:gap-4">
+            {/* Left Column - Form */}
             <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 border border-slate-200">
               {/* Navigation Controls - Only Previous/Next buttons */}
               <div className="flex justify-end mb-2">
@@ -464,10 +456,8 @@ const TemplateForm = () => {
                 {renderFormSection()}
               </div>
             </div>
-          </div>
 
-          {/* Preview Section */}
-          <div className="lg:col-span-2 order-1 lg:order-2">
+            {/* Right Column - Preview */}
             <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 border border-slate-200">
               <h2 className="font-bold text-xl mb-3 text-slate-900">
                 Template Preview
@@ -545,7 +535,7 @@ const TemplateForm = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </ResumeContext.Provider>
   );
 };
 

@@ -11,84 +11,27 @@ import {
   Star,
   Download,
   Eye,
-  Shield,
-  Sparkles,
-  FileText,
-  Layers,
-  Clock,
-  BarChart3,
-  Palette,
-  Globe,
-  HeartHandshake,
-  ChevronDown,
-  Play,
-  Check,
-  Plus,
-  ArrowUpRight,
-  MousePointer,
-  Cpu,
-  Code,
-  Rocket,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Instagram, Linkedin, Globe as GlobeIcon } from "react-feather";
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { Instagram, Linkedin, Globe } from "react-feather";
+import { motion } from "framer-motion";
 
 const Home = () => {
   const navigate = useNavigate();
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isLoaded, setIsLoaded] = useState(false);
-  const containerRef = useRef(null);
-  
-  // Advanced scroll animations
-  const { scrollYProgress } = useScroll();
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
-  const textY = useTransform(scrollYProgress, [0, 1], ['0%', '200%']);
-  
-  // Mouse tracking for interactive elements
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springConfig = { damping: 25, stiffness: 700 };
-  const mouseXSpring = useSpring(mouseX, springConfig);
-  const mouseYSpring = useSpring(mouseY, springConfig);
 
   const handleGetStartedButton = () => {
     navigate("/dashboard");
   };
 
-  useEffect(() => {
-    setIsLoaded(true);
-    
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY]);
-
-  // Auto-rotate features with enhanced timing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % 4);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Enhanced animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 60, scale: 0.95 },
+  // Animation variants - Smooth and elegant
+  const fadeIn = {
+    hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: {
-        duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        duration: 0.6,
+        ease: [0.25, 0.46, 0.45, 0.94], // Custom cubic-bezier for smooth feel
       },
     },
   };
@@ -98,903 +41,422 @@ const Home = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.15,
         delayChildren: 0.1,
+        ease: "easeOut",
       },
     },
   };
 
-  const float = {
-    animate: {
-      y: [-10, 10, -10],
+  const featureCardVariants = {
+    hidden: {
+      opacity: 0,
+      y: 50,
+      scale: 0.95,
+      rotateX: 15,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
       transition: {
-        duration: 6,
-        repeat: Infinity,
-        ease: "easeInOut",
+        duration: 0.7,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
       },
     },
   };
 
-  const features = [
-    {
-      icon: BrainCircuit,
-      title: "AI-Powered Generation",
-      description: "Advanced AI creates LaTeX resumes with professional formatting and ATS optimization",
-      color: "from-amber-500 to-orange-500",
+  const cardHover = {
+    scale: 1.02,
+    y: -8,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
     },
-    {
-      icon: Layers,
-      title: "Dual Creation Modes",
-      description: "Choose between quick template generation or detailed form-based building with live preview",
-      color: "from-orange-500 to-red-500",
-    },
-    {
-      icon: Shield,
-      title: "Encrypted & Secure",
-      description: "Your data is encrypted and stored securely with enterprise-grade Firebase security",
-      color: "from-red-500 to-pink-500",
-    },
-    {
-      icon: Sparkles,
-      title: "Smart AI Assistance", 
-      description: "Get AI suggestions for summaries, bullet points, skills, and project descriptions",
-      color: "from-pink-500 to-purple-500",
-    },
-  ];
-
-  const stats = [
-    { number: "10x", label: "Faster Creation", icon: Rocket },
-    { number: "99%", label: "ATS Compatibility", icon: CheckCircle },
-    { number: "50+", label: "Smart Templates", icon: FileText },
-    { number: "24/7", label: "AI Assistance", icon: Cpu },
-  ];
-
-
-
-  // 3D Resume Card Component
-  const Resume3DCard = ({ index, isActive }) => (
-    <motion.div
-      className="absolute w-32 h-40 bg-white rounded-lg shadow-2xl border border-amber-200"
-      style={{
-        rotateY: isActive ? 0 : 45,
-        rotateX: isActive ? 0 : 15,
-        z: isActive ? 100 : 50 - index * 10,
-        x: index * 40,
-        y: index * 20,
-      }}
-      animate={{
-        rotateY: isActive ? [0, 5, 0] : 45,
-        rotateX: isActive ? [0, -2, 0] : 15,
-      }}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-      whileHover={{
-        rotateY: 0,
-        rotateX: 0,
-        scale: 1.1,
-        z: 200,
-      }}
-    >
-      <div className="p-3 space-y-2">
-        <div className="h-3 bg-amber-200 rounded w-3/4"></div>
-        <div className="h-2 bg-gray-200 rounded w-1/2"></div>
-        <div className="space-y-1">
-          <div className="h-1 bg-gray-100 rounded"></div>
-          <div className="h-1 bg-gray-100 rounded w-5/6"></div>
-          <div className="h-1 bg-gray-100 rounded w-4/5"></div>
-        </div>
-      </div>
-    </motion.div>
-  );
-
-  // Morphing blob background
-  const MorphingBlob = ({ className = "" }) => (
-    <motion.div
-      className={`absolute rounded-full blur-3xl ${className}`}
-      animate={{
-        scale: [1, 1.2, 1],
-        rotate: [0, 180, 360],
-        borderRadius: ["50%", "40%", "50%"],
-      }}
-      transition={{
-        duration: 20,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-    />
-  );
-
-  // Interactive typing animation
-  const TypingDemo = () => {
-    const [text, setText] = useState("");
-    const fullText = "Experienced Software Engineer with 5+ years developing scalable web applications...";
-    
-    useEffect(() => {
-      let i = 0;
-      const timer = setInterval(() => {
-        setText(fullText.slice(0, i));
-        i++;
-        if (i > fullText.length) {
-          i = 0;
-          setText("");
-        }
-      }, 100);
-      
-      return () => clearInterval(timer);
-    }, [fullText]);
-    
-    return (
-      <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm">
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-gray-400">AI Resume Generator</span>
-        </div>
-        <div>
-          <span className="text-blue-400">$</span> {text}
-          <span className="animate-pulse">|</span>
-        </div>
-      </div>
-    );
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" ref={containerRef}>
-      {/* Advanced Dynamic Background */}
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
-        {/* Animated mesh gradient */}
-        <motion.div 
-          className="absolute inset-0"
-          style={{ y: backgroundY }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50"></div>
-          
-          {/* Morphing blobs */}
-          <MorphingBlob className="top-20 left-20 w-96 h-96 bg-gradient-to-r from-amber-300/20 to-orange-300/20" />
-          <MorphingBlob className="bottom-32 right-32 w-80 h-80 bg-gradient-to-r from-orange-300/20 to-red-300/20" />
-          <MorphingBlob className="top-1/2 left-1/3 w-64 h-64 bg-gradient-to-r from-yellow-300/20 to-amber-300/20" />
-          
-          {/* Interactive grid */}
-          <motion.div 
-            className="absolute inset-0 bg-[linear-gradient(to_right,#92400e08_1px,transparent_1px),linear-gradient(to_bottom,#92400e08_1px,transparent_1px)] bg-[size:60px_60px]"
-            animate={{
-              backgroundPosition: ["0px 0px", "60px 60px"],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
-        </motion.div>
+        {/* Primary gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"></div>
+
+        {/* Geometric patterns */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-violet-300/20 to-purple-300/20 rounded-full blur-2xl"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-to-r from-blue-300/20 to-cyan-300/20 rounded-full blur-xl"></div>
+          <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-pink-300/20 to-rose-300/20 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-20 right-20 w-28 h-28 bg-gradient-to-r from-indigo-300/20 to-violet-300/20 rounded-full blur-xl"></div>
+        </div>
+
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8b5cf610_1px,transparent_1px),linear-gradient(to_bottom,#8b5cf610_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+
+        {/* Noise texture overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
       </div>
 
-      {/* Enhanced Hero Section with 3D Elements */}
+      {/* Hero Section */}
       <motion.section
-        className="flex-grow flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20 relative z-10"
+        className="flex-grow flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16 relative z-10"
         initial="hidden"
-        animate={isLoaded ? "visible" : "hidden"}
+        animate="visible"
         variants={staggerContainer}
       >
-        <div className="max-w-7xl mx-auto relative">
-          {/* 3D Resume Cards Background */}
-          <div className="absolute inset-0 pointer-events-none" style={{ perspective: "1000px" }}>
-            {[...Array(5)].map((_, i) => (
-              <Resume3DCard key={i} index={i} isActive={i === 2} />
-            ))}
-          </div>
-
-          {/* Main Content */}
-          <div className="relative z-10">
-            <motion.div variants={fadeInUp}>
-              <motion.span 
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100/80 to-orange-100/80 backdrop-blur-sm text-amber-800 text-sm font-semibold mb-6 px-6 py-3 rounded-full border border-amber-200/50 shadow-xl"
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                  <Sparkles className="w-4 h-4 text-amber-600" />
-                </motion.div>
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={fadeIn}>
+            <span className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-slate-700 text-sm font-semibold mb-6 px-4 py-2 rounded-full border border-slate-200/50 shadow-lg">
+              <Zap className="w-4 h-4 text-yellow-500" />
               AI-Powered Resume Magic
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Star className="w-4 h-4 text-amber-600" />
-                </motion.div>
-              </motion.span>
+              <Star className="w-4 h-4 text-yellow-500" />
+            </span>
           </motion.div>
 
           <motion.h1
             className="mb-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight"
-              variants={fadeInUp}
-            >
-              Craft Your Perfect Resume{" "}
-              <br className="hidden sm:block" />
-              <motion.span 
-                className="bg-gradient-to-r from-amber-700 via-orange-600 to-red-600 text-transparent bg-clip-text"
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-                style={{
-                  backgroundSize: "200% 200%",
-                }}
-              >
+            variants={fadeIn}
+          >
+            Build Your Dream Resume <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 text-transparent bg-clip-text">
               10x Faster
-              </motion.span>{" "}
-              with AI
+            </span>
           </motion.h1>
 
           <motion.p
-              className="mb-10 text-lg sm:text-xl lg:text-2xl font-medium text-amber-800/80 max-w-4xl mx-auto leading-relaxed"
-              variants={fadeInUp}
+            className="mb-10 text-lg sm:text-xl lg:text-2xl font-medium text-slate-600 max-w-3xl mx-auto leading-relaxed"
+            variants={fadeIn}
           >
             Transform your career with AI-powered resume creation.
             <br className="hidden sm:block" />
-              Professional LaTeX templates, smart suggestions, ATS optimization.
+            Professional templates, smart suggestions, instant results.
           </motion.p>
 
-            {/* Enhanced Interactive Stats */}
-            <motion.div
-              className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto"
-              variants={fadeInUp}
-            >
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={index}
-                  className="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-amber-200/50"
-                  whileHover={{ 
-                    scale: 1.05, 
-                    y: -10,
-                    boxShadow: "0 20px 40px rgba(245, 158, 11, 0.2)",
-                  }}
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ 
-                    y: { duration: 2 + index * 0.5, repeat: Infinity, ease: "easeInOut" },
-                    hover: { duration: 0.3 }
-                  }}
-                >
-                  <motion.div
-                    className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl mb-3"
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </motion.div>
-                  <motion.div 
-                    className="text-2xl lg:text-3xl font-bold text-amber-800"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: index * 0.2, type: "spring", stiffness: 200 }}
-                  >
-                    {stat.number}
-                  </motion.div>
-                  <div className="text-sm lg:text-base text-amber-700/70">
-                    {stat.label}
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Enhanced CTAs */}
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
-              variants={fadeInUp}
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            variants={fadeIn}
           >
             <Button
               size="lg"
               onClick={handleGetStartedButton}
-                  className="bg-gradient-to-r from-amber-700 to-orange-700 hover:from-amber-800 hover:to-orange-800 text-white font-bold py-4 px-8 rounded-full shadow-xl text-lg group relative overflow-hidden"
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: "100%" }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <span className="relative z-10 flex items-center">
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full shadow-xl transform transition-all duration-200 hover:scale-105 hover:shadow-2xl text-lg"
+            >
               Create Your Resume Free
-                    <motion.div
-                      className="ml-2"
-                      animate={{ x: [0, 5, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <ArrowRight className="h-5 w-5" />
-                    </motion.div>
-                  </span>
-                </Button>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-amber-600 text-amber-800 hover:bg-amber-50 font-semibold py-4 px-8 rounded-full shadow-lg text-lg group bg-white/80 backdrop-blur-sm"
-                >
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Play className="mr-2 h-5 w-5" />
-                  </motion.div>
-                  Watch Demo
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
-            </motion.div>
+        </div>
+      </motion.section>
 
-            {/* Interactive Feature Showcase */}
-            <motion.div
-              className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-amber-200/50 max-w-5xl mx-auto relative overflow-hidden"
-              variants={fadeInUp}
-              whileHover={{ y: -5 }}
+      {/* How it Works Section */}
+      <motion.section
+        className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 relative z-10"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={staggerContainer}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <motion.h2
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4"
+              variants={fadeIn}
             >
-              {/* Animated background pattern */}
+              How It Works
+            </motion.h2>
+            <motion.p
+              className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto"
+              variants={fadeIn}
+            >
+              Create your perfect resume in just 3 simple steps. No design
+              skills required.
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+            {/* Step 1 */}
+            <motion.div
+              className="relative group"
+              variants={featureCardVariants}
+              whileHover={cardHover}
+            >
               <motion.div
-                className="absolute inset-0 opacity-5"
-                animate={{
-                  backgroundPosition: ["0% 0%", "100% 100%"],
-                }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
+                className="h-full min-h-[280px] md:min-h-[320px] lg:min-h-[380px] bg-slate-100 rounded-[30px] md:rounded-[40px] lg:rounded-[50px] p-4 sm:p-6 md:p-8 lg:p-10 relative overflow-hidden"
                 style={{
-                  backgroundImage: `radial-gradient(circle, #f59e0b 1px, transparent 1px)`,
-                  backgroundSize: "20px 20px",
+                  boxShadow: `
+                     rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset,
+                     rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset,
+                     rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset,
+                     rgba(0, 0, 0, 0.06) 0px 2px 1px,
+                     rgba(0, 0, 0, 0.09) 0px 4px 2px,
+                     rgba(0, 0, 0, 0.09) 0px 8px 4px,
+                     rgba(0, 0, 0, 0.09) 0px 16px 8px,
+                     rgba(0, 0, 0, 0.09) 0px 32px 16px
+                   `,
                 }}
-              />
-              
-              <div className="relative z-10">
-                <h3 className="text-2xl font-bold text-amber-900 mb-6 text-center">
-                  Experience the Power of AI
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {features.map((feature, index) => (
-                    <motion.div
-                      key={index}
-                      className={`text-center p-6 rounded-2xl transition-all duration-500 cursor-pointer relative overflow-hidden ${
-                        activeFeature === index
-                          ? "bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-300 shadow-lg"
-                          : "hover:bg-amber-50 border border-transparent"
-                      }`}
-                      whileHover={{ scale: 1.02, y: -5 }}
-                      onClick={() => setActiveFeature(index)}
-                      animate={{
-                        scale: activeFeature === index ? [1, 1.02, 1] : 1,
-                      }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      {/* Animated background for active state */}
-                      {activeFeature === index && (
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-amber-200/20 to-orange-200/20 rounded-2xl"
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        />
-                      )}
-                      
-                      <div className="relative z-10">
-                        <motion.div
-                          className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center`}
-                          whileHover={{ rotate: 360 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <feature.icon className="w-8 h-8 text-white" />
-                        </motion.div>
-                        <h4 className="font-semibold text-amber-900 text-base mb-2">
-                          {feature.title}
-                        </h4>
-                        <p className="text-sm text-amber-700/70 leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Interactive AI Demo Section */}
-      <motion.section
-        className="py-24 px-4 sm:px-6 lg:px-8 relative z-10"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={staggerContainer}
-      >
-        <div className="max-w-7xl mx-auto">
-          <motion.div variants={fadeInUp} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-amber-900 mb-6">
-              Watch AI Create Your Resume
-            </h2>
-            <p className="text-xl text-amber-800/80 max-w-3xl mx-auto">
-              See how our AI transforms your basic information into a professional resume in real-time
-            </p>
-          </motion.div>
-
-          <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
-            variants={staggerContainer}
-          >
-            {/* Left: Interactive Demo */}
-            <motion.div variants={fadeInUp} className="space-y-6">
-              <div className="bg-white rounded-3xl p-8 shadow-2xl border border-amber-200/50">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-3">
-                    <motion.div 
-                      className="w-4 h-4 bg-green-500 rounded-full"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    <span className="text-amber-800 font-medium">AI Resume Generator - Live Demo</span>
-          </div>
-
-                  <TypingDemo />
-                  
-                  <div className="space-y-3">
-            <motion.div
-                      className="flex items-center space-x-2"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 1 }}
-                    >
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="text-sm text-amber-800">Analyzing job requirements...</span>
-                    </motion.div>
-              <motion.div
-                      className="flex items-center space-x-2"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 2 }}
-                    >
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="text-sm text-amber-800">Generating ATS-optimized content...</span>
-            </motion.div>
-            <motion.div
-                      className="flex items-center space-x-2"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 3 }}
-            >
-              <motion.div
-                        className="w-4 h-4 border-2 border-amber-500 rounded animate-spin"
-                      />
-                      <span className="text-sm text-amber-800">Formatting with LaTeX...</span>
-                    </motion.div>
-                  </div>
-                </div>
-                </div>
-            </motion.div>
-
-            {/* Right: Feature List */}
-            <motion.div variants={fadeInUp} className="space-y-6">
-              {[
-                {
-                  icon: BrainCircuit,
-                  title: "Intelligent Content Generation",
-                  description: "AI analyzes your experience and creates compelling bullet points that highlight your achievements",
-                },
-                {
-                  icon: Code,
-                  title: "LaTeX Professional Output",
-                  description: "Generate pixel-perfect PDFs using professional LaTeX formatting that recruiters love",
-                },
-                {
-                  icon: Shield,
-                  title: "ATS Optimization Built-in",
-                  description: "Every resume is automatically optimized to pass Applicant Tracking Systems",
-                },
-                {
-                  icon: Sparkles,
-                  title: "Real-time Suggestions",
-                  description: "Get instant AI-powered suggestions for skills, projects, and improvements",
-                },
-              ].map((feature, index) => (
-            <motion.div
-                  key={index}
-                  className="flex items-start space-x-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-amber-200/50 shadow-lg"
-                  whileHover={{ 
-                    scale: 1.02, 
-                    x: 10,
-                    boxShadow: "0 20px 40px rgba(245, 158, 11, 0.15)",
-                  }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2 }}
-            >
-              <motion.div
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 p-3 rounded-xl"
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <feature.icon className="w-6 h-6 text-white" />
-                  </motion.div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-amber-900 mb-2">
-                      {feature.title}
-                </h3>
-                    <p className="text-amber-800/70">
-                      {feature.description}
-                </p>
-                  </div>
-              </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Enhanced Template Showcase with 3D Effects */}
-      <motion.section
-        className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 bg-gradient-to-br from-amber-900 to-orange-900"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={staggerContainer}
-      >
-        <div className="max-w-7xl mx-auto">
-          <motion.div variants={fadeInUp} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-              Professional Templates That Win Jobs
-            </h2>
-            <p className="text-xl text-amber-200 max-w-3xl mx-auto">
-              Choose from industry-tested templates designed by experts and loved by hiring managers
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 border border-white/20"
-            variants={fadeInUp}
-            style={{ perspective: "1000px" }}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* 3D Template Preview */}
-              <motion.div 
-                className="relative"
-                whileHover={{ rotateY: 5, rotateX: 5 }}
-                transition={{ duration: 0.3 }}
               >
-                <div className="bg-white rounded-2xl p-8 shadow-2xl transform-gpu">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <motion.div 
-                        className="w-3 h-3 bg-amber-500 rounded-full"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                      <span className="text-xs text-amber-700 font-medium uppercase tracking-wider">
-                        Jake&apos;s Resume Template
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <motion.div 
-                        className="h-6 bg-gradient-to-r from-amber-200 to-orange-200 rounded w-3/4"
-                        animate={{ width: ["75%", "85%", "75%"] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                      />
-                      <motion.div 
-                        className="h-4 bg-amber-100 rounded w-1/2"
-                        animate={{ width: ["50%", "60%", "50%"] }}
-                        transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-                      />
-                      
-                      <div className="pt-4 space-y-2">
-                        {[...Array(3)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            className="h-3 bg-gray-200 rounded"
-                            animate={{ 
-                              width: ["100%", "95%", "100%"],
-                              opacity: [1, 0.8, 1] 
-                            }}
-                            transition={{ 
-                              duration: 2, 
-                              repeat: Infinity, 
-                              delay: i * 0.3 
-                            }}
-                          />
-                        ))}
-                      </div>
-                      
-                      <div className="pt-4 space-y-2">
-                        <motion.div 
-                          className="h-4 bg-amber-200 rounded w-1/3"
-                          animate={{ opacity: [1, 0.7, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                        <div className="space-y-1">
-                          {[...Array(2)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              className="h-2 bg-gray-200 rounded"
-                              animate={{ width: ["100%", "90%", "100%"] }}
-                              transition={{ 
-                                duration: 3, 
-                                repeat: Infinity, 
-                                delay: i * 0.5 
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="absolute -top-2 -left-2 md:-top-4 md:-left-4 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm shadow-lg">
+                  1
+                </div>
+                <div className="p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl lg:rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 mb-3 md:mb-4 lg:mb-6 w-fit">
+                  <BrainCircuit className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-violet-600" />
+                </div>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 mb-2 md:mb-3 lg:mb-4">
+                  AI-Powered Content
+                </h3>
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                  Input your details and our AI generates compelling,
+                  ATS-friendly content that makes you stand out to employers.
+                </p>
+              </motion.div>
+            </motion.div>
+
+            {/* Step 2 */}
+            <motion.div
+              className="relative group"
+              variants={featureCardVariants}
+              whileHover={cardHover}
+            >
+              <motion.div
+                className="h-full min-h-[280px] md:min-h-[320px] lg:min-h-[380px] bg-slate-100 rounded-[30px] md:rounded-[40px] lg:rounded-[50px] p-4 sm:p-6 md:p-8 lg:p-10 relative overflow-hidden"
+                style={{
+                  boxShadow: `
+                     rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset,
+                     rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset,
+                     rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset,
+                     rgba(0, 0, 0, 0.06) 0px 2px 1px,
+                     rgba(0, 0, 0, 0.09) 0px 4px 2px,
+                     rgba(0, 0, 0, 0.09) 0px 8px 4px,
+                     rgba(0, 0, 0, 0.09) 0px 16px 8px,
+                     rgba(0, 0, 0, 0.09) 0px 32px 16px
+                   `,
+                }}
+              >
+                <div className="absolute -top-2 -left-2 md:-top-4 md:-left-4 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm shadow-lg">
+                  2
+                </div>
+                <div className="p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 mb-3 md:mb-4 lg:mb-6 w-fit">
+                  <Edit3 className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-blue-600" />
+                </div>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 mb-2 md:mb-3 lg:mb-4">
+                  Customize & Perfect
+                </h3>
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                  Choose professional templates, customize colors and fonts.
+                  Real-time preview shows exactly how your resume will look.
+                </p>
+              </motion.div>
+            </motion.div>
+
+            {/* Step 3 */}
+            <motion.div
+              className="relative group"
+              variants={featureCardVariants}
+              whileHover={cardHover}
+            >
+              <motion.div
+                className="h-full min-h-[280px] md:min-h-[320px] lg:min-h-[380px] bg-slate-100 rounded-[30px] md:rounded-[40px] lg:rounded-[50px] p-4 sm:p-6 md:p-8 lg:p-10 relative overflow-hidden"
+                style={{
+                  boxShadow: `
+                     rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset,
+                     rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset,
+                     rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset,
+                     rgba(0, 0, 0, 0.06) 0px 2px 1px,
+                     rgba(0, 0, 0, 0.09) 0px 4px 2px,
+                     rgba(0, 0, 0, 0.09) 0px 8px 4px,
+                     rgba(0, 0, 0, 0.09) 0px 16px 8px,
+                     rgba(0, 0, 0, 0.09) 0px 32px 16px
+                   `,
+                }}
+              >
+                <div className="absolute -top-2 -left-2 md:-top-4 md:-left-4 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xs md:text-sm shadow-lg">
+                  3
+                </div>
+                <div className="p-2 md:p-3 lg:p-4 rounded-lg md:rounded-xl lg:rounded-2xl bg-gradient-to-br from-green-100 to-emerald-100 mb-3 md:mb-4 lg:mb-6 w-fit">
+                  <Download className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-green-600" />
+                </div>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 mb-2 md:mb-3 lg:mb-4">
+                  Download & Apply
+                </h3>
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                  Export as high-quality PDF or share with unique link. Your
+                  professional resume is ready for applications in minutes.
+                </p>
+              </motion.div>
+            </motion.div>
           </div>
 
-                {/* Floating badges with physics */}
+          <motion.div className="text-center mt-16" variants={fadeIn}>
+            <Button
+              size="lg"
+              onClick={handleGetStartedButton}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full shadow-xl transform transition-all duration-200 hover:scale-105 text-lg"
+            >
+              Start Building Your Resume
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Benefits Section */}
+      <motion.section
+        className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 relative z-10"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={staggerContainer}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <motion.h2
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4"
+              variants={fadeIn}
+            >
+              Why Choose AI Resume Crafter?
+            </motion.h2>
+            <motion.p
+              className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto"
+              variants={fadeIn}
+            >
+              Join thousands of professionals who have accelerated their career
+              with our AI-powered platform
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: CheckCircle,
+                title: "ATS-Optimized",
+                description:
+                  "All templates are designed to pass Applicant Tracking Systems",
+                color: "from-green-500 to-emerald-500",
+              },
+              {
+                icon: Zap,
+                title: "Lightning Fast",
+                description: "Create professional resumes in under 10 minutes",
+                color: "from-yellow-500 to-orange-500",
+              },
+              {
+                icon: Users,
+                title: "Industry Experts",
+                description:
+                  "Templates reviewed by hiring managers and recruiters",
+                color: "from-blue-500 to-cyan-500",
+              },
+              {
+                icon: Trophy,
+                title: "Proven Results",
+                description:
+                  "95% of users report increased interview callbacks",
+                color: "from-purple-500 to-pink-500",
+              },
+              {
+                icon: Share2,
+                title: "Easy Sharing",
+                description:
+                  "Share your resume instantly with unique shareable links",
+                color: "from-indigo-500 to-purple-500",
+              },
+              {
+                icon: Star,
+                title: "Premium Quality",
+                description:
+                  "Professional designs that make lasting impressions",
+                color: "from-rose-500 to-pink-500",
+              },
+            ].map((benefit, index) => (
               <motion.div
-                  className="absolute -top-3 -right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                  animate={{ 
-                    y: [0, -5, 0],
-                    rotate: [0, 5, 0] 
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  ATS-Optimized
-                </motion.div>
+                key={index}
+                variants={featureCardVariants}
+                whileHover={cardHover}
+              >
                 <motion.div
-                  className="absolute -bottom-3 -left-3 bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                  animate={{ 
-                    y: [0, 5, 0],
-                    rotate: [0, -5, 0] 
+                  className="h-full min-h-[220px] md:min-h-[260px] lg:min-h-[280px] bg-slate-100 rounded-[25px] md:rounded-[35px] lg:rounded-[50px] p-4 sm:p-5 md:p-6 lg:p-8 relative overflow-hidden"
+                  style={{
+                    boxShadow: `
+                       rgba(0, 0, 0, 0.17) 0px -23px 25px 0px inset,
+                       rgba(0, 0, 0, 0.15) 0px -36px 30px 0px inset,
+                       rgba(0, 0, 0, 0.1) 0px -79px 40px 0px inset,
+                       rgba(0, 0, 0, 0.06) 0px 2px 1px,
+                       rgba(0, 0, 0, 0.09) 0px 4px 2px,
+                       rgba(0, 0, 0, 0.09) 0px 8px 4px,
+                       rgba(0, 0, 0, 0.09) 0px 16px 8px,
+                       rgba(0, 0, 0, 0.09) 0px 32px 16px
+                     `,
                   }}
-                  transition={{ duration: 3, repeat: Infinity, delay: 1 }}
                 >
-                  AI-Powered
-                </motion.div>
-              </motion.div>
-
-              {/* Enhanced Features */}
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-3xl font-bold text-white mb-4">
-                    The Iconic Jake&apos;s Resume
+                  <div
+                    className={`p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-r ${benefit.color} mb-3 md:mb-4 w-fit`}
+                  >
+                    <benefit.icon className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-white" />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-2 md:mb-3">
+                    {benefit.title}
                   </h3>
-                  <p className="text-amber-200 text-lg leading-relaxed">
-                    The most popular LaTeX resume template, trusted by thousands of professionals worldwide. 
-                    Clean, ATS-friendly, and professionally designed to get you noticed.
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                    {benefit.description}
                   </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    "LaTeX Professional Output",
-                    "ATS-Optimized Format", 
-                    "Clean Modern Design",
-                    "Industry Standard",
-                    "Instant PDF Generation",
-                    "Mobile Responsive",
-                  ].map((feature, index) => (
-                    <motion.div 
-                      key={index} 
-                      className="flex items-center space-x-3"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.2, rotate: 360 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <CheckCircle className="w-5 h-5 text-green-400" />
                 </motion.div>
-                      <span className="text-amber-100">{feature}</span>
               </motion.div>
             ))}
           </div>
-
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    onClick={() => navigate("/create/templates")}
-                    className="bg-white text-amber-800 hover:bg-amber-50 font-semibold py-4 px-8 rounded-2xl shadow-xl text-lg group relative overflow-hidden"
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-amber-200/20 to-transparent"
-                      initial={{ x: "-100%" }}
-                      whileHover={{ x: "100%" }}
-                      transition={{ duration: 0.6 }}
-                    />
-                    <span className="relative z-10 flex items-center">
-                      Explore All Templates
-                      <motion.div
-                        className="ml-2"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        <ArrowUpRight className="h-5 w-5" />
-                      </motion.div>
-                    </span>
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </motion.section>
 
-      {/* Enhanced Final CTA with Interactive Elements */}
+      {/* CTA Section */}
       <motion.section
-        className="py-24 px-4 sm:px-6 lg:px-8 relative z-10"
+        className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 relative z-10"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={staggerContainer}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div 
-            className="bg-gradient-to-br from-amber-800 to-orange-800 rounded-3xl p-12 lg:p-16 shadow-2xl relative overflow-hidden"
-            variants={fadeInUp}
-            whileHover={{ scale: 1.02 }}
-          >
-            {/* Animated background elements */}
+          <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl relative overflow-hidden">
+            {/* Background decoration */}
             <div className="absolute inset-0 opacity-20">
-              <motion.div
-                className="absolute inset-0 bg-white/10"
-                animate={{
-                  background: [
-                    "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                    "radial-gradient(circle at 80% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                    "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                  ],
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
+              <div className="absolute inset-0 bg-white/10 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
             </div>
 
-            <motion.div className="relative z-10" variants={fadeInUp}>
-              <motion.h2 
-                className="text-4xl sm:text-5xl font-bold text-white mb-6"
-                animate={{ 
-                  textShadow: [
-                    "0 0 20px rgba(255,255,255,0.5)",
-                    "0 0 40px rgba(255,255,255,0.3)", 
-                    "0 0 20px rgba(255,255,255,0.5)",
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
+            <motion.div className="relative z-10" variants={fadeIn}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
                 Ready to Land Your Dream Job?
-              </motion.h2>
-              <p className="text-xl text-amber-100 mb-8 max-w-2xl mx-auto">
-                Join over 10,000 professionals who have successfully crafted winning resumes 
-                with our AI-powered platform.
+              </h2>
+              <p className="text-lg sm:text-xl text-violet-100 mb-8 max-w-2xl mx-auto">
+                Join over 10,000 professionals who have successfully crafted
+                winning resumes with our AI-powered platform.
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
               <Button
                 size="lg"
                 onClick={handleGetStartedButton}
-                    className="bg-white text-amber-800 hover:bg-amber-50 font-bold py-4 px-10 rounded-full shadow-xl text-lg group relative overflow-hidden"
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-amber-200/30 to-orange-200/30"
-                      initial={{ scale: 0 }}
-                      whileHover={{ scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <span className="relative z-10 flex items-center">
-                      Get Started for Free
-                      <motion.div
-                        className="ml-2"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        <ArrowRight className="h-5 w-5" />
-                      </motion.div>
-                    </span>
-                  </Button>
-                </motion.div>
-                
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-white text-white hover:bg-white hover:text-amber-800 font-semibold py-4 px-10 rounded-full shadow-lg text-lg bg-white/10 backdrop-blur-sm"
-                  >
-                    View Live Examples
-                  </Button>
-                </motion.div>
-              </div>
-              
-              <motion.div 
-                className="flex flex-wrap items-center justify-center gap-6 text-amber-200 text-sm"
-                variants={staggerContainer}
+                className="bg-white text-violet-600 hover:bg-gray-50 font-bold py-4 px-8 rounded-full shadow-xl transform transition-all duration-200 hover:scale-105 text-lg"
               >
-                {[
-                  { icon: CheckCircle, text: "No credit card required" },
-                  { icon: CheckCircle, text: "Unlimited resumes" },
-                  { icon: CheckCircle, text: "24/7 AI assistance" },
-                ].map((item, index) => (
-                  <motion.div 
-                    key={index}
-                    className="flex items-center space-x-2"
-                    variants={fadeInUp}
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 3, repeat: Infinity, delay: index }}
-                    >
-                      <item.icon className="w-4 h-4" />
-                    </motion.div>
-                    <span>{item.text}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
+                Get Started for Free
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <p className="text-violet-200 text-sm mt-4">
+                No credit card required • Create unlimited resumes
+              </p>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </motion.section>
 
-      {/* Enhanced Footer with Animations */}
-      <footer className="bg-gradient-to-r from-amber-900 to-orange-900 text-white py-16 mt-auto relative z-10 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <motion.div
-            className="absolute inset-0"
-            animate={{
-              backgroundImage: [
-                "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 100% 100%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-              ],
-            }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            {/* Brand */}
-            <div className="col-span-1 md:col-span-2">
-              <motion.h3 
-                className="text-2xl font-bold mb-4 text-amber-100"
-                whileHover={{ scale: 1.05 }}
-              >
-                AI Resume Crafter
-              </motion.h3>
-              <p className="text-amber-200 mb-4 max-w-md">
-                Empowering professionals worldwide with AI-powered resume creation. Build your future, one perfect resume at a time.
-              </p>
-              <div className="flex space-x-4">
+      {/* Footer */}
+      <footer className="bg-slate-50 border-t border-slate-200 py-12 mt-auto relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center space-y-6">
+            <div className="flex items-center space-x-8">
               <motion.a
                 href="https://www.instagram.com/victus__13/"
-                  className="text-amber-200 hover:text-white transition-colors duration-200"
+                className="text-slate-600 hover:text-pink-500 transition-colors duration-200"
                 whileHover={{ scale: 1.2, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1002,7 +464,7 @@ const Home = () => {
               </motion.a>
               <motion.a
                 href="http://linkedin.com/in/mohamed-jameel823"
-                  className="text-amber-200 hover:text-white transition-colors duration-200"
+                className="text-slate-600 hover:text-blue-500 transition-colors duration-200"
                 whileHover={{ scale: 1.2, rotate: -5 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1010,77 +472,25 @@ const Home = () => {
               </motion.a>
               <motion.a
                 href="https://mohamedjameel.me"
-                  className="text-amber-200 hover:text-white transition-colors duration-200"
+                className="text-slate-600 hover:text-green-500 transition-colors duration-200"
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
               >
-                  <GlobeIcon className="h-6 w-6" />
+                <Globe className="h-6 w-6" />
               </motion.a>
-              </div>
             </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-amber-100">Quick Links</h4>
-              <ul className="space-y-2">
-                {[
-                  { name: "Create Resume", href: "/create" },
-                  { name: "Templates", href: "/create/templates" },
-                  { name: "Dashboard", href: "/dashboard" },
-                  { name: "Examples", href: "#examples" },
-                ].map((link, index) => (
-                  <motion.li 
-                    key={index}
-                    whileHover={{ x: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <a
-                      href={link.href}
-                      className="text-amber-200 hover:text-white transition-colors duration-200"
-                    >
-                      {link.name}
-                    </a>
-                  </motion.li>
-                ))}
-              </ul>
+            <div className="text-center">
+              <p className="text-slate-600 mb-2">
+                Crafted with ❤️ using React by{" "}
+                <span className="font-semibold text-slate-800">
+                  Mohamed Jameel
+                </span>
+              </p>
+              <p className="text-sm text-slate-500">
+                &copy; {new Date().getFullYear()} AI Resume Crafter. All rights
+                reserved.
+              </p>
             </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-amber-100">Support</h4>
-              <ul className="space-y-2">
-                {[
-                  { name: "Help Center", href: "#help" },
-                  { name: "Privacy Policy", href: "#privacy" },
-                  { name: "Terms of Service", href: "#terms" },
-                  { name: "Contact Us", href: "#contact" },
-                ].map((link, index) => (
-                  <motion.li 
-                    key={index}
-                    whileHover={{ x: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <a
-                      href={link.href}
-                      className="text-amber-200 hover:text-white transition-colors duration-200"
-                    >
-                      {link.name}
-                    </a>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom section */}
-          <div className="border-t border-amber-700 pt-8 flex flex-col md:flex-row items-center justify-between">
-            <p className="text-amber-200 mb-4 md:mb-0">
-              Crafted with ❤️ using React by{" "}
-              <span className="font-semibold text-amber-100">Mohamed Jameel</span>
-            </p>
-            <p className="text-amber-300 text-sm">
-              &copy; {new Date().getFullYear()} AI Resume Crafter. All rights reserved.
-            </p>
           </div>
         </div>
       </footer>
