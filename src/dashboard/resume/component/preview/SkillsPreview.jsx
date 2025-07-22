@@ -11,7 +11,7 @@ const SkillsPreview = ({ resumeInfo }) => {
 
   return (
     <div className="my-1">
-      <h2 className="text-center font-bold text-sm mb-2">Technical Skills</h2>
+      <h2 className="text-center font-bold text-sm mb-2">Skills</h2>
       <hr
         className="border-[1.5px] my-2"
         style={{ borderColor: resumeInfo?.themeColor || "rgb(107 114 128)" }}

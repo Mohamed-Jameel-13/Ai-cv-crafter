@@ -1391,23 +1391,12 @@ ${work
   .join("\n")}
 \\resumeSubHeadingListEnd
 
-\\section{Technical Skills}
+\\section{Skills}
 \\begin{itemize}[leftmargin=0.15in, label={}]
     \\small{\\item{
-${
-  skills.length > 0
-    ? skills
-        .map((skill) => {
-          if (typeof skill === "object" && skill.skills) {
-            return `        \\textbf{${escapeLatex(skill.category || "Skills")}}: ${escapeLatex(skill.skills)}`;
-          }
-          return `        \\textbf{Skills}: ${escapeLatex(skill.name || skill)}`;
-        })
-        .join(" \\\\ ")
-    : `        \\textbf{Programming Languages}: Python, JavaScript, Java \\\\
-        \\textbf{Frameworks}: React, Node.js, Express \\\\
-        \\textbf{Tools}: Git, Docker, AWS`
-}
+        \\textbf{Programming Languages}: ${skills.filter((s) => typeof s === "string" && (s.toLowerCase().includes("python") || s.toLowerCase().includes("java") || s.toLowerCase().includes("javascript") || s.toLowerCase().includes("c++"))).join(", ") || "Python, JavaScript, Java"} \\\\
+        \\textbf{Frameworks}: ${skills.filter((s) => typeof s === "string" && (s.toLowerCase().includes("react") || s.toLowerCase().includes("node") || s.toLowerCase().includes("django") || s.toLowerCase().includes("express"))).join(", ") || "React, Node.js, Express"} \\\\
+        \\textbf{Tools}: ${skills.filter((s) => typeof s === "string" && (s.toLowerCase().includes("git") || s.toLowerCase().includes("docker") || s.toLowerCase().includes("aws"))).join(", ") || "Git, Docker, AWS"}
     }}
 \\end{itemize}
 
@@ -1714,7 +1703,7 @@ ${education
 ⚠️  CRITICAL SECTION ORDER REQUIREMENT: The sections MUST appear in this EXACT order:
 1. Professional Summary (first)
 2. Experience
-3. Technical Skills 
+3. Skills 
 4. Projects
 5. Certifications
 6. Education (MUST BE LAST - DO NOT MOVE THIS SECTION)
@@ -1818,7 +1807,7 @@ ${workExperience
   .join("\n")}
 \\resumeSubHeadingListEnd
 
-\\section{Technical Skills}
+\\section{Skills}
 \\begin{itemize}[leftmargin=0.15in, label={}]
     \\small{\\item{
         \\textbf{Programming Languages}: ${skillsList.filter((s) => s.toLowerCase().includes("python") || s.toLowerCase().includes("java") || s.toLowerCase().includes("javascript") || s.toLowerCase().includes("c++")).join(", ") || "Python, JavaScript, Java"} \\\\
@@ -1897,10 +1886,9 @@ ${
           if (cert.link) {
             linksSection = ` \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{Link}}`;
           }
-
           return `  \\resumeSubheading
     {${cert.name}${linksSection}}{${cert.date}}
-    {${cert.issuer}}{${cert.expirationDate ? `Expires: ${cert.expirationDate}` : ""}}${
+    {${cert.issuer}}{${cert.expirationDate ? `Expires: ${cert.expirationDate}` : ""}}$${
       cert.description
         ? `
     \\resumeItemListStart
@@ -1944,7 +1932,7 @@ CRITICAL REQUIREMENTS:
 5. Replace placeholder data with actual resume data provided below
 6. IMPORTANT: For projects, include BOTH description AND all project highlights/bullets as separate \\resumeItem{} entries
 7. Each project bullet point should be its own \\resumeItem{} in the \\resumeItemListStart section
-8. MANDATORY SECTION ORDER: Professional Summary → Experience → Technical Skills → Projects → Certifications → Education (EDUCATION MUST BE LAST SECTION)
+8. MANDATORY SECTION ORDER: Professional Summary → Experience → Skills → Projects → Certifications → Education (EDUCATION MUST BE LAST SECTION)
 
 RESUME DATA:
 Name: ${fullName}

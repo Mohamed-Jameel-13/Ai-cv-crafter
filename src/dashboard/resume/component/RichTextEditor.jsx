@@ -148,10 +148,22 @@ function RichTextEditor({
             ? result.response.text()
             : result.toString();
 
-        parsedResult = JSON.parse(responseText);
-      } catch (parseError) {
-        Logger.error("Error parsing AI response:", parseError);
-        toast.error("Failed to parse AI response. Please try again.");
+        try {
+          parsedResult = JSON.parse(responseText);
+        } catch (parseError) {
+          // Fallback: try to extract JSON from code fences (object or array)
+          const jsonMatch = responseText.match(/\{[\s\S]*\}/) || responseText.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            parsedResult = JSON.parse(jsonMatch[0]);
+          } else {
+            Logger.error("Error parsing AI response:", parseError);
+            toast.error("Failed to parse AI response. Please try again.");
+            return;
+          }
+        }
+      } catch (parseOuterError) {
+        Logger.error("AI Generation Error:", parseOuterError);
+        toast.error("Failed to generate suggestions. Please try again.");
         return;
       }
 
