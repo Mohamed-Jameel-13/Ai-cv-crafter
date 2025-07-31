@@ -16,7 +16,8 @@ import {
   Home,
   Layout,
   User,
-  Settings
+  Settings,
+  MessageSquare
 } from 'lucide-react';
 
 function Header() {
@@ -90,6 +91,12 @@ function Header() {
       href: '/create/templates',
       icon: FileText,
       current: location.pathname.includes('/create')
+    },
+    {
+      name: 'Contact',
+      href: '/contact',
+      icon: MessageSquare,
+      current: location.pathname === '/contact'
     }
   ];
 

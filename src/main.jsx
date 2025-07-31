@@ -14,6 +14,7 @@ import TemplateGallery from "./components/ResumeCreation/TemplateGallery.jsx";
 import TemplateForm from "./components/ResumeCreation/TemplateForm.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import TermsOfService from "./legal/TermsOfService.jsx";
+import Contact from "./contact/index.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "/terms-of-service",
         element: <TermsOfService />,
+      },
+      {
+        path: "/contact",
+        element: <Contact />,
       },
       {
         path: "/my-resume/:email/:resumeId/view",
