@@ -160,7 +160,7 @@ const Home = () => {
   const stats = [
     { number: "10x", label: "Faster Creation", icon: Rocket },
     { number: "99%", label: "ATS Compatibility", icon: CheckCircle },
-    { number: "50+", label: "Smart Templates", icon: FileText },
+    { number: "100%", label: "Encrypted Data", icon: FileText },
     { number: "24/7", label: "AI Assistance", icon: Cpu },
   ];
 
