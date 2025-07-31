@@ -34,6 +34,21 @@ import { useNavigate } from "react-router-dom";
 import { Instagram, Linkedin, Globe as GlobeIcon } from "react-feather";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import AdUnit from "@/components/AdUnit";
+// Add useMediaQuery for mobile detection
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+  return matches;
+};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -153,58 +168,64 @@ const Home = () => {
 
   // 3D Resume Card Component
   const Resume3DCard = ({ index, isActive }) => (
-    <motion.div
-      className="absolute w-32 h-40 bg-white rounded-lg shadow-2xl border border-amber-200"
-      style={{
-        rotateY: isActive ? 0 : 45,
-        rotateX: isActive ? 0 : 15,
-        z: isActive ? 100 : 50 - index * 10,
-        x: index * 40,
-        y: index * 20,
-      }}
-      animate={{
-        rotateY: isActive ? [0, 5, 0] : 45,
-        rotateX: isActive ? [0, -2, 0] : 15,
-      }}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-      whileHover={{
-        rotateY: 0,
-        rotateX: 0,
-        scale: 1.1,
-        z: 200,
-      }}
-    >
-      <div className="p-3 space-y-2">
-        <div className="h-3 bg-amber-200 rounded w-3/4"></div>
-        <div className="h-2 bg-gray-200 rounded w-1/2"></div>
-        <div className="space-y-1">
-          <div className="h-1 bg-gray-100 rounded"></div>
-          <div className="h-1 bg-gray-100 rounded w-5/6"></div>
-          <div className="h-1 bg-gray-100 rounded w-4/5"></div>
+    // Hide 3D cards on mobile for performance
+    !isMobile && !prefersReducedMotion ? (
+      <motion.div
+        className="absolute w-32 h-40 bg-white rounded-lg shadow-2xl border border-amber-200"
+        style={{
+          rotateY: isActive ? 0 : 45,
+          rotateX: isActive ? 0 : 15,
+          z: isActive ? 100 : 50 - index * 10,
+          x: index * 40,
+          y: index * 20,
+        }}
+        animate={{
+          rotateY: isActive ? [0, 5, 0] : 45,
+          rotateX: isActive ? [0, -2, 0] : 15,
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        whileHover={{
+          rotateY: 0,
+          rotateX: 0,
+          scale: 1.1,
+          z: 200,
+        }}
+      >
+        <div className="p-3 space-y-2">
+          <div className="h-3 bg-amber-200 rounded w-3/4"></div>
+          <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+          <div className="space-y-1">
+            <div className="h-1 bg-gray-100 rounded"></div>
+            <div className="h-1 bg-gray-100 rounded w-5/6"></div>
+            <div className="h-1 bg-gray-100 rounded w-4/5"></div>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    ) : null
   );
 
   // Morphing blob background
   const MorphingBlob = ({ className = "" }) => (
-    <motion.div
-      className={`absolute rounded-full blur-3xl ${className}`}
-      animate={{
-        scale: [1, 1.2, 1],
-        rotate: [0, 180, 360],
-        borderRadius: ["50%", "40%", "50%"],
-      }}
-      transition={{
-        duration: 20,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-    />
+    // Hide morphing blobs on mobile for performance
+    !isMobile && !prefersReducedMotion ? (
+      <motion.div
+        className={`absolute rounded-full blur-3xl ${className}`}
+        animate={{
+          scale: [1, 1.2, 1],
+          rotate: [0, 180, 360],
+          borderRadius: ["50%", "40%", "50%"],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+    ) : null
   );
 
   // Interactive typing animation
@@ -242,6 +263,10 @@ const Home = () => {
     );
   };
 
+  // Mobile and reduced motion detection
+  const isMobile = useMediaQuery("(max-width: 640px)");
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden" ref={containerRef}>
       {/* Advanced Dynamic Background */}
@@ -249,41 +274,41 @@ const Home = () => {
         {/* Animated mesh gradient */}
         <motion.div 
           className="absolute inset-0"
-          style={{ y: backgroundY }}
+          style={{ y: !isMobile && !prefersReducedMotion ? backgroundY : 0 }}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50"></div>
-          
-          {/* Morphing blobs */}
+          {/* Morphing blobs hidden on mobile */}
           <MorphingBlob className="top-20 left-20 w-96 h-96 bg-gradient-to-r from-amber-300/20 to-orange-300/20" />
           <MorphingBlob className="bottom-32 right-32 w-80 h-80 bg-gradient-to-r from-orange-300/20 to-red-300/20" />
           <MorphingBlob className="top-1/2 left-1/3 w-64 h-64 bg-gradient-to-r from-yellow-300/20 to-amber-300/20" />
-          
-          {/* Interactive grid */}
-          <motion.div 
-            className="absolute inset-0 bg-[linear-gradient(to_right,#92400e08_1px,transparent_1px),linear-gradient(to_bottom,#92400e08_1px,transparent_1px)] bg-[size:60px_60px]"
-            animate={{
-              backgroundPosition: ["0px 0px", "60px 60px"],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
+          {/* Interactive grid hidden on mobile */}
+          {!isMobile && !prefersReducedMotion && (
+            <motion.div 
+              className="absolute inset-0 bg-[linear-gradient(to_right,#92400e08_1px,transparent_1px),linear-gradient(to_bottom,#92400e08_1px,transparent_1px)] bg-[size:60px_60px]"
+              animate={{
+                backgroundPosition: ["0px 0px", "60px 60px"],
+              }}
+              transition={{
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+          )}
         </motion.div>
       </div>
 
       {/* Enhanced Hero Section with 3D Elements */}
       <motion.section
-        className="flex-grow flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20 relative z-10"
+        className="flex-grow flex flex-col items-center justify-center text-center px-2 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 lg:py-20 relative z-10"
         initial="hidden"
         animate={isLoaded ? "visible" : "hidden"}
         variants={staggerContainer}
       >
         <div className="max-w-7xl mx-auto relative">
-          {/* 3D Resume Cards Background */}
+          {/* 3D Resume Cards Background hidden on mobile */}
           <div className="absolute inset-0 pointer-events-none" style={{ perspective: "1000px" }}>
-            {[...Array(5)].map((_, i) => (
+            {!isMobile && !prefersReducedMotion && [...Array(5)].map((_, i) => (
               <Resume3DCard key={i} index={i} isActive={i === 2} />
             ))}
           </div>
@@ -292,7 +317,7 @@ const Home = () => {
           <div className="relative z-10">
             <motion.div variants={fadeInUp}>
               <motion.span 
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100/80 to-orange-100/80 backdrop-blur-sm text-amber-800 text-sm font-semibold mb-6 px-6 py-3 rounded-full border border-amber-200/50 shadow-xl"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100/80 to-orange-100/80 backdrop-blur-sm text-amber-800 text-xs sm:text-sm font-semibold mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-amber-200/50 shadow-xl"
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -313,7 +338,7 @@ const Home = () => {
           </motion.div>
 
           <motion.h1
-            className="mb-8 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight"
+            className="mb-6 sm:mb-8 text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight"
               variants={fadeInUp}
             >
               Craft Your Perfect Resume{" "}
@@ -338,7 +363,7 @@ const Home = () => {
           </motion.h1>
 
           <motion.p
-              className="mb-10 text-lg sm:text-xl lg:text-2xl font-medium text-amber-800/80 max-w-4xl mx-auto leading-relaxed"
+              className="mb-8 sm:mb-10 text-base xs:text-lg sm:text-xl lg:text-2xl font-medium text-amber-800/80 max-w-2xl sm:max-w-4xl mx-auto leading-relaxed"
               variants={fadeInUp}
           >
             Transform your career with AI-powered resume creation.
@@ -348,7 +373,7 @@ const Home = () => {
 
             {/* Enhanced Interactive Stats */}
             <motion.div
-              className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-xs sm:max-w-4xl mx-auto"
               variants={fadeInUp}
             >
               {stats.map((stat, index) => (
@@ -390,7 +415,7 @@ const Home = () => {
 
             {/* Enhanced CTAs */}
           <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12"
               variants={fadeInUp}
             >
               <motion.div
@@ -443,7 +468,7 @@ const Home = () => {
 
             {/* Interactive Feature Showcase */}
             <motion.div
-              className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-amber-200/50 max-w-5xl mx-auto relative overflow-hidden"
+              className="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl border border-amber-200/50 max-w-xs sm:max-w-5xl mx-auto relative overflow-hidden"
               variants={fadeInUp}
               whileHover={{ y: -5 }}
             >
@@ -469,7 +494,7 @@ const Home = () => {
                   Experience the Power of AI
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {features.map((feature, index) => (
                     <motion.div
                       key={index}
@@ -519,26 +544,31 @@ const Home = () => {
         </div>
       </motion.section>
 
+      {/* Ad Unit below hero, above features, desktop/tablet only */}
+      <div className="hidden sm:flex justify-center my-8">
+        <AdUnit />
+      </div>
+
       {/* Interactive AI Demo Section */}
       <motion.section
-        className="py-24 px-4 sm:px-6 lg:px-8 relative z-10"
+        className="py-12 sm:py-24 px-2 sm:px-6 lg:px-8 relative z-10"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={staggerContainer}
       >
         <div className="max-w-7xl mx-auto">
-          <motion.div variants={fadeInUp} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-amber-900 mb-6">
+          <motion.div variants={fadeInUp} className="text-center mb-8 sm:mb-16">
+            <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-amber-900 mb-4 sm:mb-6">
               Watch AI Create Your Resume
             </h2>
-            <p className="text-xl text-amber-800/80 max-w-3xl mx-auto">
+            <p className="text-base xs:text-lg sm:text-xl text-amber-800/80 max-w-xs sm:max-w-3xl mx-auto">
               See how our AI transforms your basic information into a professional resume in real-time
             </p>
           </motion.div>
 
           <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12 items-center"
             variants={staggerContainer}
           >
             {/* Left: Interactive Demo */}
@@ -651,28 +681,28 @@ const Home = () => {
 
       {/* Enhanced Template Showcase with 3D Effects */}
       <motion.section
-        className="py-24 px-4 sm:px-6 lg:px-8 relative z-10 bg-gradient-to-br from-amber-900 to-orange-900"
+        className="py-12 sm:py-24 px-2 sm:px-6 lg:px-8 relative z-10 bg-gradient-to-br from-amber-900 to-orange-900"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={staggerContainer}
       >
         <div className="max-w-7xl mx-auto">
-          <motion.div variants={fadeInUp} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+          <motion.div variants={fadeInUp} className="text-center mb-8 sm:mb-16">
+            <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6">
               Professional Templates That Win Jobs
             </h2>
-            <p className="text-xl text-amber-200 max-w-3xl mx-auto">
+            <p className="text-base xs:text-lg sm:text-xl text-amber-200 max-w-xs sm:max-w-3xl mx-auto">
               Choose from industry-tested templates designed by experts and loved by hiring managers
             </p>
           </motion.div>
 
           <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 border border-white/20"
+            className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-4 sm:p-12 border border-white/20"
             variants={fadeInUp}
             style={{ perspective: "1000px" }}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12 items-center">
               {/* 3D Template Preview */}
               <motion.div 
                 className="relative"
@@ -843,7 +873,7 @@ const Home = () => {
 
       {/* Enhanced Final CTA with Interactive Elements */}
       <motion.section
-        className="py-24 px-4 sm:px-6 lg:px-8 relative z-10"
+        className="py-12 sm:py-24 px-2 sm:px-6 lg:px-8 relative z-10"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
@@ -851,7 +881,7 @@ const Home = () => {
       >
         <div className="max-w-4xl mx-auto text-center">
           <motion.div 
-            className="bg-gradient-to-br from-amber-800 to-orange-800 rounded-3xl p-12 lg:p-16 shadow-2xl relative overflow-hidden"
+            className="bg-gradient-to-br from-amber-800 to-orange-800 rounded-2xl sm:rounded-3xl p-6 sm:p-12 lg:p-16 shadow-2xl relative overflow-hidden"
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
           >
@@ -963,23 +993,26 @@ const Home = () => {
       </motion.section>
 
       {/* Enhanced Footer with Animations */}
-      <footer className="bg-gradient-to-r from-amber-900 to-orange-900 text-white py-16 mt-auto relative z-10 overflow-hidden">
+      <footer className="bg-gradient-to-r from-amber-900 to-orange-900 text-white py-8 sm:py-16 mt-auto relative z-10 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <motion.div
-            className="absolute inset-0"
-            animate={{
-              backgroundImage: [
-                "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 100% 100%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-              ],
-            }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
+          {/* Hide animated background on mobile */}
+          {!isMobile && !prefersReducedMotion && (
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                backgroundImage: [
+                  "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+                  "radial-gradient(circle at 100% 100%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+                  "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+                ],
+              }}
+              transition={{ duration: 8, repeat: Infinity }}
+            />
+          )}
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
             {/* Brand */}
             <div className="col-span-1 md:col-span-2">
               <motion.h3 
@@ -1073,7 +1106,7 @@ const Home = () => {
           </div>
 
           {/* Bottom section */}
-          <div className="border-t border-amber-700 pt-8 flex flex-col md:flex-row items-center justify-between">
+          <div className="border-t border-amber-700 pt-6 sm:pt-8 flex flex-col md:flex-row items-center justify-between">
             <p className="text-amber-200 mb-4 md:mb-0">
               Crafted with ❤️ using React by{" "}
               <span className="font-semibold text-amber-100">Mohamed Jameel</span>

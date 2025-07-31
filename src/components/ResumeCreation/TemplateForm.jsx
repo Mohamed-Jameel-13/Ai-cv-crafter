@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TEMPLATES } from "@/data/templates";
+import AdUnit from "@/components/AdUnit";
 
 // Import form components from default resume workflow
 import PersonalDetailForm from "@/dashboard/resume/component/form/PersonalDetailForm";
@@ -293,7 +294,7 @@ const TemplateForm = () => {
       case "review":
         return (
           <div
-            className="p-5 shadow-lg rounded-lg border-t-4 mt-10 bg-white"
+            className="p-5 shadow-lg rounded-lg border-t-4 mt-10 bg-white flex flex-col min-h-[60vh]"
             style={{ borderTopColor: "rgb(246,196,158)" }}
           >
             <h2 className="font-bold text-xl text-slate-900">
@@ -303,7 +304,7 @@ const TemplateForm = () => {
               Review your information and generate your resume
             </p>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-6 flex-1 overflow-y-auto">
               <div>
                 <label className="text-sm font-medium text-slate-900">
                   Resume Title
@@ -351,40 +352,43 @@ const TemplateForm = () => {
               </div>
             </div>
 
-            <Button
-              onClick={generateResumeWithAI}
-              disabled={loading || !resumeTitle}
-              className="w-full text-black shadow-lg"
-              style={{
-                background:
-                  "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
-              }}
-              onMouseEnter={(e) => {
-                if (!loading && resumeTitle) {
-                  e.target.style.background =
-                    "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading && resumeTitle) {
-                  e.target.style.background =
-                    "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
-                }
-              }}
-              size="lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {resumeId ? "Updating Resume..." : "Generating Resume..."}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  {resumeId ? "Update Resume" : "Create Resume"}
-                </>
-              )}
-            </Button>
+            {/* Sticky button for mobile, normal for desktop */}
+            <div className="mt-4 w-full z-10 sm:static fixed left-0 bottom-0 px-4 pb-4 bg-white sm:bg-transparent sm:px-0 sm:pb-0 border-t border-slate-200 sm:border-0">
+              <Button
+                onClick={generateResumeWithAI}
+                disabled={loading || !resumeTitle}
+                className="w-full text-black shadow-lg"
+                style={{
+                  background:
+                    "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && resumeTitle) {
+                    e.target.style.background =
+                      "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading && resumeTitle) {
+                    e.target.style.background =
+                      "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
+                  }
+                }}
+                size="lg"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {resumeId ? "Updating Resume..." : "Generating Resume..."}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {resumeId ? "Update Resume" : "Create Resume"}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
       default:
@@ -397,10 +401,10 @@ const TemplateForm = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8 md:py-12 lg:py-16">
         {/* Back to Gallery Link */}
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-8">
           <Link
             to="/create/templates"
             className="text-sm text-slate-500 hover:text-slate-700"
@@ -409,87 +413,93 @@ const TemplateForm = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 gap-4 sm:gap-8 lg:grid-cols-5 lg:gap-12">
           {/* Form Section */}
           <div className="lg:col-span-3 order-2 lg:order-1">
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 border border-slate-200">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-2 sm:p-4 border border-slate-200">
               {/* Navigation Controls - Only Previous/Next buttons */}
-              <div className="flex justify-end mb-2">
-                <div className="flex gap-2">
-                  {activeSection > 1 && (
-                    <Button
-                      size="sm"
-                      onClick={handlePrevious}
-                      variant="outline"
-                      className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Previous
-                    </Button>
-                  )}
-                  {/* Hide Next button on review page in mobile view, show on desktop */}
-                  {activeSection < formSections.length && (
-                    <Button
-                      onClick={handleNext}
-                      disabled={!enableNext}
-                      className={`gap-2 text-black ${
-                        activeSection === 7 ? "hidden sm:flex" : "flex"
-                      }`}
-                      style={{
+              <div className="flex flex-col sm:flex-row justify-end mb-2 gap-2">
+                {activeSection > 1 && (
+                  <Button
+                    size="sm"
+                    onClick={handlePrevious}
+                    variant="outline"
+                    className="bg-white border-slate-300 hover:border-[rgb(63,39,34)] text-slate-700 hover:bg-slate-50"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Previous
+                  </Button>
+                )}
+                {/* Hide Next button on review page in mobile view, show on desktop */}
+                {activeSection < formSections.length && (
+                  <Button
+                    onClick={handleNext}
+                    disabled={!enableNext}
+                    className="gap-2 text-black flex"
+                    style={{
+                      background:
+                        "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
+                      "&:hover": {
                         background:
-                          "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))",
-                        "&:hover": {
-                          background:
-                            "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))",
-                        },
-                      }}
-                      size="sm"
-                      onMouseEnter={(e) => {
-                        e.target.style.background =
-                          "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background =
-                          "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
-                      }}
-                    >
-                      Next <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                          "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))",
+                      },
+                    }}
+                    size="sm"
+                    onMouseEnter={(e) => {
+                      e.target.style.background =
+                        "linear-gradient(to right, rgb(236,186,148), rgb(226,176,138))";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background =
+                        "linear-gradient(to right, rgb(246,196,158), rgb(236,186,148))";
+                    }}
+                  >
+                    Next <ArrowRight className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
 
               {/* Form Section */}
-              <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-lg p-2 sm:p-4 shadow-sm border border-slate-100">
                 {renderFormSection()}
               </div>
             </div>
           </div>
 
-          {/* Preview Section */}
-          <div className="lg:col-span-2 order-1 lg:order-2">
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 border border-slate-200">
-              <h2 className="font-bold text-xl mb-3 text-slate-900">
-                Template Preview
-              </h2>
-              <div
-                className="h-64 sm:h-80 lg:h-96 rounded-lg flex items-center justify-center border border-slate-200"
-                style={{
-                  background:
-                    "linear-gradient(to bottom right, rgba(246,196,158,0.1), rgba(255,228,196,0.1))",
-                }}
-              >
-                <div className="text-center">
-                  <div className="text-4xl mb-3">📄</div>
-                  <h3 className="font-semibold text-lg text-slate-900">
-                    {template.name}
-                  </h3>
-                  <p className="text-sm text-slate-600 mt-2 px-4">
-                    {template.description}
-                  </p>
-                  <div className="mt-4 text-xs text-slate-500">
-                    Preview will be available after generation
-                  </div>
+          {/* Ad Unit for desktop/tablet */}
+          <div className="hidden lg:block lg:col-span-2 order-1 lg:order-2">
+            <AdUnit />
+          </div>
+        </div>
+
+        {/* Ad Unit for mobile (below form) */}
+        <div className="block lg:hidden my-4 sm:my-6">
+          <AdUnit />
+        </div>
+
+        {/* Preview Section */}
+        <div className="lg:col-span-2 order-1 lg:order-2 mt-4 lg:mt-0">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-2 sm:p-4 border border-slate-200">
+            <h2 className="font-bold text-lg sm:text-xl mb-2 sm:mb-3 text-slate-900">
+              Template Preview
+            </h2>
+            <div
+              className="h-48 sm:h-64 lg:h-96 rounded-lg flex items-center justify-center border border-slate-200"
+              style={{
+                background:
+                  "linear-gradient(to bottom right, rgba(246,196,158,0.1), rgba(255,228,196,0.1))",
+              }}
+            >
+              <div className="text-center">
+                <div className="text-4xl mb-3">📄</div>
+                <h3 className="font-semibold text-lg text-slate-900">
+                  {template.name}
+                </h3>
+                <p className="text-sm text-slate-600 mt-2 px-4">
+                  {template.description}
+                </p>
+                <div className="mt-4 text-xs text-slate-500">
+                  Preview will be available after generation
                 </div>
               </div>
             </div>

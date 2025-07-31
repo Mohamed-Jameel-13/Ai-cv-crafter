@@ -211,12 +211,12 @@ function Header() {
               <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 rounded-xl blur-md opacity-50 -z-10" />
             </motion.div>
             
-            <div className="hidden sm:block">
+            <div className="block">
               <motion.h1 
-                className="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-900 via-orange-800 to-amber-900 bg-clip-text text-transparent"
+                className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-900 via-orange-800 to-amber-900 bg-clip-text text-transparent"
                 whileHover={{ scale: 1.02 }}
               >
-                Write<span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-black via-   to-black bg-clip-text text-transparent">Spark</span>
+                Write<span className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-black via-   to-black bg-clip-text text-transparent">Spark</span>
               </motion.h1>
               
               <motion.p 
@@ -385,7 +385,7 @@ function Header() {
                </div>
              ) : (
               <div className="flex items-center space-x-3">
-                <motion.div whileHover={{ scale: 1.05 }}>
+                <motion.div whileHover={{ scale: 1.05 }} className="hidden md:block">
                   <Button
                     onClick={() => navigate('/auth/sign-in')}
                     variant="ghost"
@@ -398,15 +398,15 @@ function Header() {
                 <motion.div whileHover={{ scale: 1.05 }}>
                   <Button
                     onClick={() => navigate('/auth/sign-in')}
-                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm font-medium group"
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-4 md:px-6 py-1.5 md:py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-xs md:text-sm font-medium group"
                   >
                     Get Started
                     <motion.div
-                      className="ml-2"
+                      className="ml-1 md:ml-2"
                       animate={{ x: [0, 3, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
                     </motion.div>
                   </Button>
                 </motion.div>

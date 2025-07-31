@@ -182,3 +182,57 @@ pnpm-lock.yaml
 
 # Local development
 .local
+
+# Database and local files
+*.db
+*.sqlite
+*.sqlite3
+pglite-debug.log
+
+# Performance and debug files
+mobile-performance-check.js
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Configuration files with sensitive data
+firebase_encrypted.js
+firebase_config.js
+
+# Log files
+*.log
+logs/
+
+# Cache directories
+.cache/
+cache/
+
+# Temporary build files
+*.tsbuildinfo
+
+# Local SSL certificates
+*.pem
+*.key
+*.crt
+
+# Local development server files
+.localhost
+
+# Ad-related files
+ads.txt
+*.ad
+*.ads
+ad-*.js
+ad-*.jsx
+ad-*.ts
+ad-*.tsx
+**/ads/
+**/advertisements/
+**/advertising/
+
+# Markdown files (except README)
+*.md
+!README.md
+!README_ENCRYPTION.md

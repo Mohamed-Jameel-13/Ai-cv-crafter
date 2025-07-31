@@ -4,6 +4,7 @@ import FormSection from "../../component/FormSection";
 import ResumePreview from "../../component/ResumePreview";
 import { ResumeContext } from "@/context/ResumeContext";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
+import AdUnit from "@/components/AdUnit";
 
 const EditResume = () => {
   const params = useParams();
@@ -33,9 +34,17 @@ const EditResume = () => {
   return (
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div className="min-h-screen">
-        <div className="grid grid-cols-1 lg:grid-cols-2 p-4 sm:p-6 md:p-8 lg:p-10 gap-6 lg:gap-10 max-w-7xl mx-auto">
-          <FormSection />
-          <ResumePreview />
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 p-2 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto">
+          <div className="lg:col-span-1">
+            <FormSection />
+          </div>
+          {/* Ad Unit between form and preview, desktop/tablet only */}
+          <div className="hidden lg:flex lg:col-span-1 items-center justify-center">
+            <AdUnit />
+          </div>
+          <div className="lg:col-span-1 mt-4 lg:mt-0">
+            <ResumePreview />
+          </div>
         </div>
       </div>
     </ResumeContext.Provider>

@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import AdUnit from "@/components/AdUnit";
 
 const Dashboard = () => {
   const { user } = useContext(UserContext);
@@ -150,8 +151,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="p-4 sm:p-6 md:p-8 lg:p-10 md:px-20 lg:px-32 max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-6">
+      {/* Ad Unit fixed to right center for desktop only */}
+      <div className="hidden lg:flex fixed right-32 top-1/2 -translate-y-1/2 z-40">
+        <AdUnit />
+      </div>
+      <div className="p-2 sm:p-4 md:p-8 lg:p-10 md:px-4 lg:px-32 max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 sm:mb-8 gap-4 sm:gap-6">
           <div className="flex-1">
             <h1 className="font-bold text-2xl sm:text-3xl lg:text-4xl text-amber-900 mb-2">
               My Resume
@@ -160,7 +165,7 @@ const Dashboard = () => {
               Start Creating AI Resume for your next job role
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto lg:flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto lg:flex-shrink-0">
             {resumeList.length > 0 && (
               <Button
                 variant={isSelectionMode ? "default" : "outline"}
@@ -197,8 +202,8 @@ const Dashboard = () => {
 
         {/* Bulk Actions Toolbar */}
         {isSelectionMode && resumeList.length > 0 && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 sm:p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
               <div className="flex items-center gap-4">
                 <Button
                   variant="outline"
@@ -236,7 +241,7 @@ const Dashboard = () => {
         {loading ? (
           <Loader />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 mt-10 gap-3 sm:gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 mt-6 sm:mt-10 gap-2 sm:gap-4 md:gap-5">
             {resumeList.length > 0 ? (
               resumeList.map((resume) => (
                 <div key={resume.id}>
@@ -259,7 +264,7 @@ const Dashboard = () => {
                 </div>
               ))
             ) : (
-              <div className="col-span-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
+              <div className="col-span-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-12 text-center">
                 <div>
                   <PlusSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <p className="text-gray-500 text-lg mb-2">No resumes found</p>
