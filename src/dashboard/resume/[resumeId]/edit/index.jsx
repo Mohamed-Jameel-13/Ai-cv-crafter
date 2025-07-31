@@ -34,15 +34,11 @@ const EditResume = () => {
   return (
     <ResumeContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div className="min-h-screen">
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 p-2 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto">
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4 p-2 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto">
+          <div className="lg:col-span-2 xl:col-span-2">
             <FormSection />
           </div>
-          {/* Ad Unit between form and preview, desktop/tablet only */}
-          <div className="hidden lg:flex lg:col-span-1 items-center justify-center">
-            <AdUnit />
-          </div>
-          <div className="lg:col-span-1 mt-4 lg:mt-0">
+          <div className="lg:col-span-1 xl:col-span-2 flex items-start justify-center mt-4 lg:mt-0">
             <ResumePreview />
           </div>
         </div>

@@ -289,7 +289,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="title"
                     value={item?.title || ""}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="e.g. Software Engineer"
                   />
                 </div>
@@ -301,7 +301,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="companyName"
                     value={item?.companyName || ""}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="e.g. Google"
                   />
                 </div>
@@ -313,7 +313,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="city"
                     value={item?.city || ""}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="e.g. San Francisco"
                   />
                 </div>
@@ -325,7 +325,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="state"
                     value={item?.state || ""}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="e.g. CA"
                   />
                 </div>
@@ -338,7 +338,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="startDate"
                     value={item?.startDate || ""}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                   />
                 </div>
                 <div className="w-full">
@@ -350,7 +350,7 @@ const ExperienceForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="endDate"
                     value={item?.endDate || ""}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     disabled={item?.currentlyWorking}
                   />
                   <div className="mt-2">

@@ -79,6 +79,63 @@
   .input-override {
     @apply bg-white;
   }
+  
+  /* Ensure all form inputs have white background */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  input[type="search"],
+  textarea,
+  select {
+    @apply bg-white;
+  }
+
+  /* RichTextEditor specific styling */
+  .rswe-editor {
+    background-color: white !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.375rem !important;
+    min-height: 120px !important;
+    padding: 0.75rem !important;
+  }
+
+  .rswe-editor:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+  }
+
+  .rswe-toolbar {
+    background-color: #f9fafb !important;
+    border: 1px solid #d1d5db !important;
+    border-bottom: none !important;
+    border-radius: 0.375rem 0.375rem 0 0 !important;
+    padding: 0.5rem !important;
+  }
+
+  .rswe-toolbar button {
+    background-color: white !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.25rem !important;
+    padding: 0.25rem 0.5rem !important;
+    margin-right: 0.25rem !important;
+    transition: all 0.2s !important;
+  }
+
+  .rswe-toolbar button:hover {
+    background-color: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+  }
+
+  .rswe-toolbar button.active {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border-color: #3b82f6 !important;
+  }
 }
 
 /* Enhanced A4 Print Styles with Better Theme Color Preservation */
@@ -779,5 +836,35 @@
   
   main {
     padding-top: 0 !important;
+  }
+}
+
+/* A4 Preview Responsive Styling */
+.a4-preview {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 1024px) {
+  .a4-preview {
+    width: 700px;
+    max-width: 700px;
+    min-height: 29.7cm;
+    box-shadow: 0 4px 32px 0 rgba(0,0,0,0.12), 0 1.5px 6px 0 rgba(0,0,0,0.08);
+    border-radius: 0.5rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .a4-preview {
+    width: 100%;
+    min-width: 0;
+    min-height: unset;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+    border-radius: 0.5rem;
   }
 }

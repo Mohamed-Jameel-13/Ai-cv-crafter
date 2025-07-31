@@ -129,7 +129,7 @@ const PersonalDetailForm = ({
               required
               onChange={handleInputChange}
               placeholder="Enter firstName"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="w-full">
@@ -140,7 +140,7 @@ const PersonalDetailForm = ({
               required
               onChange={handleInputChange}
               placeholder="Enter lastName"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -151,7 +151,7 @@ const PersonalDetailForm = ({
               required
               onChange={handleInputChange}
               placeholder="Enter your Jobtitle"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -164,7 +164,7 @@ const PersonalDetailForm = ({
               required
               onChange={handleInputChange}
               placeholder="Enter your Address"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="w-full">
@@ -177,7 +177,7 @@ const PersonalDetailForm = ({
               required
               onChange={handleInputChange}
               placeholder="Enter your Phone no"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="w-full">
@@ -190,7 +190,7 @@ const PersonalDetailForm = ({
               required
               onChange={handleInputChange}
               placeholder="Enter your Email"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -202,7 +202,7 @@ const PersonalDetailForm = ({
               value={formData.personalDetail.linkedin}
               onChange={handleInputChange}
               placeholder="Enter your Linkedin link"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -214,7 +214,7 @@ const PersonalDetailForm = ({
               value={formData.personalDetail.github}
               onChange={handleInputChange}
               placeholder="Enter your Github link"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
           <div className="col-span-1 md:col-span-2">
@@ -226,7 +226,7 @@ const PersonalDetailForm = ({
               value={formData.personalDetail.portfolio}
               onChange={handleInputChange}
               placeholder="Enter your portfolio link"
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
         </div>

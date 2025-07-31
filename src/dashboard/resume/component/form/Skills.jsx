@@ -338,7 +338,7 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 <label className="text-xs font-medium">Category</label>
                 <Input
                   value={item.category}
-                  className="w-full"
+                  className="w-full bg-white"
                   onChange={(e) =>
                     handleChange(index, "category", e.target.value)
                   }
@@ -351,7 +351,7 @@ const Skills = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 </label>
                 <Input
                   value={item.skills}
-                  className="w-full"
+                  className="w-full bg-white"
                   onChange={(e) =>
                     handleChange(index, "skills", e.target.value)
                   }

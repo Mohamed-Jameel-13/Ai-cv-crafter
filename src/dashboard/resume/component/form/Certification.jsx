@@ -376,7 +376,7 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="name"
                     value={item.name}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="e.g., AWS Certified Solutions Architect"
                   />
                 </div>
@@ -388,7 +388,7 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="issuer"
                     value={item.issuer}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="e.g., Amazon Web Services"
                   />
                 </div>
@@ -401,7 +401,7 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     type="date"
                     value={item.date}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                   />
                 </div>
                 <div className="w-full">
@@ -413,7 +413,7 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     type="date"
                     value={item.expirationDate}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                   />
                 </div>
                 <div className="w-full">
@@ -428,7 +428,7 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="link"
                     value={item.link}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="https://certification-provider.com/certificate/abc123"
                   />
                 </div>
@@ -477,7 +477,7 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     onChange={(e) =>
                       handleTextareaChange(index, e.target.value)
                     }
-                    className="w-full min-h-[100px]"
+                    className="w-full min-h-[100px] bg-white"
                     placeholder="Describe the skills and knowledge gained from this certification, competencies acquired, or professional value..."
                   />
                 </div>

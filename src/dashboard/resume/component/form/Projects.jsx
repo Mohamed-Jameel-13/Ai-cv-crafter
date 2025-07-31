@@ -473,7 +473,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   onChange={(e) =>
                     handleChange(projectIndex, "name", e.target.value)
                   }
-                  className="w-full"
+                  className="w-full bg-white"
                   placeholder="Enter project name"
                 />
               </div>
@@ -487,7 +487,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   onChange={(e) =>
                     handleChange(projectIndex, "technologies", e.target.value)
                   }
-                  className="w-full"
+                  className="w-full bg-white"
                   placeholder="React, Node.js, MongoDB"
                 />
               </div>
@@ -503,7 +503,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   onChange={(e) =>
                     handleChange(projectIndex, "startDate", e.target.value)
                   }
-                  className="w-full"
+                  className="w-full bg-white"
                 />
               </div>
 
@@ -518,7 +518,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   onChange={(e) =>
                     handleChange(projectIndex, "endDate", e.target.value)
                   }
-                  className="w-full"
+                  className="w-full bg-white"
                 />
               </div>
 
@@ -566,7 +566,7 @@ const Projects = ({ resumeId, email, enableNext, isTemplateMode }) => {
                   onChange={(e) =>
                     handleChange(projectIndex, "description", e.target.value)
                   }
-                  className="w-full min-h-[80px]"
+                  className="w-full min-h-[80px] bg-white"
                   placeholder="Describe your project and its key features..."
                 />
               </div>

@@ -387,7 +387,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="school"
                     value={item.school}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="Enter school/university name"
                   />
                 </div>
@@ -399,7 +399,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="degree"
                     value={item.degree}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="Bachelor's, Master's, PhD, etc."
                   />
                 </div>
@@ -411,7 +411,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="city"
                     value={item.city}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="City"
                   />
                 </div>
@@ -423,7 +423,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="state"
                     value={item.state}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="State/Province"
                   />
                 </div>
@@ -435,7 +435,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="fieldOfStudy"
                     value={item.fieldOfStudy}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="Computer Science, Engineering, etc."
                   />
                 </div>
@@ -448,7 +448,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     name="graduationDate"
                     value={item.graduationDate}
                     onChange={(event) => handleChange(index, event)}
-                    className="w-full"
+                    className="w-full bg-white"
                   />
                 </div>
                 <div className="col-span-1 lg:col-span-2">
@@ -492,7 +492,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     onChange={(e) =>
                       handleTextareaChange(index, e.target.value)
                     }
-                    className="w-full min-h-[100px]"
+                    className="w-full min-h-[100px] bg-white"
                     placeholder="Describe your educational experience, relevant coursework, achievements, or projects..."
                   />
                 </div>

@@ -26,7 +26,7 @@ const ResumePreview = () => {
 
   return (
     <div
-      className="shadow-lg h-full p-3 sm:p-6 lg:p-8 border-t-20 bg-white print:shadow-none print:p-8 min-h-full"
+      className="a4-preview shadow-lg h-full p-3 sm:p-6 lg:p-8 border-t-20 bg-white print:shadow-none print:p-8 min-h-full mx-auto"
       style={{
         borderTopColor: themeColor,
         borderTopWidth: "20px",
@@ -34,21 +34,21 @@ const ResumePreview = () => {
         WebkitPrintColorAdjust: "exact",
         printColorAdjust: "exact",
         colorAdjust: "exact",
-      }}
-    >
-      {resumeInfo && (
-        <div className="flex flex-col space-y-2 sm:space-y-3 text-xs sm:text-sm lg:text-base print:text-base">
-          <PersonalDetailPreview resumeInfo={resumeInfo} />
-          <SummaryDetails resumeInfo={resumeInfo} />
-          <ExperiencePreview resumeInfo={resumeInfo} />
-          <SkillsPreview resumeInfo={resumeInfo} />
-          <ProjectsPreview resumeInfo={resumeInfo} />
-          <EducationalPreview resumeInfo={resumeInfo} />
-          <CertificationPreview resumeInfo={resumeInfo} />
-        </div>
-      )}
-    </div>
-  );
-};
+        }}
+      >
+        {resumeInfo && (
+          <div className="flex flex-col space-y-2 sm:space-y-3 text-xs sm:text-sm lg:text-base print:text-base">
+            <PersonalDetailPreview resumeInfo={resumeInfo} />
+            <SummaryDetails resumeInfo={resumeInfo} />
+            <ExperiencePreview resumeInfo={resumeInfo} />
+            <SkillsPreview resumeInfo={resumeInfo} />
+            <ProjectsPreview resumeInfo={resumeInfo} />
+            <EducationalPreview resumeInfo={resumeInfo} />
+            <CertificationPreview resumeInfo={resumeInfo} />
+          </div>
+        )}
+      </div>
+    );
+  };
 
 export default ResumePreview;

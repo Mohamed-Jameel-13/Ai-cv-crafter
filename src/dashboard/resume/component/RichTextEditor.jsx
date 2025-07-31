@@ -296,19 +296,31 @@ function RichTextEditor({
       </div>
 
       <EditorProvider>
-        <Editor value={value} onChange={handleEditorChange}>
-          <Toolbar>
-            <BtnBold />
-            <BtnItalic />
-            <BtnUnderline />
-            <BtnStrikeThrough />
-            <Separator />
-            <BtnNumberedList />
-            <BtnBulletList />
-            <Separator />
-            <BtnLink />
-          </Toolbar>
-        </Editor>
+        <div className="w-full border border-gray-300 rounded-md overflow-hidden bg-white">
+          <Editor 
+            value={value} 
+            onChange={handleEditorChange}
+            style={{
+              backgroundColor: 'white',
+              border: 'none',
+              borderRadius: '0',
+              minHeight: '120px',
+              padding: '0.75rem'
+            }}
+          >
+            <Toolbar>
+              <BtnBold />
+              <BtnItalic />
+              <BtnUnderline />
+              <BtnStrikeThrough />
+              <Separator />
+              <BtnNumberedList />
+              <BtnBulletList />
+              <Separator />
+              <BtnLink />
+            </Toolbar>
+          </Editor>
+        </div>
       </EditorProvider>
 
       {/* AI Suggestions Section */}

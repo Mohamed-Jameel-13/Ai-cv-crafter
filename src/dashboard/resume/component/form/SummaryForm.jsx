@@ -250,7 +250,7 @@ const SummaryForm = ({ resumeId, email, enableNext, isTemplateMode }) => {
             </AIButton>
           </div>
           <Textarea
-            className="mt-5 w-full min-h-32 resize-none"
+            className="mt-5 w-full min-h-32 resize-none bg-white"
             required
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
