@@ -55,11 +55,22 @@ Example format:
 
 const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
-  const [certificationList, setCertificationList] = useState(() =>
-    resumeInfo?.certifications?.length > 0
-      ? resumeInfo.certifications
-      : [formField],
-  );
+  const [certificationList, setCertificationList] = useState(() => {
+    // Ensure we have valid certification data
+    const existingCertifications = resumeInfo?.certifications || [];
+    if (existingCertifications.length > 0) {
+      // Validate and sanitize each certification entry
+      return existingCertifications.map(cert => ({
+        name: cert.name || "",
+        issuer: cert.issuer || "",
+        date: cert.date || "",
+        expirationDate: cert.expirationDate || "",
+        link: cert.link || "",
+        description: cert.description || "",
+      }));
+    }
+    return [formField];
+  });
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [currentCertificationIndex, setCurrentCertificationIndex] =
@@ -70,11 +81,21 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const [cooldownTimeRemaining, setCooldownTimeRemaining] = useState({});
   const intervalRef = useRef(null);
 
-  // Update context whenever certificationList changes
+  // Update context whenever certificationList changes with validation
   useEffect(() => {
+    // Validate certification data before updating context
+    const validatedCertifications = certificationList.map(cert => ({
+      name: String(cert.name || "").trim(),
+      issuer: String(cert.issuer || "").trim(),
+      date: String(cert.date || "").trim(),
+      expirationDate: String(cert.expirationDate || "").trim(),
+      link: String(cert.link || "").trim(),
+      description: String(cert.description || "").trim(),
+    }));
+
     setResumeInfo((prev) => ({
       ...prev,
-      certifications: certificationList,
+      certifications: validatedCertifications,
     }));
   }, [certificationList, setResumeInfo]);
 
@@ -88,11 +109,21 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
       setIsAutoSaving(true);
       try {
+        // Validate data before saving
+        const validatedData = certificationData.map(cert => ({
+          name: String(cert.name || "").trim(),
+          issuer: String(cert.issuer || "").trim(),
+          date: String(cert.date || "").trim(),
+          expirationDate: String(cert.expirationDate || "").trim(),
+          link: String(cert.link || "").trim(),
+          description: String(cert.description || "").trim(),
+        }));
+
         await EncryptedFirebaseService.updateResumeField(
           email,
           resumeId,
           "certifications",
-          certificationData,
+          validatedData,
         );
         enableNext(true);
       } catch (error) {
@@ -118,27 +149,71 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
 
   const handleChange = useCallback((index, event) => {
     const { name, value } = event.target;
+    
+    // Validate and sanitize the input value
+    const sanitizedValue = String(value || "").trim();
+    
+    // Debug logging to track data changes
+    console.log(`🔍 Certification ${index} ${name} change:`, {
+      originalValue: value,
+      sanitizedValue: sanitizedValue,
+      fieldName: name,
+      index: index
+    });
+    
     setCertificationList((prev) => {
       const newEntries = [...prev];
-      newEntries[index][name] = value;
+      // Ensure the entry exists and has the proper structure
+      if (!newEntries[index]) {
+        newEntries[index] = { ...formField };
+      }
+      newEntries[index][name] = sanitizedValue;
+      
+      // Debug logging for the updated entry
+      console.log(`✅ Updated certification ${index}:`, newEntries[index]);
+      
       return newEntries;
     });
   }, []);
 
   const addNewCertification = useCallback(() => {
-    setCertificationList((prev) => [...prev, { ...formField }]);
+    setCertificationList((prev) => {
+      const newList = [...prev, { ...formField }];
+      console.log("➕ Added new certification, total count:", newList.length);
+      return newList;
+    });
   }, []);
 
   const removeCertification = useCallback(() => {
     if (certificationList.length > 1) {
-      setCertificationList((prev) => prev.slice(0, -1));
+      setCertificationList((prev) => {
+        const newList = prev.slice(0, -1);
+        console.log("➖ Removed certification, total count:", newList.length);
+        return newList;
+      });
     }
   }, [certificationList.length]);
 
   const handleTextareaChange = useCallback((index, value) => {
+    // Validate and sanitize the textarea value
+    const sanitizedValue = String(value || "").trim();
+    
+    console.log(`🔍 Certification ${index} description change:`, {
+      originalValue: value,
+      sanitizedValue: sanitizedValue,
+      index: index
+    });
+    
     setCertificationList((prev) => {
       const newEntries = [...prev];
-      newEntries[index].description = value;
+      // Ensure the entry exists and has the proper structure
+      if (!newEntries[index]) {
+        newEntries[index] = { ...formField };
+      }
+      newEntries[index].description = sanitizedValue;
+      
+      console.log(`✅ Updated certification ${index} description:`, newEntries[index]);
+      
       return newEntries;
     });
   }, []);
@@ -263,7 +338,18 @@ const Certification = ({ resumeId, email, enableNext, isTemplateMode }) => {
         .replace("{link}", certification.link || "N/A");
 
       const aiResponse = await sendMessageToAI(certificationPrompt);
+      
+      // Handle response text extraction properly
       let responseText = aiResponse;
+      if (
+        typeof aiResponse === "object" &&
+        aiResponse.response &&
+        aiResponse.response.text
+      ) {
+        responseText = aiResponse.response.text();
+      } else if (typeof aiResponse === "object" && aiResponse.response) {
+        responseText = aiResponse.response;
+      }
 
       const jsonMatch = responseText.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
