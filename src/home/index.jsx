@@ -454,6 +454,7 @@ const Home = () => {
                   variant="outline"
                   size="lg"
                   className="border-2 border-amber-600 text-amber-800 hover:bg-amber-50 font-semibold py-4 px-8 rounded-full shadow-lg text-lg group bg-white/80 backdrop-blur-sm"
+                  onClick={() => window.open('https://youtu.be/KDPSBU2k3DE', '_blank')}
                 >
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
@@ -956,6 +957,7 @@ const Home = () => {
                     variant="outline"
                     size="lg"
                     className="border-2 border-white text-white hover:bg-white hover:text-amber-800 font-semibold py-4 px-10 rounded-full shadow-lg text-lg bg-white/10 backdrop-blur-sm"
+                    onClick={() => window.open('https://youtu.be/KDPSBU2k3DE', '_blank')}
                   >
                     View Live Examples
                   </Button>
@@ -1086,7 +1088,7 @@ const Home = () => {
                   { name: "Help Center", href: "#help" },
                   { name: "Privacy Policy", href: "#privacy" },
                   { name: "Terms of Service", href: "#terms" },
-                  { name: "Contact Us", href: "#contact" },
+                  { name: "Contact Us", href: "/contact" },
                 ].map((link, index) => (
                   <motion.li 
                     key={index}
