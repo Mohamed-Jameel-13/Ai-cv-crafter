@@ -29,12 +29,21 @@ const EducationalPreview = ({ resumeInfo }) => {
                 .join(", ")}
             </span>
           </div>
-          <div className="text-xs flex justify-between">
-            <span>
-              {educationItem?.degree || "Degree not specified"} in{" "}
-              {educationItem?.fieldOfStudy || "Field not specified"}
-            </span>
-            <span>{educationItem?.graduationDate || "Date not specified"}</span>
+          <div className="text-xs flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 flex-1">
+              <span className="font-medium">
+                {educationItem?.degree || "Degree not specified"} in{" "}
+                {educationItem?.fieldOfStudy || "Field not specified"}
+              </span>
+              <span className="text-gray-600 text-xs">
+                {educationItem?.graduationDate || "Date not specified"}
+              </span>
+            </div>
+            {educationItem?.cgpa && (
+              <span className="font-medium text-xs ml-2 whitespace-nowrap">
+                CGPA: {educationItem.cgpa}
+              </span>
+            )}
           </div>
           {educationItem?.description && (
             <div

@@ -233,6 +233,7 @@ class TemplateAiService {
       school: edu.school || "", // Fixed: using school instead of universityName
       fieldOfStudy: edu.fieldOfStudy || "",
       graduationDate: edu.graduationDate || "",
+      cgpa: edu.cgpa || "",
       description: cleanHtml(edu.description || ""), // Clean HTML content from education description
     }));
 
@@ -316,6 +317,7 @@ ${index + 1}. ${edu.degree}
    Institution: ${edu.school}
    Field of Study: ${edu.fieldOfStudy}
    Graduation Date: ${edu.graduationDate}
+   CGPA: ${edu.cgpa || "Not specified"}
    Description: ${edu.description}
 `,
   )
@@ -816,7 +818,7 @@ ${(resumeData.education || [])
     (edu) => `
 \\textbf{${escapeLatex(edu.degree || "")}}\\\\
 ${escapeLatex(edu.school || "")}\\\\
-${escapeLatex(edu.fieldOfStudy || "")} | ${escapeLatex(edu.graduationDate || "")}\\\\[6pt]
+${escapeLatex(edu.fieldOfStudy || "")} | ${escapeLatex(edu.graduationDate || "")}${edu.cgpa ? ` | CGPA: ${escapeLatex(edu.cgpa)}` : ""}\\\\[6pt]
 `,
   )
   .join("")}
@@ -1066,6 +1068,7 @@ ${escapeLatex(edu.fieldOfStudy || "")} | ${escapeLatex(edu.graduationDate || "")
       school: edu.school || "",
       fieldOfStudy: edu.fieldOfStudy || "",
       graduationDate: edu.graduationDate || "",
+      cgpa: edu.cgpa || "",
     }));
 
     const skillsList = Array.isArray(skills)
@@ -1197,6 +1200,7 @@ ${index + 1}. ${edu.degree}
    Institution: ${edu.school}
    Field of Study: ${edu.fieldOfStudy}
    Graduation Date: ${edu.graduationDate}
+   CGPA: ${edu.cgpa || "Not specified"}
 `,
   )
   .join("")}
@@ -1479,10 +1483,10 @@ ${
   certifications.length > 0
     ? certifications
         .map((cert) => {
-          // Build links section for certifications similar to projects
+          // Build links section for certifications with proper spacing and alignment
           let linksSection = "";
           if (cert.link) {
-            linksSection = ` \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{Link}}`;
+            linksSection = ` \\textbf{\\textperiodcentered} \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{\\small Link}}`;
           }
 
           return `  \\resumeSubheading
@@ -1509,14 +1513,8 @@ ${education
   .map(
     (edu) => `  \\resumeSubheading
     {${escapeLatex(edu.degree || "Bachelor of Science")}}{${escapeLatex(formatDate(edu.graduationDate) || "2024")}}
-    {${escapeLatex(edu.school || "University Name")}}{${escapeLatex(edu.location || "")}}
-    ${
-      edu.fieldOfStudy
-        ? `\\resumeItemListStart
-      \\resumeItem{Major: ${escapeLatex(edu.fieldOfStudy)}}
-    \\resumeItemListEnd`
-        : ""
-    }`,
+    {${escapeLatex(edu.school || "University Name")} in ${escapeLatex(edu.fieldOfStudy || "")}}{${edu.cgpa ? `CGPA: ${escapeLatex(edu.cgpa)}` : escapeLatex(edu.location || "")}}
+`,
   )
   .join("\n")}
 \\resumeSubHeadingListEnd
@@ -1663,6 +1661,7 @@ ${education
       school: edu.school || "",
       fieldOfStudy: edu.fieldOfStudy || "",
       graduationDate: formatDate(edu.graduationDate) || "",
+      cgpa: edu.cgpa || "",
       description: cleanHtml(edu.description || ""), // Clean HTML content from education description
     }));
 
@@ -1881,14 +1880,14 @@ ${
   certificationsList.length > 0
     ? certificationsList
         .map((cert) => {
-          // Build links section for certifications similar to projects
+          // Build links section for certifications with proper alignment
           let linksSection = "";
           if (cert.link) {
-            linksSection = ` \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{Link}}`;
+            linksSection = ` \\textbf{\\textperiodcentered} \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{\\small Link}}`;
           }
           return `  \\resumeSubheading
     {${cert.name}${linksSection}}{${cert.date}}
-    {${cert.issuer}}{${cert.expirationDate ? `Expires: ${cert.expirationDate}` : ""}}$${
+    {${cert.issuer}}{${cert.expirationDate ? `Expires: ${cert.expirationDate}` : ""}}${
       cert.description
         ? `
     \\resumeItemListStart
@@ -1910,7 +1909,7 @@ ${educationHistory
   .map(
     (edu) => `  \\resumeSubheading
     {${edu.school}}{${edu.graduationDate}}
-    {${edu.degree}}{${edu.fieldOfStudy || "Field of Study"}}${
+    {${edu.degree} in ${edu.fieldOfStudy || "Field of Study"}}{${edu.cgpa ? `CGPA: ${edu.cgpa}` : ""}}${
       edu.description
         ? `
     \\resumeItemListStart
@@ -1963,6 +1962,7 @@ ${educationHistory
 ${index + 1}. ${edu.degree} from ${edu.school}
    Field: ${edu.fieldOfStudy}
    Graduation: ${edu.graduationDate}
+   CGPA: ${edu.cgpa || "Not specified"}
    Description: ${edu.description}
 `,
   )

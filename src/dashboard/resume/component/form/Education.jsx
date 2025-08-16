@@ -23,6 +23,7 @@ const formField = {
   state: "",
   fieldOfStudy: "",
   graduationDate: "",
+  cgpa: "",
   description: "",
 };
 
@@ -449,6 +450,19 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                     value={item.graduationDate}
                     onChange={(event) => handleChange(index, event)}
                     className="w-full bg-white"
+                  />
+                </div>
+                <div className="w-full">
+                  <label className="text-xs sm:text-sm font-medium mb-1 block">
+                    CGPA/GPA (Optional)
+                  </label>
+                  <Input
+                    name="cgpa"
+                    value={item.cgpa}
+                    onChange={(event) => handleChange(index, event)}
+                    className="w-full bg-white"
+                    placeholder="e.g., 3.8/4.0, 8.5/10"
+                    type="text"
                   />
                 </div>
                 <div className="col-span-1 lg:col-span-2">
