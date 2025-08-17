@@ -2,19 +2,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   useContext,
   useEffect,
   useState,
   useCallback,
   useRef,
-  memo,
 } from "react";
 import { ResumeContext } from "@/context/ResumeContext";
 import { toast } from "sonner";
 import EncryptedFirebaseService from "@/utils/firebase_encrypted";
 import { AIButton } from "@/components/ui/ai-button";
 import { sendMessageToAI } from "../../../../../service/AiModel";
-import { Brain } from "lucide-react";
+import { Brain, ChevronDown } from "lucide-react";
+import PropTypes from "prop-types";
 
 const formField = {
   school: "",
@@ -23,7 +29,8 @@ const formField = {
   state: "",
   fieldOfStudy: "",
   graduationDate: "",
-  cgpa: "",
+  gradeType: "cgpa", // Default to CGPA
+  gradeValue: "",
   description: "",
 };
 
@@ -56,9 +63,19 @@ Example format:
 
 const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeContext);
-  const [educationList, setEducationList] = useState(() =>
-    resumeInfo?.education?.length > 0 ? resumeInfo.education : [formField],
-  );
+  const [educationList, setEducationList] = useState(() => {
+    if (resumeInfo?.education?.length > 0) {
+      // Handle backward compatibility: migrate old cgpa field to new structure
+      return resumeInfo.education.map(item => ({
+        ...item,
+        gradeType: item.gradeType || (item.cgpa ? "cgpa" : "cgpa"), // Default to cgpa
+        gradeValue: item.gradeValue || item.cgpa || "",
+        // Remove old cgpa field
+        cgpa: undefined
+      }));
+    }
+    return [formField];
+  });
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [currentEducationIndex, setCurrentEducationIndex] = useState(null);
@@ -124,6 +141,16 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
     });
   }, []);
 
+  const handleGradeTypeChange = useCallback((index, gradeType) => {
+    setEducationList((prev) => {
+      const newEntries = [...prev];
+      newEntries[index].gradeType = gradeType;
+      // Clear the grade value when changing type
+      newEntries[index].gradeValue = "";
+      return newEntries;
+    });
+  }, []);
+
   const addNewEducation = useCallback(() => {
     setEducationList((prev) => [...prev, { ...formField }]);
   }, []);
@@ -142,10 +169,50 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
     });
   }, []);
 
+  // Define checkAiGenerationCooldown before using it in useEffect
+  const checkAiGenerationCooldown = useCallback(async () => {
+    if (!resumeId || !email || isTemplateMode) return;
+
+    try {
+      const resumeData = await EncryptedFirebaseService.getResumeData(
+        email,
+        resumeId,
+      );
+      const newCanRegenerate = {};
+      const newCooldownTime = {};
+      const newHasGenerated = {};
+
+      educationList.forEach((_, index) => {
+        const canRegen = EncryptedFirebaseService.canRegenerateAI(
+          resumeData.aiGenerationTimestamps,
+          "education",
+        );
+        const timeRemaining =
+          EncryptedFirebaseService.getAiCooldownTimeRemaining(
+            resumeData.aiGenerationTimestamps,
+            "education",
+          );
+
+        newCanRegenerate[index] = canRegen;
+        newCooldownTime[index] = timeRemaining;
+
+        if (resumeData.aiGenerationTimestamps?.education) {
+          newHasGenerated[index] = true;
+        }
+      });
+
+      setCanRegenerate(newCanRegenerate);
+      setCooldownTimeRemaining(newCooldownTime);
+      setHasGenerated(newHasGenerated);
+    } catch (error) {
+      console.error("Error checking AI cooldown:", error);
+    }
+  }, [resumeId, email, isTemplateMode, educationList]);
+
   useEffect(() => {
     // Check cooldown status when component mounts
     checkAiGenerationCooldown();
-  }, [resumeId, email]);
+  }, [resumeId, email, checkAiGenerationCooldown]);
 
   useEffect(() => {
     // Update cooldown timers every minute
@@ -185,45 +252,6 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
       }
     };
   }, [canRegenerate, cooldownTimeRemaining]);
-
-  const checkAiGenerationCooldown = async () => {
-    if (!resumeId || !email || isTemplateMode) return;
-
-    try {
-      const resumeData = await EncryptedFirebaseService.getResumeData(
-        email,
-        resumeId,
-      );
-      const newCanRegenerate = {};
-      const newCooldownTime = {};
-      const newHasGenerated = {};
-
-      educationList.forEach((_, index) => {
-        const canRegen = EncryptedFirebaseService.canRegenerateAI(
-          resumeData.aiGenerationTimestamps,
-          "education",
-        );
-        const timeRemaining =
-          EncryptedFirebaseService.getAiCooldownTimeRemaining(
-            resumeData.aiGenerationTimestamps,
-            "education",
-          );
-
-        newCanRegenerate[index] = canRegen;
-        newCooldownTime[index] = timeRemaining;
-
-        if (resumeData.aiGenerationTimestamps?.education) {
-          newHasGenerated[index] = true;
-        }
-      });
-
-      setCanRegenerate(newCanRegenerate);
-      setCooldownTimeRemaining(newCooldownTime);
-      setHasGenerated(newHasGenerated);
-    } catch (error) {
-      console.error("Error checking AI cooldown:", error);
-    }
-  };
 
   const generateContent = async (educationIndex) => {
     const education = educationList[educationIndex];
@@ -269,7 +297,7 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseText);
-      } catch (parseError) {
+      } catch {
         const jsonMatch = responseText.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[0]);
@@ -454,16 +482,41 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
                 </div>
                 <div className="w-full">
                   <label className="text-xs sm:text-sm font-medium mb-1 block">
-                    CGPA/GPA (Optional)
+                    Grade (Optional)
                   </label>
-                  <Input
-                    name="cgpa"
-                    value={item.cgpa}
-                    onChange={(event) => handleChange(index, event)}
-                    className="w-full bg-white"
-                    placeholder="e.g., 3.8/4.0, 8.5/10"
-                    type="text"
-                  />
+                  <div className="flex gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-24 sm:w-32 justify-between bg-white border-gray-300 hover:border-gray-400"
+                        >
+                          {item.gradeType === "cgpa" ? "CGPA" : "Percentage"}
+                          <ChevronDown className="h-3 w-3 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-24 sm:w-32">
+                        <DropdownMenuItem onClick={() => handleGradeTypeChange(index, "cgpa")}>
+                          CGPA
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleGradeTypeChange(index, "percentage")}>
+                          Percentage
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Input
+                      name="gradeValue"
+                      value={item.gradeValue || ""}
+                      onChange={(event) => handleChange(index, event)}
+                      className="flex-1 bg-white"
+                      placeholder={
+                        item.gradeType === "cgpa" 
+                          ? "e.g., 3.8/4.0, 8.5/10" 
+                          : "e.g., 85%, 92%"
+                      }
+                      type="text"
+                    />
+                  </div>
                 </div>
                 <div className="col-span-1 lg:col-span-2">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
@@ -599,6 +652,13 @@ const Education = ({ resumeId, email, enableNext, isTemplateMode }) => {
       )}
     </div>
   );
+};
+
+Education.propTypes = {
+  resumeId: PropTypes.string,
+  email: PropTypes.string,
+  enableNext: PropTypes.func.isRequired,
+  isTemplateMode: PropTypes.bool,
 };
 
 export default Education;

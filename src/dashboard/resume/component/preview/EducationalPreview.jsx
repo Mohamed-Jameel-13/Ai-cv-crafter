@@ -39,9 +39,11 @@ const EducationalPreview = ({ resumeInfo }) => {
                 {educationItem?.graduationDate || "Date not specified"}
               </span>
             </div>
-            {educationItem?.cgpa && (
+            {(educationItem?.gradeValue || educationItem?.cgpa) && (
               <span className="font-medium text-xs ml-2 whitespace-nowrap">
-                CGPA: {educationItem.cgpa}
+                {educationItem?.gradeType === "percentage" 
+                  ? `Percentage: ${educationItem.gradeValue}` 
+                  : `CGPA: ${educationItem.gradeValue || educationItem.cgpa}`}
               </span>
             )}
           </div>

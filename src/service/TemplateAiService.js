@@ -233,7 +233,9 @@ class TemplateAiService {
       school: edu.school || "", // Fixed: using school instead of universityName
       fieldOfStudy: edu.fieldOfStudy || "",
       graduationDate: edu.graduationDate || "",
-      cgpa: edu.cgpa || "",
+      // Handle both old cgpa field and new grade structure
+      cgpa: edu.gradeValue || edu.cgpa || "",
+      gradeType: edu.gradeType || (edu.cgpa ? "cgpa" : ""),
       description: cleanHtml(edu.description || ""), // Clean HTML content from education description
     }));
 
@@ -317,7 +319,7 @@ ${index + 1}. ${edu.degree}
    Institution: ${edu.school}
    Field of Study: ${edu.fieldOfStudy}
    Graduation Date: ${edu.graduationDate}
-   CGPA: ${edu.cgpa || "Not specified"}
+   ${edu.gradeType === "percentage" ? "Percentage" : "CGPA"}: ${edu.cgpa || "Not specified"}
    Description: ${edu.description}
 `,
   )
@@ -1068,7 +1070,10 @@ ${escapeLatex(edu.fieldOfStudy || "")} | ${escapeLatex(edu.graduationDate || "")
       school: edu.school || "",
       fieldOfStudy: edu.fieldOfStudy || "",
       graduationDate: edu.graduationDate || "",
-      cgpa: edu.cgpa || "",
+      // Handle both old cgpa field and new grade structure
+      cgpa: edu.gradeValue || edu.cgpa || "",
+      gradeValue: edu.gradeValue || edu.cgpa || "",
+      gradeType: edu.gradeType || (edu.cgpa ? "cgpa" : ""),
     }));
 
     const skillsList = Array.isArray(skills)
@@ -1512,8 +1517,8 @@ ${
 ${education
   .map(
     (edu) => `  \\resumeSubheading
-    {${escapeLatex(edu.degree || "Bachelor of Science")}}{${escapeLatex(formatDate(edu.graduationDate) || "2024")}}
-    {${escapeLatex(edu.school || "University Name")} in ${escapeLatex(edu.fieldOfStudy || "")}}{${edu.cgpa ? `CGPA: ${escapeLatex(edu.cgpa)}` : escapeLatex(edu.location || "")}}
+    {${escapeLatex(edu.school || "University Name")}}{${escapeLatex(formatDate(edu.graduationDate) || "2024")}}
+    {${escapeLatex(edu.degree || "Bachelor of Science")}${edu.fieldOfStudy ? ` in ${escapeLatex(edu.fieldOfStudy)}` : ""}${edu.cgpa || edu.gradeValue ? ` (${edu.gradeType === "percentage" ? "Percentage" : "CGPA"}: ${escapeLatex(edu.cgpa || edu.gradeValue)})` : ""}}{}
 `,
   )
   .join("\n")}
@@ -1661,7 +1666,10 @@ ${education
       school: edu.school || "",
       fieldOfStudy: edu.fieldOfStudy || "",
       graduationDate: formatDate(edu.graduationDate) || "",
-      cgpa: edu.cgpa || "",
+      // Handle both old cgpa field and new grade structure
+      cgpa: edu.gradeValue || edu.cgpa || "",
+      gradeValue: edu.gradeValue || edu.cgpa || "",
+      gradeType: edu.gradeType || (edu.cgpa ? "cgpa" : ""),
       description: cleanHtml(edu.description || ""), // Clean HTML content from education description
     }));
 
@@ -1883,11 +1891,11 @@ ${
           // Build links section for certifications with proper alignment
           let linksSection = "";
           if (cert.link) {
-            linksSection = ` \\textbf{\\textperiodcentered} \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{\\small Link}}`;
+            linksSection = ` \\href{${cert.link}}{\\faIcon{link} \\ \\textbf{\\small Link}}`;
           }
           return `  \\resumeSubheading
     {${cert.name}${linksSection}}{${cert.date}}
-    {${cert.issuer}}{${cert.expirationDate ? `Expires: ${cert.expirationDate}` : ""}}${
+    {\\textit{${cert.issuer}}}{${cert.expirationDate ? `Expires: ${cert.expirationDate}` : ""}}${
       cert.description
         ? `
     \\resumeItemListStart
@@ -1909,7 +1917,7 @@ ${educationHistory
   .map(
     (edu) => `  \\resumeSubheading
     {${edu.school}}{${edu.graduationDate}}
-    {${edu.degree} in ${edu.fieldOfStudy || "Field of Study"}}{${edu.cgpa ? `CGPA: ${edu.cgpa}` : ""}}${
+    {${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ""}${edu.cgpa || edu.gradeValue ? ` (${edu.gradeType === "percentage" ? "Percentage" : "CGPA"}: ${edu.cgpa || edu.gradeValue})` : ""}}{}${
       edu.description
         ? `
     \\resumeItemListStart
@@ -1932,6 +1940,8 @@ CRITICAL REQUIREMENTS:
 6. IMPORTANT: For projects, include BOTH description AND all project highlights/bullets as separate \\resumeItem{} entries
 7. Each project bullet point should be its own \\resumeItem{} in the \\resumeItemListStart section
 8. MANDATORY SECTION ORDER: Professional Summary → Experience → Skills → Projects → Certifications → Education (EDUCATION MUST BE LAST SECTION)
+9. CRITICAL: For certification links, use EXACTLY this text: "Link" (NOT "Certificate" or any other text)
+10. CRITICAL: For education grades, show CGPA/Percentage values exactly as provided in the data
 
 RESUME DATA:
 Name: ${fullName}
@@ -1962,7 +1972,7 @@ ${educationHistory
 ${index + 1}. ${edu.degree} from ${edu.school}
    Field: ${edu.fieldOfStudy}
    Graduation: ${edu.graduationDate}
-   CGPA: ${edu.cgpa || "Not specified"}
+   ${edu.gradeType === "percentage" ? "Percentage" : "CGPA"}: ${edu.cgpa || edu.gradeValue || "Not specified"}
    Description: ${edu.description}
 `,
   )
